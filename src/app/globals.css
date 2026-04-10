@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #080810;
+    color: #ffffff;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Red glow text shadow */
+  .text-glow-red {
+    text-shadow: 0 0 30px rgba(224, 16, 30, 0.7), 0 0 60px rgba(224, 16, 30, 0.35);
+  }
+
+  /* Button red glow */
+  .btn-glow-red {
+    box-shadow: 0 4px 20px rgba(224, 16, 30, 0.45);
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+  }
+
+  .btn-glow-red:hover {
+    box-shadow: 0 6px 30px rgba(224, 16, 30, 0.65);
+    transform: translateY(-1px);
+  }
+
+  /* Horizontal rule / divider in red */
+  .divider-red {
+    background: linear-gradient(90deg, transparent 0%, #e0101e 40%, #e0101e 60%, transparent 100%);
+    height: 1px;
+    width: 100%;
+  }
+
+  /* Section with subtle grid texture */
+  .bg-grid-texture {
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 64px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 64px);
+  }
+}
