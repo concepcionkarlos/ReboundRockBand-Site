@@ -5,47 +5,70 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     background-color: #080810;
     color: #ffffff;
+    overflow-x: hidden;
   }
 
   * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    box-sizing: border-box;
+  }
+
+  /* Remove default select arrow appearance for custom styling */
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b80' stroke-width='2'%3E%3Cpath d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px !important;
   }
 }
 
 @layer utilities {
-  /* Red glow text shadow */
+  /* Red glow text */
   .text-glow-red {
-    text-shadow: 0 0 30px rgba(224, 16, 30, 0.7), 0 0 60px rgba(224, 16, 30, 0.35);
+    text-shadow: 0 0 30px rgba(224, 16, 30, 0.65), 0 0 60px rgba(224, 16, 30, 0.3);
   }
 
-  /* Button red glow */
+  /* Button with red glow shadow */
   .btn-glow-red {
-    box-shadow: 0 4px 20px rgba(224, 16, 30, 0.45);
-    transition: box-shadow 0.2s ease, transform 0.15s ease;
+    box-shadow: 0 4px 18px rgba(224, 16, 30, 0.4);
+    transition: box-shadow 0.2s ease, transform 0.15s ease, background-color 0.15s ease;
   }
-
   .btn-glow-red:hover {
-    box-shadow: 0 6px 30px rgba(224, 16, 30, 0.65);
+    box-shadow: 0 6px 28px rgba(224, 16, 30, 0.6);
     transform: translateY(-1px);
   }
+  .btn-glow-red:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 12px rgba(224, 16, 30, 0.35);
+  }
 
-  /* Horizontal rule / divider in red */
+  /* Horizontal divider red gradient */
   .divider-red {
     background: linear-gradient(90deg, transparent 0%, #e0101e 40%, #e0101e 60%, transparent 100%);
     height: 1px;
     width: 100%;
   }
 
-  /* Section with subtle grid texture */
+  /* Subtle dot grid background */
   .bg-grid-texture {
     background-image:
-      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 64px),
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 64px);
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.022) 0, rgba(255, 255, 255, 0.022) 1px, transparent 1px, transparent 64px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0, rgba(255, 255, 255, 0.022) 1px, transparent 1px, transparent 64px);
+  }
+
+  /* Prevent text overflow */
+  .truncate-safe {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
   }
 }
