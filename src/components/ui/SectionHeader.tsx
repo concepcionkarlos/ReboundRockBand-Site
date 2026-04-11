@@ -33,9 +33,13 @@ export default function SectionHeader({
   return (
     <div className={`flex flex-col gap-3 ${alignClass} ${className}`}>
       {eyebrow && (
-        <span className="font-heading text-brand-red text-xs tracking-widest uppercase border border-brand-red/40 px-3 py-1 self-start">
-          {eyebrow}
-        </span>
+        <div className={`flex items-center gap-2.5 ${align === 'center' ? 'justify-center' : ''}`}>
+          <span className="w-5 h-px bg-brand-red/60 flex-shrink-0" />
+          <span className="font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase">
+            {eyebrow}
+          </span>
+          <span className="w-5 h-px bg-brand-red/60 flex-shrink-0" />
+        </div>
       )}
       <h2 className="font-display uppercase text-5xl lg:text-6xl leading-none text-white">
         {renderTitle()}

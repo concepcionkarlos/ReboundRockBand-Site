@@ -25,12 +25,14 @@ export interface BandMember {
   role: string
   bio: string
   photo?: string
+  visible?: boolean
 }
 
 export interface SiteContent {
   heroHeadline: string
   heroSubheadline: string
   aboutText: string[]
+  groupPhoto: string        // path in /public/ for the About page featured image
   contactEmail: string
   contactPhone: string
   instagram: string
@@ -131,33 +133,43 @@ export const merch: MerchItem[] = [
 export const bandMembers: BandMember[] = [
   {
     id: '1',
-    name: 'TBA',
+    name: 'Tianny Cendan-Gomez',
     role: 'Lead Vocals',
-    bio: 'Powerhouse voice built for classic rock anthems — front of stage, all night.',
+    bio: 'Front of stage powerhouse — built for anthems and crowd energy.',
+    photo: '/Tianny Cedan Gomez - lead singer.PNG',
+    visible: true,
   },
   {
     id: '2',
-    name: 'TBA',
+    name: 'Jorge Almarales',
     role: 'Lead Guitar',
-    bio: 'Riff machine with decades of stage experience and tone to match.',
+    bio: 'Riff architect with vintage tone and decades of live-stage command.',
+    photo: '/Jorge Lead Guitar.PNG',
+    visible: true,
   },
   {
     id: '3',
-    name: 'TBA',
-    role: 'Rhythm Guitar',
-    bio: 'The groove architect keeping the energy locked tight every set.',
+    name: 'Jose "Pepe" Ortiz',
+    role: 'Founder · Bass · Band Director',
+    bio: 'Founder, band director, and low-end anchor driving every set.',
+    photo: '/Pepe.PNG',
+    visible: true,
   },
   {
     id: '4',
-    name: 'TBA',
-    role: 'Bass Guitar',
-    bio: 'Low-end thunder you feel before you hear it.',
+    name: 'Adriana Suárez',
+    role: 'Keyboards & Backup Vocals',
+    bio: 'Keys and harmony that fill every room and lock in the classic sound.',
+    photo: '/Adriana Suarez Keyboard.PNG',
+    visible: true,
   },
   {
     id: '5',
-    name: 'TBA',
-    role: 'Drums',
-    bio: 'The heartbeat of the band — precise, powerful, relentless.',
+    name: 'Anthony Curcio',
+    role: 'Drums & Backup Vocals',
+    bio: 'Precision and power behind the kit — the heartbeat of Rebound.',
+    photo: '/Anthony Curcio Drums.PNG',
+    visible: true,
   },
 ]
 
@@ -165,6 +177,7 @@ export const siteContent: SiteContent = {
   heroHeadline: 'Classic Rock That Brings the House Down',
   heroSubheadline:
     '5 live musicians. 4 decades of hits. One night you won\'t forget. Available for bars, festivals, private events, and corporate shows across South Florida.',
+  groupPhoto: '/Band Members.PNG',
   aboutText: [
     'Rebound Rock Band is a South Florida-based five-piece live cover band bringing the greatest rock and roll hits from the 1950s through the 1990s back to the stage — where they belong.',
     'Whether it\'s Chuck Berry, The Beatles, Led Zeppelin, Queen, or Bon Jovi, we play the songs that shaped rock and roll history with the energy and authenticity they deserve. No backing tracks. No auto-tune. Just five musicians who love great music and know how to work a crowd.',
