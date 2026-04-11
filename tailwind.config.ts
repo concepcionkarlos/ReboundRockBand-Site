@@ -41,10 +41,25 @@ const config: Config = {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-6px)' },
         },
+        'fade-up': {
+          from: { opacity: '0', transform: 'translateY(14px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
         'bounce-slow': 'bounce-slow 2s ease-in-out infinite',
+        'fade-up': 'fade-up 0.5s ease both',
+        'fade-in': 'fade-in 0.4s ease both',
+        shimmer: 'shimmer 2.5s linear infinite',
       },
     },
   },
