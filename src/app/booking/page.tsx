@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import SectionHeader from '@/components/ui/SectionHeader'
-import Button from '@/components/ui/Button'
+import Link from 'next/link'
+import { siteContent } from '@/lib/data'
 
 export const metadata: Metadata = {
   title: 'Book the Band',
@@ -18,87 +18,62 @@ const eventTypes = [
   'Other',
 ]
 
+const inputClass =
+  'w-full bg-brand-surface border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/60 transition-colors placeholder:text-brand-muted/50 rounded-sm'
+
 export default function BookingPage() {
   return (
     <div className="pt-24 pb-20 min-h-screen bg-brand-bg">
-      <div className="container mx-auto px-6 lg:px-10 max-w-4xl">
-        <div className="py-14 border-b border-brand-border mb-12">
-          <SectionHeader
-            eyebrow="Let's Make It Happen"
-            title="Book the Band"
-            titleHighlight="the Band"
-            subtitle="Fill out the form below and we'll get back to you within 24 hours with availability and pricing."
-            align="left"
-          />
+      <div className="max-w-5xl mx-auto px-5 lg:px-10">
+
+        {/* Page header */}
+        <div className="py-12 border-b border-brand-border mb-12">
+          <span className="font-heading text-brand-red text-xs tracking-widest uppercase border border-brand-red/40 px-3 py-1.5 mb-5 inline-block">
+            Let&apos;s Make It Happen
+          </span>
+          <h1 className="font-display uppercase text-5xl sm:text-6xl text-white leading-none">
+            Book <span className="text-brand-red">Rebound Rock Band</span>
+          </h1>
+          <p className="font-body text-brand-muted text-base mt-3 max-w-xl leading-relaxed">
+            Fill out the form and we&apos;ll get back to you within 24 hours with availability and pricing.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
           {/* Form */}
           <div className="lg:col-span-3">
-            <form className="flex flex-col gap-5" action="mailto:booking@reboundrockband.com" method="GET">
+            <form className="flex flex-col gap-5" action={`mailto:${siteContent.contactEmail}`} method="GET">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-1.5">
                   <label className="font-heading text-xs uppercase tracking-widest text-brand-muted">Your Name *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    className="bg-brand-surface border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/60 transition-colors placeholder:text-brand-muted/50"
-                    placeholder="Full name"
-                  />
+                  <input type="text" name="name" required className={inputClass} placeholder="Full name" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="font-heading text-xs uppercase tracking-widest text-brand-muted">Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    className="bg-brand-surface border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/60 transition-colors placeholder:text-brand-muted/50"
-                    placeholder="your@email.com"
-                  />
+                  <input type="email" name="email" required className={inputClass} placeholder="your@email.com" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-1.5">
                   <label className="font-heading text-xs uppercase tracking-widest text-brand-muted">Phone</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    className="bg-brand-surface border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/60 transition-colors placeholder:text-brand-muted/50"
-                    placeholder="(305) 000-0000"
-                  />
+                  <input type="tel" name="phone" className={inputClass} placeholder="(305) 000-0000" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="font-heading text-xs uppercase tracking-widest text-brand-muted">Event Date *</label>
-                  <input
-                    type="date"
-                    name="date"
-                    required
-                    className="bg-brand-surface border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/60 transition-colors"
-                  />
+                  <input type="date" name="date" required className={inputClass} />
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="font-heading text-xs uppercase tracking-widest text-brand-muted">Venue / Location *</label>
-                <input
-                  type="text"
-                  name="venue"
-                  required
-                  className="bg-brand-surface border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/60 transition-colors placeholder:text-brand-muted/50"
-                  placeholder="Venue name and city"
-                />
+                <input type="text" name="venue" required className={inputClass} placeholder="Venue name and city" />
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="font-heading text-xs uppercase tracking-widest text-brand-muted">Event Type *</label>
-                <select
-                  name="eventType"
-                  required
-                  className="bg-brand-surface border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/60 transition-colors"
-                >
-                  <option value="" disabled>Select event type</option>
+                <select name="eventType" required className={inputClass}>
+                  <option value="">Select event type</option>
                   {eventTypes.map((type) => (
                     <option key={type} value={type}>{type}</option>
                   ))}
@@ -110,36 +85,36 @@ export default function BookingPage() {
                 <textarea
                   name="message"
                   rows={4}
-                  className="bg-brand-surface border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/60 transition-colors placeholder:text-brand-muted/50 resize-none"
+                  className={`${inputClass} resize-none`}
                   placeholder="Tell us about your event — expected crowd size, set length, any special requests..."
                 />
               </div>
 
-              <Button type="submit" variant="primary" size="lg" className="mt-1">
+              <button
+                type="submit"
+                className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-colors btn-glow-red mt-1"
+              >
                 Send Booking Request
-              </Button>
-
-              <p className="font-body text-xs text-brand-muted text-center">
-                We typically respond within 24 hours.
-              </p>
+              </button>
+              <p className="font-body text-xs text-brand-muted text-center">We typically respond within 24 hours.</p>
             </form>
           </div>
 
-          {/* Sidebar info */}
-          <div className="lg:col-span-2 flex flex-col gap-7">
+          {/* Sidebar */}
+          <div className="lg:col-span-2 flex flex-col gap-5">
             <div className="border border-brand-border bg-brand-surface p-6 rounded-sm">
               <h3 className="font-heading text-xs uppercase tracking-widest text-brand-red mb-4">Direct Contact</h3>
               <div className="flex flex-col gap-3">
                 <div>
-                  <div className="font-heading text-xs text-brand-muted uppercase tracking-widest mb-1">Email</div>
-                  <a href="mailto:booking@reboundrockband.com" className="font-body text-sm text-white hover:text-brand-red transition-colors break-all">
-                    booking@reboundrockband.com
+                  <div className="font-heading text-[10px] text-brand-muted uppercase tracking-widest mb-1">Email</div>
+                  <a href={`mailto:${siteContent.contactEmail}`} className="font-body text-sm text-white hover:text-brand-red transition-colors break-all">
+                    {siteContent.contactEmail}
                   </a>
                 </div>
                 <div>
-                  <div className="font-heading text-xs text-brand-muted uppercase tracking-widest mb-1">Phone</div>
-                  <a href="tel:+13055550100" className="font-body text-sm text-white hover:text-brand-red transition-colors">
-                    (305) 555-0100
+                  <div className="font-heading text-[10px] text-brand-muted uppercase tracking-widest mb-1">Phone</div>
+                  <a href={`tel:${siteContent.contactPhone}`} className="font-body text-sm text-white hover:text-brand-red transition-colors">
+                    {siteContent.contactPhone}
                   </a>
                 </div>
               </div>
@@ -156,8 +131,8 @@ export default function BookingPage() {
                   'Custom setlist options',
                   'South Florida and beyond',
                 ].map((item) => (
-                  <li key={item} className="flex items-center gap-2.5 font-body text-sm text-brand-muted">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-red flex-shrink-0" />
+                  <li key={item} className="flex items-start gap-2.5 font-body text-sm text-brand-muted">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-red flex-shrink-0 mt-1.5" />
                     {item}
                   </li>
                 ))}
@@ -169,9 +144,12 @@ export default function BookingPage() {
               <p className="font-body text-xs text-brand-muted leading-relaxed mb-4">
                 Booking agent or promoter? Download our full EPK with bio, tech rider, and press photos.
               </p>
-              <Button href="/epk" variant="outline" size="sm" className="w-full">
+              <Link
+                href="/epk"
+                className="block text-center font-heading text-xs uppercase tracking-widest border border-brand-border text-brand-muted px-4 py-2.5 hover:border-brand-red hover:text-brand-red transition-colors"
+              >
                 View Press Kit
-              </Button>
+              </Link>
             </div>
           </div>
         </div>

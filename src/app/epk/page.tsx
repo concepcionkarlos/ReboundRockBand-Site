@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import SectionHeader from '@/components/ui/SectionHeader'
-import Button from '@/components/ui/Button'
+import Link from 'next/link'
+import { siteContent } from '@/lib/data'
 
 export const metadata: Metadata = {
   title: 'Press Kit (EPK)',
@@ -14,67 +14,65 @@ const techSpecs = [
   { label: 'Soundcheck', value: '30 minutes' },
   { label: 'PA System', value: 'Self-contained (or house PA accepted)' },
   { label: 'Lighting', value: 'Basic stage lighting available' },
-  { label: 'Space Required', value: '15ft × 12ft minimum stage area' },
+  { label: 'Stage Required', value: '15ft × 12ft minimum' },
   { label: 'Power', value: '2 × 20A circuits minimum' },
 ]
 
-const genreHighlights = [
-  { era: "50s", artists: 'Chuck Berry, Elvis Presley, Buddy Holly, Little Richard' },
-  { era: "60s", artists: 'The Beatles, The Rolling Stones, The Doors, Jimi Hendrix' },
-  { era: "70s", artists: 'Led Zeppelin, Queen, Fleetwood Mac, Aerosmith, Lynyrd Skynyrd' },
-  { era: "80s", artists: 'Bon Jovi, Journey, Def Leppard, Van Halen, Guns N\' Roses' },
-  { era: "90s", artists: 'Nirvana, Pearl Jam, Red Hot Chili Peppers, Green Day, Counting Crows' },
+const repertoire = [
+  { era: '50s', artists: 'Chuck Berry, Elvis Presley, Buddy Holly, Little Richard' },
+  { era: '60s', artists: 'The Beatles, The Rolling Stones, The Doors, Jimi Hendrix' },
+  { era: '70s', artists: 'Led Zeppelin, Queen, Fleetwood Mac, Aerosmith, Lynyrd Skynyrd' },
+  { era: '80s', artists: "Bon Jovi, Journey, Def Leppard, Van Halen, Guns N' Roses" },
+  { era: '90s', artists: 'Nirvana, Pearl Jam, Red Hot Chili Peppers, Green Day, Counting Crows' },
 ]
 
 export default function EpkPage() {
   return (
     <div className="pt-24 pb-20 min-h-screen bg-brand-bg">
-      <div className="container mx-auto px-6 lg:px-10 max-w-5xl">
-        <div className="py-14 border-b border-brand-border mb-14">
+      <div className="max-w-5xl mx-auto px-5 lg:px-10">
+
+        {/* Header */}
+        <div className="py-12 border-b border-brand-border mb-14">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-            <SectionHeader
-              eyebrow="For Bookers & Promoters"
-              title="Press Kit"
-              titleHighlight="Press Kit"
-              align="left"
-            />
-            <Button href="/booking" variant="primary" size="md" className="flex-shrink-0 self-start sm:self-auto">
+            <div>
+              <span className="font-heading text-brand-red text-xs tracking-widest uppercase border border-brand-red/40 px-3 py-1.5 mb-5 inline-block">
+                For Bookers & Promoters
+              </span>
+              <h1 className="font-display uppercase text-5xl sm:text-6xl text-white leading-none">
+                Press <span className="text-brand-red">Kit</span>
+              </h1>
+            </div>
+            <Link
+              href="/booking"
+              className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-6 py-3.5 hover:bg-brand-red-bright transition-colors btn-glow-red flex-shrink-0 self-start"
+            >
               Book Now
-            </Button>
+            </Link>
           </div>
         </div>
 
         {/* Hero card */}
-        <div className="flex flex-col lg:flex-row gap-10 mb-16 p-8 border border-brand-border bg-brand-surface rounded-sm">
-          <div className="flex-shrink-0 flex items-center justify-center">
-            <div className="relative w-40 h-40">
-              <Image src="/images/logo.jpeg" alt="Rebound Rock Band" fill className="object-contain" />
+        <div className="flex flex-col sm:flex-row gap-8 mb-14 p-7 border border-brand-border bg-brand-surface rounded-sm">
+          <div className="flex-shrink-0 flex items-center justify-center sm:justify-start">
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36">
+              <Image src="/logo-improved.png" alt="Rebound Rock Band" fill className="object-contain" />
             </div>
           </div>
-          <div className="flex-1">
-            <h2 className="font-display uppercase text-4xl text-white mb-2">Rebound Rock Band</h2>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-display uppercase text-3xl text-white mb-1">Rebound Rock Band</h2>
             <div className="font-heading text-brand-red text-xs uppercase tracking-widest mb-4">
               South Florida · 5-Piece Live Cover Band · Classic Rock 50s–90s
             </div>
             <p className="font-body text-gray-300 text-sm leading-relaxed mb-5">
-              Rebound Rock Band is a high-energy five-piece live cover band based in South Florida,
-              performing classic rock and crowd-favorite hits from the 1950s through the 1990s.
-              With a reputation for tight musicianship, stage energy, and crowd connection, Rebound
-              delivers a live show that gets audiences on their feet and keeps them there.
+              {siteContent.aboutText[0]}
             </p>
-            <div className="flex flex-wrap gap-5">
-              <div>
-                <div className="font-display text-2xl text-white">5</div>
-                <div className="font-body text-xs text-brand-muted uppercase tracking-widest">Live Members</div>
-              </div>
-              <div>
-                <div className="font-display text-2xl text-white">4</div>
-                <div className="font-body text-xs text-brand-muted uppercase tracking-widest">Decades of Hits</div>
-              </div>
-              <div>
-                <div className="font-display text-2xl text-white">100+</div>
-                <div className="font-body text-xs text-brand-muted uppercase tracking-widest">Shows Played</div>
-              </div>
+            <div className="flex gap-7 flex-wrap">
+              {[['5', 'Live Members'], ['4', 'Decades of Hits'], ['100+', 'Shows Played']].map(([val, label]) => (
+                <div key={label}>
+                  <div className="font-display text-2xl text-white">{val}</div>
+                  <div className="font-body text-[10px] text-brand-muted uppercase tracking-widest">{label}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -84,25 +82,25 @@ export default function EpkPage() {
           <h2 className="font-display uppercase text-3xl text-white mb-6">
             Repertoire by <span className="text-brand-red">Era</span>
           </h2>
-          <div className="divide-y divide-brand-border border border-brand-border">
-            {genreHighlights.map((row) => (
-              <div key={row.era} className="flex gap-6 p-4 hover:bg-brand-surface transition-colors">
-                <div className="flex-shrink-0 w-12 font-display text-2xl text-brand-red">{row.era}s</div>
+          <div className="divide-y divide-brand-border border border-brand-border rounded-sm overflow-hidden">
+            {repertoire.map((row) => (
+              <div key={row.era} className="flex gap-5 p-4 hover:bg-brand-surface transition-colors">
+                <div className="flex-shrink-0 w-10 font-display text-2xl text-brand-red">{row.era}s</div>
                 <p className="font-body text-sm text-brand-muted leading-relaxed">{row.artists}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Tech specs */}
+        {/* Tech rider */}
         <section className="mb-14">
           <h2 className="font-display uppercase text-3xl text-white mb-6">
             Technical <span className="text-brand-red">Rider</span>
           </h2>
-          <div className="border border-brand-border divide-y divide-brand-border">
+          <div className="divide-y divide-brand-border border border-brand-border rounded-sm overflow-hidden">
             {techSpecs.map((spec) => (
-              <div key={spec.label} className="flex gap-6 p-4 hover:bg-brand-surface transition-colors">
-                <div className="flex-shrink-0 w-36 font-heading text-xs uppercase tracking-widest text-brand-muted self-center">
+              <div key={spec.label} className="flex gap-5 p-4 hover:bg-brand-surface transition-colors">
+                <div className="flex-shrink-0 w-32 font-heading text-[10px] uppercase tracking-widest text-brand-muted self-center">
                   {spec.label}
                 </div>
                 <div className="font-body text-sm text-white">{spec.value}</div>
@@ -114,23 +112,29 @@ export default function EpkPage() {
           </p>
         </section>
 
-        {/* Booking CTA */}
+        {/* CTA */}
         <div className="border border-brand-border bg-brand-surface p-8 rounded-sm text-center">
-          <h3 className="font-display uppercase text-4xl text-white mb-3">
-            Ready to Book?
-          </h3>
+          <h2 className="font-display uppercase text-4xl text-white mb-3">Ready to Book?</h2>
           <p className="font-body text-brand-muted text-sm max-w-md mx-auto mb-7 leading-relaxed">
             Contact us directly for availability, pricing, and to request the full press kit PDF with photos and setlist.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button href="/booking" variant="primary" size="lg">Book the Band</Button>
-            <Button href="mailto:booking@reboundrockband.com" variant="outline" size="lg" external>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/booking"
+              className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-colors btn-glow-red text-center"
+            >
+              Book Rebound Rock Band
+            </Link>
+            <a
+              href={`mailto:${siteContent.contactEmail}`}
+              className="font-heading text-sm uppercase tracking-widest border border-white/30 text-white px-8 py-4 hover:border-brand-red hover:text-brand-red transition-colors text-center"
+            >
               Email Us Directly
-            </Button>
+            </a>
           </div>
-          <div className="mt-6 font-body text-xs text-brand-muted">
-            booking@reboundrockband.com · (305) 555-0100 · South Florida
-          </div>
+          <p className="font-body text-xs text-brand-muted mt-6">
+            {siteContent.contactEmail} · {siteContent.contactPhone} · South Florida
+          </p>
         </div>
       </div>
     </div>

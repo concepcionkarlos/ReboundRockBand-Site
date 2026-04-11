@@ -29,8 +29,9 @@ export const metadata: Metadata = {
     template: '%s | Rebound Rock Band',
   },
   description:
-    "South Florida's live 5-piece classic rock cover band. Greatest hits from the 1950s through the 1990s. Available for bars, private events, festivals, and corporate shows.",
+    'Rebound Rock Band is South Florida\'s live 5-piece classic rock cover band. Greatest hits from the 1950s through the 1990s. Available for bars, private events, festivals, and corporate shows.',
   keywords: [
+    'Rebound Rock Band',
     'rock cover band',
     'south florida band',
     'live band for hire',
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Rebound Rock Band — Classic Rock Cover Band',
-    description: "South Florida's live 5-piece classic rock cover band for hire.",
+    description: 'South Florida\'s live 5-piece classic rock cover band. Book us for your next event.',
     type: 'website',
     siteName: 'Rebound Rock Band',
   },
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${bebasNeue.variable} ${oswald.variable} ${inter.variable}`}>
-      <body className="bg-brand-bg text-white font-body antialiased">
+      <body className="bg-brand-bg text-white font-body antialiased overflow-x-hidden">
         <Header />
         <main>{children}</main>
         <Footer />
