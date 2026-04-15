@@ -43,7 +43,7 @@ export default function AboutPage() {
 
       {/* ── Group photo ── */}
       {siteContent.groupPhoto && (
-        <Reveal delay={1}>
+        <Reveal delay={1} className="hidden sm:block">
           <section className="max-w-7xl mx-auto px-0 sm:px-5 lg:px-10 pt-10 pb-0">
             <div className="relative w-full aspect-[4/5] sm:aspect-[3/2] overflow-hidden border-y sm:border border-brand-border">
               <Image
@@ -103,7 +103,7 @@ export default function AboutPage() {
 
         {/* Member cards */}
         <Reveal delay={1}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 lg:gap-8 mb-20">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 mb-20">
             {visibleMembers.map((member) => (
               <div key={member.id} className="group">
                 {/* Portrait photo */}
