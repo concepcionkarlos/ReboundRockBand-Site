@@ -42,9 +42,7 @@ export interface SiteContent {
   ctaSecondaryLabel: string        // secondary CTA label (default "View Press Kit")
   contactEmail: string
   contactPhone: string
-  instagram: string
   facebook: string
-  youtube: string
 }
 
 export interface MediaItem {
@@ -218,9 +216,7 @@ export const siteContent: SiteContent = {
   ctaSecondaryLabel: 'View Press Kit',
   contactEmail: 'booking@reboundrockband.com',
   contactPhone: '(305) 555-0100',
-  instagram: 'https://instagram.com/reboundrockband',
-  facebook: 'https://facebook.com/reboundrockband',
-  youtube: 'https://youtube.com/@reboundrockband',
+  facebook: 'https://www.facebook.com/share/18hs9R8x9S/?mibextid=wwXIfr',
 }
 
 export const mediaItems: MediaItem[] = [
