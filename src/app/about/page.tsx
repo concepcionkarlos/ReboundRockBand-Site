@@ -52,7 +52,7 @@ export default function AboutPage() {
                 alt="Rebound Rock Band"
                 fill
                 priority
-                className="object-cover object-[50%_38%] lg:object-[50%_44%]"
+                className="object-cover object-[50%_24%] lg:object-[50%_44%]"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1080px"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/50 via-transparent to-transparent pointer-events-none" />
