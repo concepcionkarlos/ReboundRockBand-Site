@@ -182,10 +182,6 @@ export default function AdminContent() {
             <input type="email" value={content.contactEmail} onChange={(e) => setContent({ ...content, contactEmail: e.target.value })} className={inputClass} />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Phone</label>
-            <input type="text" value={content.contactPhone} onChange={(e) => setContent({ ...content, contactPhone: e.target.value })} className={inputClass} />
-          </div>
-          <div className="flex flex-col gap-2">
             <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Service Area</label>
             <input type="text" value={content.serviceArea} onChange={(e) => setContent({ ...content, serviceArea: e.target.value })} className={inputClass} placeholder="South Florida" />
             <p className="font-body text-xs text-white/20">Used in EPK, footer, and booking CTA.</p>

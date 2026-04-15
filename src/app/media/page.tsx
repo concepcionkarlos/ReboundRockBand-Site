@@ -87,16 +87,16 @@ export default function MediaPage() {
                   </div>
                 ))}
               </div>
-              {/* Minimal Instagram callout below featured */}
+              {/* Facebook callout below featured */}
               <div className="mt-4 flex items-center justify-end gap-3">
                 <span className="font-body text-xs text-brand-muted/60">New clips added regularly</span>
                 <a
-                  href={siteContent.instagram}
+                  href={siteContent.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-heading text-[10px] uppercase tracking-widest border border-white/15 text-white/40 hover:border-brand-red hover:text-brand-red transition-all px-3 py-1.5 flex items-center gap-1.5"
                 >
-                  Follow on Instagram
+                  Follow on Facebook
                   <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                   </svg>
@@ -133,15 +133,15 @@ export default function MediaPage() {
                     Media <span className="text-brand-red">Coming Soon</span>
                   </h2>
                   <p className="font-body text-brand-muted text-sm leading-relaxed mb-6">
-                    Fresh photos and live clips are added regularly. Follow us on Instagram for the latest from the road.
+                    Fresh photos and live clips are added regularly. Follow us on Facebook for the latest from the road.
                   </p>
                   <a
-                    href={siteContent.instagram}
+                    href={siteContent.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 font-heading text-xs uppercase tracking-widest border border-white/25 text-white px-5 py-2.5 hover:border-brand-red hover:text-brand-red transition-all"
                   >
-                    Follow on Instagram
+                    Follow on Facebook
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                     </svg>
