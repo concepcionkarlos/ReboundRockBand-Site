@@ -45,16 +45,16 @@ export default function AboutPage() {
       {siteContent.groupPhoto && (
         <Reveal delay={1}>
           <section className="max-w-7xl mx-auto px-5 lg:px-10 pt-10 pb-0">
-            <div className="relative mx-auto w-full max-w-md sm:max-w-lg border border-brand-border bg-brand-elevated overflow-hidden">
+            <div className="relative w-full aspect-[3/2] overflow-hidden border border-brand-border">
               <Image
                 src={siteContent.groupPhoto}
                 alt="Rebound Rock Band"
-                width={1200}
-                height={1600}
-                className="block w-full h-auto"
+                fill
+                className="object-cover object-[50%_45%]"
                 priority
-                sizes="(max-width: 640px) 100vw, 512px"
+                sizes="(max-width: 768px) 100vw, 1280px"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/50 via-transparent to-transparent pointer-events-none" />
               {/* Corner accents */}
               <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-brand-red pointer-events-none" />
               <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-brand-red pointer-events-none" />
