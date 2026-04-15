@@ -18,53 +18,58 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-brand-bg">
 
-      {/* ── Page hero — text only ── */}
-      <Reveal>
-        <section className="relative overflow-hidden pt-36 pb-14 lg:pb-16">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] h-[380px] rounded-full bg-brand-red/5 blur-[140px] pointer-events-none" />
-          <div className="absolute inset-0 bg-grid-texture opacity-35 pointer-events-none" />
-          <div className="absolute bottom-0 inset-x-0 h-px divider-red pointer-events-none" />
+      {/* ── Photo + Hero wrapper: reversed on mobile so photo comes first ── */}
+      <div className="flex flex-col-reverse sm:flex-col">
 
-          <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-10">
-            <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-6">
-              <span className="w-5 h-px bg-brand-red/60" />
-              The Band
-            </div>
-            <h1
-              className="font-display uppercase leading-[0.95] text-white max-w-5xl"
-              style={{ fontSize: 'clamp(3.25rem, 9vw, 6.5rem)' }}
-            >
-              {siteContent.aboutHeadline.split(' ').slice(0, -1).join(' ')}{' '}
-              <span className="text-brand-red">{siteContent.aboutHeadline.split(' ').slice(-1)}</span>
-            </h1>
-          </div>
-        </section>
-      </Reveal>
+        {/* ── Page hero — text only ── */}
+        <Reveal>
+          <section className="relative overflow-hidden pt-8 pb-14 sm:pt-36 lg:pb-16">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] h-[380px] rounded-full bg-brand-red/5 blur-[140px] pointer-events-none" />
+            <div className="absolute inset-0 bg-grid-texture opacity-35 pointer-events-none" />
+            <div className="absolute bottom-0 inset-x-0 h-px divider-red pointer-events-none" />
 
-      {/* ── Group photo ── */}
-      {siteContent.groupPhoto && (
-        <Reveal delay={1}>
-          <section className="max-w-7xl mx-auto px-0 sm:px-5 lg:px-10 pt-10 pb-0">
-            <div className="relative w-full aspect-[2/3] sm:aspect-[3/2] overflow-hidden border-y sm:border border-brand-border">
-              <Image
-                src={siteContent.groupPhoto}
-                alt="Rebound Rock Band"
-                fill
-                placeholder="empty"
-                className="object-cover object-top sm:object-[50%_45%]"
-                priority
-                sizes="(max-width: 640px) 100vw, 1280px"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/50 via-transparent to-transparent pointer-events-none" />
-              {/* Corner accents */}
-              <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-brand-red pointer-events-none" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-brand-red pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-brand-red pointer-events-none" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-brand-red pointer-events-none" />
+            <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-10">
+              <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-6">
+                <span className="w-5 h-px bg-brand-red/60" />
+                The Band
+              </div>
+              <h1
+                className="font-display uppercase leading-[0.95] text-white max-w-5xl"
+                style={{ fontSize: 'clamp(3.25rem, 9vw, 6.5rem)' }}
+              >
+                {siteContent.aboutHeadline.split(' ').slice(0, -1).join(' ')}{' '}
+                <span className="text-brand-red">{siteContent.aboutHeadline.split(' ').slice(-1)}</span>
+              </h1>
             </div>
           </section>
         </Reveal>
-      )}
+
+        {/* ── Group photo ── */}
+        {siteContent.groupPhoto && (
+          <Reveal delay={1}>
+            <section className="max-w-7xl mx-auto px-0 sm:px-5 lg:px-10 pt-36 pb-0 sm:pt-10">
+              <div className="relative w-full aspect-[2/3] sm:aspect-[3/2] overflow-hidden border-y sm:border border-brand-border">
+                <Image
+                  src={siteContent.groupPhoto}
+                  alt="Rebound Rock Band"
+                  fill
+                  placeholder="empty"
+                  className="object-cover object-top sm:object-[50%_45%]"
+                  priority
+                  sizes="(max-width: 640px) 100vw, 1280px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/50 via-transparent to-transparent pointer-events-none" />
+                {/* Corner accents */}
+                <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-brand-red pointer-events-none" />
+                <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-brand-red pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-brand-red pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-brand-red pointer-events-none" />
+              </div>
+            </section>
+          </Reveal>
+        )}
+
+      </div>
 
       {/* ── Our Story ── */}
       <Reveal delay={1}>
