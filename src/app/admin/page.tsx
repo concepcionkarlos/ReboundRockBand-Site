@@ -7,19 +7,16 @@ import AdminMedia from './sections/AdminMedia'
 import AdminContent from './sections/AdminContent'
 import AdminDashboard from './sections/AdminDashboard'
 import AdminBandMembers from './sections/AdminBandMembers'
+import AdminEPK from './sections/AdminEPK'
 import AdminLogin from './AdminLogin'
 import Image from 'next/image'
 import Link from 'next/link'
-import { shows, merch, bandMembers } from '@/lib/data'
 
-// Password is set via NEXT_PUBLIC_ADMIN_PASSWORD env var.
-// Default used if var is not defined (change before production deploy).
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Rebound2024!'
-const AUTH_KEY = 'rrb-admin-auth'
+type Section = 'dashboard' | 'members' | 'shows' | 'merch' | 'media' | 'epk' | 'content'
 
-type Section = 'dashboard' | 'members' | 'shows' | 'merch' | 'media' | 'content'
+interface Badges { members: number; shows: number; merch: number; media: number; epk: number }
 
-const navItems: { id: Section; label: string; badge?: number; icon: React.ReactNode }[] = [
+const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: React.ReactNode }[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
@@ -32,7 +29,7 @@ const navItems: { id: Section; label: string; badge?: number; icon: React.ReactN
   {
     id: 'members',
     label: 'Band Members',
-    badge: bandMembers.length,
+    badgeKey: 'members',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
@@ -42,7 +39,7 @@ const navItems: { id: Section; label: string; badge?: number; icon: React.ReactN
   {
     id: 'shows',
     label: 'Shows',
-    badge: shows.length,
+    badgeKey: 'shows',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -52,7 +49,7 @@ const navItems: { id: Section; label: string; badge?: number; icon: React.ReactN
   {
     id: 'merch',
     label: 'Merch',
-    badge: merch.length,
+    badgeKey: 'merch',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -62,9 +59,20 @@ const navItems: { id: Section; label: string; badge?: number; icon: React.ReactN
   {
     id: 'media',
     label: 'Media',
+    badgeKey: 'media',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.867v6.266a1 1 0 01-1.447.902L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'epk',
+    label: 'Press Kit',
+    badgeKey: 'epk',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
       </svg>
     ),
   },
@@ -84,15 +92,29 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [active, setActive] = useState<Section>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0 })
 
-  // Auth disabled — open access
   useEffect(() => {
     setAuthed(true)
     setAuthChecked(true)
   }, [])
 
-  const handleLogin = (_password: string): boolean => true
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((d) => {
+        setBadges({
+          members: d.bandMembers?.length ?? 0,
+          shows: d.shows?.length ?? 0,
+          merch: d.merch?.length ?? 0,
+          media: d.mediaItems?.length ?? 0,
+          epk: d.epkContent?.repertoire?.length ?? 0,
+        })
+      })
+      .catch(() => {})
+  }, [active]) // refresh badge counts when switching sections
 
+  const handleLogin = (_password: string): boolean => true
   const handleLogout = () => {}
 
   const navigate = (section: Section) => {
@@ -100,10 +122,7 @@ export default function AdminPage() {
     setSidebarOpen(false)
   }
 
-  // Prevent flash before localStorage check completes
   if (!authChecked) return null
-
-  // Show login screen if not authenticated
   if (!authed) return <AdminLogin onLogin={handleLogin} />
 
   const sectionMap: Record<Section, React.ReactNode> = {
@@ -112,6 +131,7 @@ export default function AdminPage() {
     shows: <AdminShows />,
     merch: <AdminMerch />,
     media: <AdminMedia />,
+    epk: <AdminEPK />,
     content: <AdminContent />,
   }
 
@@ -129,11 +149,12 @@ export default function AdminPage() {
 
       {/* ── Sidebar ── */}
       <aside
-        className={`fixed top-0 left-0 h-full w-[220px] z-30 flex flex-col transition-transform duration-300 bg-[#0a0a18] border-r border-white/6
+        className={`fixed top-0 left-0 h-full w-60 z-30 flex flex-col transition-transform duration-300
+          bg-gradient-to-b from-[#0c0c1e] to-[#080810] border-r border-white/[0.06]
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:z-auto`}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-5 h-16 border-b border-white/6 flex-shrink-0">
+        <div className="flex items-center gap-3 px-5 h-16 border-b border-white/[0.06] flex-shrink-0">
           <div className="relative h-8 w-8 flex-shrink-0">
             <Image src="/logo-improved.png" alt="Rebound Rock Band" fill className="object-contain" />
           </div>
@@ -153,14 +174,15 @@ export default function AdminPage() {
             </span>
             {navItems.map((item) => {
               const isActive = active === item.id
+              const badgeCount = item.badgeKey !== undefined ? badges[item.badgeKey] : undefined
               return (
                 <button
                   key={item.id}
                   onClick={() => navigate(item.id)}
-                  className={`w-full flex items-center justify-between gap-2.5 px-2.5 py-2.5 mb-0.5 text-left transition-all font-heading text-xs uppercase tracking-widest relative group
+                  className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 mb-0.5 text-left transition-all font-heading text-xs uppercase tracking-widest relative group
                     ${isActive
-                      ? 'text-white bg-white/6 border-l-2 border-brand-red pl-[9px]'
-                      : 'text-white/40 hover:text-white/80 hover:bg-white/4 border-l-2 border-transparent pl-[9px]'
+                      ? 'text-white bg-white/[0.06] border-l-[2px] border-brand-red'
+                      : 'text-white/40 hover:text-white/80 hover:bg-white/[0.03] border-l-[2px] border-transparent'
                     }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -169,11 +191,11 @@ export default function AdminPage() {
                     </span>
                     {item.label}
                   </div>
-                  {item.badge !== undefined && (
-                    <span className={`font-body text-[10px] px-1.5 py-0.5 rounded-sm ${
-                      isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/8 text-white/30'
+                  {badgeCount !== undefined && badgeCount > 0 && (
+                    <span className={`font-body text-[10px] px-1.5 py-0.5 rounded-sm tabular-nums ${
+                      isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/[0.08] text-white/30'
                     }`}>
-                      {item.badge}
+                      {badgeCount}
                     </span>
                   )}
                 </button>
@@ -183,7 +205,7 @@ export default function AdminPage() {
         </nav>
 
         {/* Sidebar footer */}
-        <div className="px-4 py-4 border-t border-white/6 flex-shrink-0 flex flex-col gap-2">
+        <div className="px-4 py-4 border-t border-white/[0.06] flex-shrink-0 flex flex-col gap-2">
           <Link
             href="/"
             target="_blank"
@@ -213,7 +235,7 @@ export default function AdminPage() {
       {/* ── Main content ── */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <div className="flex items-center justify-between gap-3 px-5 lg:px-8 h-14 border-b border-white/6 bg-[#08080f] sticky top-0 z-10 flex-shrink-0">
+        <div className="flex items-center justify-between gap-3 px-5 lg:px-8 h-14 border-b border-white/[0.06] bg-[#08080f] sticky top-0 z-10 flex-shrink-0">
           {/* Left: hamburger + breadcrumb */}
           <div className="flex items-center gap-3">
             <button

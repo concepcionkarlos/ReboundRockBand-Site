@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { siteContent } from '@/lib/data'
+import { readContent } from '@/lib/store'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Book the Band',
@@ -22,6 +24,8 @@ const inputClass =
   'w-full bg-brand-elevated border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/50 focus:shadow-[0_0_0_3px_rgba(224,16,30,0.08)] transition-all placeholder:text-brand-muted/40 rounded-none'
 
 export default function BookingPage() {
+  const { siteContent } = readContent()
+
   return (
     <div className="pt-24 pb-20 min-h-screen bg-brand-bg">
       <div className="max-w-5xl mx-auto px-5 lg:px-10">

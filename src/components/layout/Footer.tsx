@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { siteContent } from '@/lib/data'
+import { readContent } from '@/lib/store'
 
 const quickLinks = [
   { label: 'Shows & Events', href: '/shows' },
@@ -30,6 +30,7 @@ const SocialIcon = {
 }
 
 export default function Footer() {
+  const { siteContent } = readContent()
   const socials = [
     { label: 'Instagram', href: siteContent.instagram, icon: SocialIcon.Instagram },
     { label: 'Facebook', href: siteContent.facebook, icon: SocialIcon.Facebook },
@@ -59,7 +60,7 @@ export default function Footer() {
             </span>
           </Link>
           <p className="font-body text-sm text-brand-muted leading-relaxed max-w-xs">
-            South Florida&apos;s live 5-piece classic rock cover band. Greatest hits from the 1950s through the 1990s.
+            {siteContent.footerTagline}
           </p>
           {/* Social icons */}
           <div className="flex gap-3 mt-1">
@@ -106,7 +107,7 @@ export default function Footer() {
             Book Rebound Rock Band
           </h4>
           <p className="font-body text-sm text-brand-muted leading-relaxed mb-5">
-            Available for bars, private events, corporate shows, festivals, and parties across South Florida.
+            Available for bars, private events, corporate shows, festivals, and parties across {siteContent.serviceArea}.
           </p>
           <div className="flex flex-col gap-2.5 mb-5">
             <a
@@ -141,7 +142,7 @@ export default function Footer() {
       <div className="border-t border-brand-border">
         <div className="max-w-7xl mx-auto px-5 lg:px-10 h-12 flex items-center justify-between gap-4">
           <p className="font-body text-xs text-brand-muted/60">
-            © {new Date().getFullYear()} Rebound Rock Band · South Florida
+            © {new Date().getFullYear()} Rebound Rock Band · {siteContent.serviceArea}
           </p>
           <Link href="/admin" className="font-body text-xs text-brand-muted/20 hover:text-brand-muted/50 transition-colors">
             Admin

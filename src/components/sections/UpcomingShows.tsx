@@ -1,4 +1,4 @@
-import { shows } from '@/lib/data'
+import { readContent } from '@/lib/store'
 import ShowCard from '@/components/ui/ShowCard'
 import SectionHeader from '@/components/ui/SectionHeader'
 import Link from 'next/link'
@@ -9,7 +9,8 @@ interface UpcomingShowsProps {
 }
 
 export default function UpcomingShows({ limit = 4, showViewAll = true }: UpcomingShowsProps) {
-  const upcoming = shows.slice(0, limit)
+  const { shows } = readContent()
+  const upcoming = shows.filter((s) => s.visible !== false).slice(0, limit)
 
   return (
     <section className="bg-brand-bg py-16 lg:py-20">

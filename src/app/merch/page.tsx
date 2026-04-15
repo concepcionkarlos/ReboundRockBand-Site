@@ -1,5 +1,9 @@
 import type { Metadata } from 'next'
-import { merch } from '@/lib/data'
+import Image from 'next/image'
+import Reveal from '@/components/ui/Reveal'
+import { readContent } from '@/lib/store'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Merch',
@@ -30,6 +34,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
 }
 
 export default function MerchPage() {
+  const { merch, siteContent } = readContent()
   const visible = merch.filter((m) => m.visible)
 
   return (
@@ -37,83 +42,108 @@ export default function MerchPage() {
       <div className="max-w-7xl mx-auto px-5 lg:px-10">
 
         {/* Page header */}
-        <div className="py-12 border-b border-brand-border mb-12">
-          <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
-            <span className="w-5 h-px bg-brand-red/60" />
-            Rep the Band
-          </div>
-          <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-none mb-3">
-            Official <span className="text-brand-red">Merch</span>
-          </h1>
-          <p className="font-body text-brand-muted text-base max-w-xl leading-relaxed">
-            Tees, hats, stickers, and more. Available at shows and online.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-10">
-          {visible.map((item) => (
-            <div
-              key={item.id}
-              className="flex flex-col border border-brand-border bg-brand-surface overflow-hidden hover:border-brand-red/40 transition-all duration-200 group card-hover"
-            >
-              {/* Image area */}
-              <div className="relative aspect-square bg-brand-elevated flex flex-col items-center justify-center gap-3 overflow-hidden">
-                <div className="absolute inset-0 bg-grid-texture opacity-30" />
-                <div className="absolute inset-0 bg-brand-red/0 group-hover:bg-brand-red/4 transition-colors duration-300" />
-                <div className="relative">
-                  {categoryIcons[item.category] ?? categoryIcons.other}
-                </div>
-                <span className="relative font-body text-[10px] text-brand-muted/40 uppercase tracking-widest">Photo Coming Soon</span>
-                {/* Price badge */}
-                <div className="absolute top-3 right-3 font-display text-2xl text-brand-red leading-none">${item.price}</div>
-                {/* Category tag */}
-                <div className="absolute top-3 left-3 font-heading text-[9px] uppercase tracking-widest text-brand-muted/60 border border-brand-border bg-brand-bg/80 px-2 py-0.5">
-                  {item.category}
-                </div>
-              </div>
-
-              <div className="flex flex-col flex-1 p-5 gap-4">
-                <div>
-                  <h2 className="font-heading text-sm text-white tracking-wide">{item.name}</h2>
-                </div>
-
-                {item.available ? (
-                  item.externalUrl ? (
-                    <a
-                      href={item.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-center font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-4 py-3 hover:bg-brand-red-bright transition-all btn-glow-red"
-                    >
-                      Buy Now
-                    </a>
-                  ) : (
-                    <a
-                      href="mailto:booking@reboundrockband.com"
-                      className="block text-center font-heading text-xs uppercase tracking-widest border border-brand-border text-brand-muted px-4 py-3 hover:border-brand-red hover:text-brand-red transition-all"
-                    >
-                      Inquire to Order
-                    </a>
-                  )
-                ) : (
-                  <div className="text-center font-heading text-xs uppercase tracking-widest text-brand-muted/40 border border-brand-border py-3">
-                    Sold Out
-                  </div>
-                )}
-              </div>
+        <Reveal>
+          <div className="py-12 border-b border-brand-border mb-12">
+            <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
+              <span className="w-5 h-px bg-brand-red/60" />
+              Rep the Band
             </div>
-          ))}
-        </div>
+            <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-none mb-3">
+              Official <span className="text-brand-red">Merch</span>
+            </h1>
+            <p className="font-body text-brand-muted text-base max-w-xl leading-relaxed">
+              Tees, hats, stickers, and more. Available at shows and online.
+            </p>
+          </div>
+        </Reveal>
 
-        <div className="border border-brand-border bg-brand-surface p-8 text-center">
-          <p className="font-body text-brand-muted text-sm mb-1.5">Merch is also available at every show.</p>
-          <p className="font-body text-brand-muted text-sm">
-            For bulk orders or custom items, email{' '}
-            <a href="mailto:booking@reboundrockband.com" className="text-brand-red hover:text-brand-red-bright transition-colors">
-              booking@reboundrockband.com
-            </a>
-          </p>
-        </div>
+        <Reveal delay={1}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6 mb-10">
+            {visible.map((item) => (
+              <div
+                key={item.id}
+                className="group flex flex-col bg-brand-surface overflow-hidden hover:bg-brand-elevated transition-colors"
+              >
+                {/* Image area */}
+                <div className="relative aspect-square bg-brand-elevated overflow-hidden">
+                  {item.image ? (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-grid-texture opacity-30" />
+                      <div className="relative">
+                        {categoryIcons[item.category] ?? categoryIcons.other}
+                      </div>
+                    </div>
+                  )}
+                  {/* Category tag */}
+                  <div className="absolute top-3 left-3 font-heading text-[9px] uppercase tracking-widest text-white/70 border border-white/20 bg-brand-bg/80 backdrop-blur-sm px-2 py-0.5">
+                    {item.category}
+                  </div>
+                  {/* Sold out overlay */}
+                  {!item.available && (
+                    <div className="absolute inset-0 bg-brand-bg/70 flex items-center justify-center">
+                      <span className="font-heading text-xs uppercase tracking-widest text-white border border-white/40 px-4 py-2">
+                        Sold Out
+                      </span>
+                    </div>
+                  )}
+                  {/* Red left accent */}
+                  <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-brand-red origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
+                </div>
+
+                {/* Info */}
+                <div className="flex flex-col flex-1 pt-5 gap-4">
+                  <div>
+                    <h2 className="font-display text-xl text-white uppercase leading-tight">{item.name}</h2>
+                    <div className="font-display text-2xl text-brand-red leading-none mt-2">${item.price}</div>
+                  </div>
+
+                  {item.available && (
+                    item.externalUrl ? (
+                      <a
+                        href={item.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-center font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-4 py-3 hover:bg-brand-red-bright transition-all btn-glow-red"
+                      >
+                        Buy Now
+                      </a>
+                    ) : (
+                      <a
+                        href={`mailto:${siteContent.contactEmail}?subject=Merch Inquiry: ${encodeURIComponent(item.name)}`}
+                        className="block text-center font-heading text-xs uppercase tracking-widest border border-white/15 text-white/70 px-4 py-3 hover:border-brand-red hover:text-brand-red transition-all"
+                      >
+                        Inquire to Order
+                      </a>
+                    )
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+
+        <Reveal delay={2}>
+          <div className="border border-brand-border bg-brand-surface p-8 text-center">
+            <p className="font-body text-brand-muted text-sm mb-1.5">Merch is also available at every show.</p>
+            <p className="font-body text-brand-muted text-sm">
+              For bulk orders or custom items, email{' '}
+              <a
+                href={`mailto:${siteContent.contactEmail}`}
+                className="text-brand-red hover:text-brand-red-bright transition-colors"
+              >
+                {siteContent.contactEmail}
+              </a>
+            </p>
+          </div>
+        </Reveal>
       </div>
     </div>
   )

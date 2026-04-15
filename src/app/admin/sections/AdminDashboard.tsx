@@ -1,17 +1,38 @@
 'use client'
 
-import { shows, merch } from '@/lib/data'
+import { useState, useEffect } from 'react'
+import type { Show, MerchItem, MediaItem, BandMember } from '@/lib/data'
 import Link from 'next/link'
 
 interface AdminDashboardProps {
-  onNavigate: (section: 'shows' | 'merch' | 'media' | 'content') => void
+  onNavigate: (section: 'shows' | 'merch' | 'media' | 'content' | 'members' | 'epk') => void
+}
+
+interface LiveData {
+  shows: Show[]
+  merch: MerchItem[]
+  mediaItems: MediaItem[]
+  bandMembers: BandMember[]
 }
 
 export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
-  const upcomingShows = shows.length
-  const nextShow = shows[0]
+  const [live, setLive] = useState<LiveData>({ shows: [], merch: [], mediaItems: [], bandMembers: [] })
+
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((d) => setLive({ shows: d.shows ?? [], merch: d.merch ?? [], mediaItems: d.mediaItems ?? [], bandMembers: d.bandMembers ?? [] }))
+      .catch(() => {})
+  }, [])
+
+  const { shows, merch, mediaItems, bandMembers } = live
+  const visibleShows = shows.filter((s) => s.visible !== false)
+  const upcomingShows = visibleShows.length
+  const nextShow = visibleShows[0]
   const totalMerch = merch.length
   const availableMerch = merch.filter((m) => m.available && m.visible).length
+  const visibleMedia = mediaItems.filter((m) => m.visible).length
+  const totalMembers = bandMembers.filter((m) => m.visible !== false).length
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 
   const statCards = [
@@ -29,6 +50,19 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       color: 'red' as const,
     },
     {
+      label: 'Band Members',
+      value: totalMembers,
+      sub: `${totalMembers} visible on site`,
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+        </svg>
+      ),
+      action: () => onNavigate('members'),
+      actionLabel: 'Manage Members',
+      color: 'neutral' as const,
+    },
+    {
       label: 'Merch Items',
       value: totalMerch,
       sub: `${availableMerch} available in store`,
@@ -39,12 +73,12 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       ),
       action: () => onNavigate('merch'),
       actionLabel: 'Manage Merch',
-      color: 'blue' as const,
+      color: 'neutral' as const,
     },
     {
       label: 'Media Items',
-      value: 1,
-      sub: '1 video · photos coming soon',
+      value: visibleMedia,
+      sub: `${mediaItems.length} total · ${visibleMedia} visible`,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.867v6.266a1 1 0 01-1.447.902L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -75,11 +109,6 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       value: 'text-white',
       btn: 'border-brand-red/30 text-brand-red hover:bg-brand-red/10',
     },
-    blue: {
-      icon: 'text-brand-blue bg-brand-blue/10 border-brand-blue/20',
-      value: 'text-white',
-      btn: 'border-brand-blue/30 text-brand-blue hover:bg-brand-blue/10',
-    },
     neutral: {
       icon: 'text-white/50 bg-white/5 border-white/10',
       value: 'text-white',
@@ -105,7 +134,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
         {statCards.map((card) => {
           const colors = colorMap[card.color]
           return (
