@@ -6,6 +6,7 @@ export interface Show {
   time: string
   ticketUrl?: string
   isFeatured?: boolean
+  visible?: boolean
 }
 
 export interface MerchItem {
@@ -31,13 +32,37 @@ export interface BandMember {
 export interface SiteContent {
   heroHeadline: string
   heroSubheadline: string
-  aboutText: string[]
-  groupPhoto: string        // path in /public/ for the About page featured image
+  aboutText: string[]              // long bio used on the About page
+  aboutShort: string               // short Home-page teaser (NOT a slice of aboutText)
+  aboutHeadline: string            // editable About hero headline
+  groupPhoto: string               // path in /public/ for the About page featured image
+  serviceArea: string              // e.g. "South Florida" — used everywhere instead of hardcoded literals
+  footerTagline: string            // line under the footer logo
+  ctaPrimaryLabel: string          // primary CTA label (default "Book Rebound Rock Band")
+  ctaSecondaryLabel: string        // secondary CTA label (default "View Press Kit")
   contactEmail: string
   contactPhone: string
   instagram: string
   facebook: string
   youtube: string
+}
+
+export interface MediaItem {
+  id: string
+  type: 'photo' | 'video'
+  url: string                      // /public path or external URL
+  poster?: string                  // optional poster image for videos
+  caption: string
+  isFeatured?: boolean
+  visible: boolean
+}
+
+export interface EpkContent {
+  tagline: string
+  bookerIntro: string
+  repertoire: { era: string; artists: string }[]   // era WITHOUT trailing 's'
+  techSpecs: { label: string; value: string }[]
+  setlists?: { title: string; songs: string[] }[]
 }
 
 export const shows: Show[] = [
@@ -177,17 +202,96 @@ export const siteContent: SiteContent = {
   heroHeadline: 'Classic Rock That Brings the House Down',
   heroSubheadline:
     '5 live musicians. 4 decades of hits. One night you won\'t forget. Available for bars, festivals, private events, and corporate shows across South Florida.',
+  aboutHeadline: 'Who We Are',
+  aboutShort:
+    'Five musicians, four decades of rock and roll, and one mission — bring the greatest hits of the 50s through 90s back to the stage with the energy they were written for.',
   groupPhoto: '/Band Members.PNG',
   aboutText: [
     'Rebound Rock Band is a South Florida-based five-piece live cover band bringing the greatest rock and roll hits from the 1950s through the 1990s back to the stage — where they belong.',
     'Whether it\'s Chuck Berry, The Beatles, Led Zeppelin, Queen, or Bon Jovi, we play the songs that shaped rock and roll history with the energy and authenticity they deserve. No backing tracks. No auto-tune. Just five musicians who love great music and know how to work a crowd.',
     'Based in South Florida and available for shows, private events, festivals, and corporate engagements throughout the region and beyond.',
   ],
+  serviceArea: 'South Florida',
+  footerTagline:
+    'South Florida\'s live 5-piece classic rock cover band. Greatest hits from the 1950s through the 1990s.',
+  ctaPrimaryLabel: 'Book Rebound Rock Band',
+  ctaSecondaryLabel: 'View Press Kit',
   contactEmail: 'booking@reboundrockband.com',
   contactPhone: '(305) 555-0100',
   instagram: 'https://instagram.com/reboundrockband',
   facebook: 'https://facebook.com/reboundrockband',
   youtube: 'https://youtube.com/@reboundrockband',
+}
+
+export const mediaItems: MediaItem[] = [
+  {
+    id: '1',
+    type: 'video',
+    url: '/videos/live-performance.mp4',
+    caption: 'Live Performance',
+    isFeatured: true,
+    visible: true,
+  },
+]
+
+export const epkContent: EpkContent = {
+  tagline: 'South Florida · 5-Piece Live Cover Band · Classic Rock 50s–90s',
+  bookerIntro:
+    'Contact us directly for availability, pricing, and to request the full press kit PDF with photos and setlist.',
+  repertoire: [
+    { era: '50', artists: 'Chuck Berry, Elvis Presley, Buddy Holly, Little Richard' },
+    { era: '60', artists: 'The Beatles, The Rolling Stones, The Doors, Jimi Hendrix' },
+    { era: '70', artists: 'Led Zeppelin, Queen, Fleetwood Mac, Aerosmith, Lynyrd Skynyrd' },
+    { era: '80', artists: "Bon Jovi, Journey, Def Leppard, Van Halen, Guns N' Roses" },
+    { era: '90', artists: 'Nirvana, Pearl Jam, Red Hot Chili Peppers, Green Day, Counting Crows' },
+  ],
+  techSpecs: [
+    { label: 'Set Length', value: '2 × 45-min sets (or custom)' },
+    { label: 'Setup Time', value: '90 minutes prior to show' },
+    { label: 'Soundcheck', value: '30 minutes' },
+    { label: 'PA System', value: 'Self-contained (or house PA accepted)' },
+    { label: 'Lighting', value: 'Basic stage lighting available' },
+    { label: 'Stage Required', value: '15ft × 12ft minimum' },
+    { label: 'Power', value: '2 × 20A circuits minimum' },
+  ],
+  setlists: [
+    {
+      title: 'Set 1',
+      songs: [
+        'Be My Babe', 'Crimson & Clover', 'Mustang Sally', 'Call Me',
+        'I See Red', "Rockin' in the Free World", "Don't Stop Believin'",
+        'Have You Ever Seen the Rain?', 'Zombie', 'Some Kind of Wonderful',
+        'Flowers', 'Sweet Child of Mine',
+      ],
+    },
+    {
+      title: 'Set 2',
+      songs: [
+        'Here I Go Again', 'All Right Now', "What's Up", 'One Way or Another',
+        'Oh! Darling', 'I Heard It Through the Grapevine', 'Proud Mary',
+        'Whole Lotta Love', 'Message in the Bottle', 'Smells Like Teen Spirit',
+        'I Love Rock & Roll', 'I Hate Myself for Loving You',
+      ],
+    },
+    {
+      title: 'Set 3',
+      songs: [
+        'Just a Girl', "I Think We're Alone Now", 'Come to My Window',
+        'All I Wanna Do', 'Runaround Sue', 'Take On Me', "I'm the Only One",
+        'Girls Just Wanna Have Fun', 'Love Is a Battlefield',
+        'Come and Get Your Love', 'Dream On', 'Get Ready',
+      ],
+    },
+    {
+      title: 'Set 4',
+      songs: [
+        'Hit Me With Your Best Shot', 'Bitch', "I Can't Remember to Forget You",
+        'Susie Q', 'Wake Me Up Before You Go-Go', 'Piece of My Heart',
+        'You Oughta Know', 'I Want You to Want Me', 'Edge of 17',
+        'I Believe in a Thing Called Love', 'TNT', 'Na Na Hey Hey Kiss Him Goodbye',
+      ],
+    },
+  ],
 }
 
 export function formatDate(isoDate: string): {

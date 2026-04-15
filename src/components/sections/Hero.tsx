@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { siteContent } from '@/lib/data'
+import { readContent } from '@/lib/store'
 
 const stats = [
   { value: '5', label: 'Live Members' },
@@ -10,6 +10,7 @@ const stats = [
 ]
 
 export default function Hero() {
+  const { siteContent } = readContent()
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-brand-bg">
       {/* Atmospheric glow — red only, no blue */}
@@ -31,7 +32,7 @@ export default function Hero() {
             {/* Eyebrow */}
             <div className="inline-flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-6">
               <span className="w-8 h-px bg-brand-red/60" />
-              South Florida&apos;s Live Rock Experience
+              {siteContent.serviceArea}&apos;s Live Rock Experience
               <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse-slow" />
             </div>
 
@@ -57,7 +58,7 @@ export default function Hero() {
                 href="/booking"
                 className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-all btn-glow-red text-center"
               >
-                Book Rebound Rock Band
+                {siteContent.ctaPrimaryLabel}
               </Link>
               <Link
                 href="/shows"

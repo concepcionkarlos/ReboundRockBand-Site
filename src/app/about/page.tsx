@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { bandMembers, siteContent } from '@/lib/data'
+import Reveal from '@/components/ui/Reveal'
+import { readContent } from '@/lib/store'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'About the Band',
@@ -9,108 +12,98 @@ export const metadata: Metadata = {
 }
 
 export default function AboutPage() {
+  const { bandMembers, siteContent } = readContent()
   const visibleMembers = bandMembers.filter((m) => m.visible !== false)
 
   return (
     <div className="min-h-screen bg-brand-bg">
 
-      {/* ── Page hero — text only, atmospheric ── */}
-      <div className="relative overflow-hidden pt-36 pb-10">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] rounded-full bg-brand-red/5 blur-[130px] pointer-events-none" />
-        <div className="absolute inset-0 bg-grid-texture pointer-events-none opacity-40" />
+      {/* ── Page hero — text only ── */}
+      <Reveal>
+        <section className="relative overflow-hidden pt-36 pb-14 lg:pb-16">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] h-[380px] rounded-full bg-brand-red/5 blur-[140px] pointer-events-none" />
+          <div className="absolute inset-0 bg-grid-texture opacity-35 pointer-events-none" />
+          <div className="absolute bottom-0 inset-x-0 h-px divider-red pointer-events-none" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-10">
-          <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
-            <span className="w-5 h-px bg-brand-red/60" />
-            The Band
-          </div>
-          <h1
-            className="font-display uppercase leading-none text-white"
-            style={{ fontSize: 'clamp(3.5rem, 10vw, 7rem)' }}
-          >
-            Who <span className="text-brand-red">We Are</span>
-          </h1>
-          <p className="font-body text-white/45 text-base max-w-md leading-relaxed mt-4">
-            Five musicians. Four decades of hits. South Florida&apos;s live classic rock show.
-          </p>
-        </div>
-      </div>
-
-      {/* ── Featured group photo — one, properly framed ── */}
-      <div className="relative w-full overflow-hidden pb-4">
-        <div className="relative max-w-5xl mx-auto px-5 lg:px-10">
-          {/* Corner frame accents */}
-          <span className="absolute top-0 left-5 lg:left-10 w-7 h-7 border-l-2 border-t-2 border-brand-red z-10 pointer-events-none" />
-          <span className="absolute top-0 right-5 lg:right-10 w-7 h-7 border-r-2 border-t-2 border-brand-red z-10 pointer-events-none" />
-          <span className="absolute bottom-4 left-5 lg:left-10 w-7 h-7 border-l-2 border-b-2 border-brand-red z-10 pointer-events-none" />
-          <span className="absolute bottom-4 right-5 lg:right-10 w-7 h-7 border-r-2 border-b-2 border-brand-red z-10 pointer-events-none" />
-
-          {/* Photo — object-contain so no head cropping, ever */}
-          <div
-            className="relative w-full bg-brand-bg overflow-hidden"
-            style={{ height: 'clamp(240px, 40vw, 520px)' }}
-          >
-            <Image
-              src={siteContent.groupPhoto}
-              alt="Rebound Rock Band — all 5 members"
-              fill
-              className="object-contain"
-              priority
-            />
-            {/* Subtle left/right edge vignette so photo blends into dark bg */}
-            <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-brand-bg to-transparent pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-brand-bg to-transparent pointer-events-none" />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Main content ── */}
-      <div className="max-w-7xl mx-auto px-5 lg:px-10 pb-24">
-
-        {/* ── Bio ── */}
-        <div className="py-14 border-b border-brand-border">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-start">
-            <div>
-              <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
-                <span className="w-5 h-px bg-brand-red/60" />
-                Our Story
-              </div>
-              <div className="space-y-5 font-body text-gray-300/80 leading-relaxed text-base">
-                {siteContent.aboutText.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
+          <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-10">
+            <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-6">
+              <span className="w-5 h-px bg-brand-red/60" />
+              The Band
             </div>
+            <h1
+              className="font-display uppercase leading-[0.95] text-white max-w-5xl"
+              style={{ fontSize: 'clamp(3.25rem, 9vw, 6.5rem)' }}
+            >
+              {siteContent.aboutHeadline.split(' ').slice(0, -1).join(' ')}{' '}
+              <span className="text-brand-red">{siteContent.aboutHeadline.split(' ').slice(-1)}</span>
+            </h1>
+          </div>
+        </section>
+      </Reveal>
 
-            {/* Right column — key facts */}
-            <div className="flex flex-col gap-5 lg:pt-9">
-              {[
-                { value: '5', label: 'Live musicians — no backing tracks' },
-                { value: '4', label: 'Decades of rock & roll hits' },
-                { value: '100+', label: 'Live shows performed' },
-                { value: 'S. FL', label: 'Based & available statewide' },
-              ].map((stat) => (
-                <div key={stat.label} className="flex items-center gap-5 border-b border-brand-border/50 pb-5 last:border-0 last:pb-0">
-                  <div className="font-display text-4xl text-brand-red leading-none w-16 flex-shrink-0">{stat.value}</div>
-                  <div className="font-body text-sm text-white/55 leading-snug">{stat.label}</div>
-                </div>
+      {/* ── Group photo ── */}
+      {siteContent.groupPhoto && (
+        <Reveal delay={1}>
+          <section className="max-w-7xl mx-auto px-5 lg:px-10 pt-10 pb-0">
+            <div className="relative w-full aspect-[3/2] overflow-hidden border border-brand-border">
+              <Image
+                src={siteContent.groupPhoto}
+                alt="Rebound Rock Band"
+                fill
+                className="object-cover object-[50%_45%]"
+                priority
+                sizes="(max-width: 768px) 100vw, 1280px"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/50 via-transparent to-transparent pointer-events-none" />
+              {/* Corner accents */}
+              <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-brand-red pointer-events-none" />
+              <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-brand-red pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-brand-red pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-brand-red pointer-events-none" />
+            </div>
+          </section>
+        </Reveal>
+      )}
+
+      {/* ── Our Story ── */}
+      <Reveal delay={1}>
+        <section className="max-w-7xl mx-auto px-5 lg:px-10 py-16 lg:py-20 border-b border-brand-border">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
+              <span className="w-5 h-px bg-brand-red/60" />
+              Our Story
+            </div>
+            <div className="space-y-5 font-body text-gray-300/80 leading-relaxed text-base lg:text-lg">
+              {siteContent.aboutText.map((p, i) => (
+                <p key={i}>{p}</p>
               ))}
             </div>
           </div>
-        </div>
+        </section>
+      </Reveal>
 
-        {/* ── Meet the Band ── */}
-        <div className="pt-14">
-          <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-4">
-            <span className="w-5 h-px bg-brand-red/60" />
-            The Members
+      {/* ── Meet the Band ── */}
+      <section className="max-w-7xl mx-auto px-5 lg:px-10 pt-16 lg:pt-20 pb-24">
+        <Reveal>
+          <div className="flex items-end justify-between gap-6 mb-12 lg:mb-14 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-4">
+                <span className="w-5 h-px bg-brand-red/60" />
+                The Members
+              </div>
+              <h2 className="font-display uppercase text-4xl sm:text-5xl lg:text-6xl text-white leading-none">
+                Meet the <span className="text-brand-red">Band</span>
+              </h2>
+            </div>
+            <p className="font-body text-sm text-brand-muted max-w-xs leading-relaxed">
+              {visibleMembers.length} musicians, one sound. No backing tracks, no shortcuts.
+            </p>
           </div>
-          <h2 className="font-display uppercase text-4xl sm:text-5xl text-white mb-12">
-            Meet the <span className="text-brand-red">Band</span>
-          </h2>
+        </Reveal>
 
-          {/* Member cards — portrait, no boxy grid, premium feel */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 lg:gap-6 mb-20">
+        {/* Member cards */}
+        <Reveal delay={1}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 lg:gap-8 mb-20">
             {visibleMembers.map((member) => (
               <div key={member.id} className="group">
                 {/* Portrait photo */}
@@ -120,7 +113,8 @@ export default function AboutPage() {
                       src={member.photo}
                       alt={member.name}
                       fill
-                      className="object-cover object-top group-hover:scale-[1.04] transition-transform duration-500 ease-out"
+                      className="object-cover object-top group-hover:scale-[1.04] transition-transform duration-[600ms] ease-out"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 18vw"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-brand-elevated">
@@ -129,29 +123,29 @@ export default function AboutPage() {
                       </svg>
                     </div>
                   )}
-                  {/* Bottom gradient — only covers lower portion, faces stay clear */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/60 via-transparent to-transparent" />
-                  {/* Red left-edge accent — slides up from bottom on hover */}
-                  <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-brand-red origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
+                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brand-bg/60 to-transparent pointer-events-none" />
+                  <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-brand-red origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500" />
                 </div>
 
-                {/* Text — outside the image container so it's never overlaid */}
-                <div className="font-heading text-[10px] text-brand-red uppercase tracking-widest mb-1 leading-none">
-                  {member.role}
-                </div>
-                <div className="font-display text-lg sm:text-xl text-white uppercase leading-tight mb-1.5">
-                  {member.name}
-                </div>
-                {member.bio && (
+                {/* Text */}
+                <div className="transition-transform duration-300 group-hover:-translate-y-0.5">
+                  <div className="font-heading text-[10px] text-brand-red uppercase tracking-widest mb-1 leading-none">
+                    {member.role}
+                  </div>
+                  <div className="font-display text-xl lg:text-2xl text-white uppercase leading-tight mb-1.5">
+                    {member.name}
+                  </div>
                   <p className="font-body text-xs text-brand-muted leading-relaxed">
                     {member.bio}
                   </p>
-                )}
+                </div>
               </div>
             ))}
           </div>
+        </Reveal>
 
-          {/* ── Booking CTA ── */}
+        {/* Booking CTA */}
+        <Reveal>
           <div className="relative border-t border-brand-border pt-14 text-center">
             <div className="absolute top-0 inset-x-0 h-px divider-red" />
             <h2 className="font-display uppercase text-4xl sm:text-5xl text-white mb-4">
@@ -161,23 +155,16 @@ export default function AboutPage() {
               Get in touch to check availability and pricing for your event.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href="/booking"
-                className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-all btn-glow-red text-center"
-              >
-                Book Rebound Rock Band
+              <Link href="/booking" className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-all btn-glow-red text-center">
+                {siteContent.ctaPrimaryLabel}
               </Link>
-              <Link
-                href="/epk"
-                className="font-heading text-sm uppercase tracking-widest border border-white/25 text-white px-8 py-4 hover:border-brand-red hover:text-brand-red transition-all text-center"
-              >
-                Download EPK
+              <Link href="/epk" className="font-heading text-sm uppercase tracking-widest border border-white/25 text-white px-8 py-4 hover:border-brand-red hover:text-brand-red transition-all text-center">
+                {siteContent.ctaSecondaryLabel}
               </Link>
             </div>
           </div>
-        </div>
-
-      </div>
+        </Reveal>
+      </section>
     </div>
   )
 }

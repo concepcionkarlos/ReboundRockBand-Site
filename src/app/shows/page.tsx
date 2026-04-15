@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
-import { shows } from '@/lib/data'
+import { readContent } from '@/lib/store'
 import ShowCard from '@/components/ui/ShowCard'
 import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Shows & Events',
@@ -9,8 +11,10 @@ export const metadata: Metadata = {
 }
 
 export default function ShowsPage() {
-  const featuredShows = shows.filter((s) => s.isFeatured)
-  const regularShows = shows.filter((s) => !s.isFeatured)
+  const { shows } = readContent()
+  const visibleShows = shows.filter((s) => s.visible !== false)
+  const featuredShows = visibleShows.filter((s) => s.isFeatured)
+  const regularShows = visibleShows.filter((s) => !s.isFeatured)
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-brand-bg">
@@ -30,7 +34,7 @@ export default function ShowsPage() {
           </p>
         </div>
 
-        {shows.length > 0 ? (
+        {visibleShows.length > 0 ? (
           <div className="mb-14">
             {/* Featured shows */}
             {featuredShows.length > 0 && (

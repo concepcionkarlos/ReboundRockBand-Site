@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { readContent } from '@/lib/store'
 
 const eventTypes = [
   'Bars & Nightclubs',
@@ -12,6 +13,8 @@ const eventTypes = [
 ]
 
 export default function BookingCTA() {
+  const { siteContent } = readContent()
+
   return (
     <section className="relative bg-brand-surface border-y border-brand-border overflow-hidden py-20 lg:py-28">
       {/* Background layers */}
@@ -74,14 +77,14 @@ export default function BookingCTA() {
               href="/epk"
               className="font-heading text-sm uppercase tracking-widest border border-white/25 text-white px-10 py-4 hover:border-brand-red hover:text-brand-red transition-all text-center"
             >
-              View Press Kit
+              {siteContent.ctaSecondaryLabel}
             </Link>
           </div>
 
           <div className="flex items-center justify-center gap-4">
             <span className="w-8 h-px bg-brand-border" />
             <p className="font-body text-sm text-brand-muted">
-              Fast response · South Florida based · Available year-round
+              Fast response · {siteContent.serviceArea} based · Available year-round
             </p>
             <span className="w-8 h-px bg-brand-border" />
           </div>

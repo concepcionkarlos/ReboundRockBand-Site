@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { merch as initialMerch, type MerchItem } from '@/lib/data'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 const emptyItem: Omit<MerchItem, 'id'> = {
   name: '',
@@ -10,10 +12,11 @@ const emptyItem: Omit<MerchItem, 'id'> = {
   available: true,
   visible: true,
   externalUrl: '',
+  image: '',
 }
 
 const inputClass =
-  'w-full bg-[#0d0d1e] border border-white/8 text-white font-body text-sm px-3.5 py-2.5 focus:outline-none focus:border-brand-red/50 focus:shadow-[0_0_0_3px_rgba(224,16,30,0.07)] transition-all placeholder:text-white/20 rounded-none'
+  'w-full bg-[#111121] border border-white/8 text-white font-body text-sm px-3.5 py-2.5 focus:outline-none focus:border-brand-red/50 focus:shadow-[0_0_0_3px_rgba(224,16,30,0.07)] transition-all placeholder:text-white/20 rounded-none'
 
 export default function AdminMerch() {
   const [items, setItems] = useState<MerchItem[]>(initialMerch)
@@ -21,39 +24,76 @@ export default function AdminMerch() {
   const [form, setForm] = useState<Omit<MerchItem, 'id'>>(emptyItem)
   const [isAdding, setIsAdding] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  // Load from API on mount
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((d) => { if (d.merch) setItems(d.merch) })
+      .catch(() => {})
+  }, [])
 
   const flash = () => { setSaved(true); setTimeout(() => setSaved(false), 2500) }
 
+  const persist = useCallback(async (updated: MerchItem[]) => {
+    setSaving(true)
+    try {
+      await fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'merch', data: updated }),
+      })
+      flash()
+    } finally {
+      setSaving(false)
+    }
+  }, [])
+
   const openEdit = (item: MerchItem) => {
     setEditing(item)
-    setForm({ name: item.name, price: item.price, category: item.category, available: item.available, visible: item.visible, externalUrl: item.externalUrl ?? '' })
+    setForm({
+      name: item.name,
+      price: item.price,
+      category: item.category,
+      available: item.available,
+      visible: item.visible,
+      externalUrl: item.externalUrl ?? '',
+      image: item.image ?? '',
+    })
     setIsAdding(false)
   }
 
   const openAdd = () => { setEditing(null); setForm(emptyItem); setIsAdding(true) }
   const cancel = () => { setEditing(null); setIsAdding(false) }
 
-  const save = () => {
+  const save = async () => {
     if (!form.name) return
-    if (editing) {
-      setItems(items.map((i) => i.id === editing.id ? { ...editing, ...form } : i))
-    } else {
-      setItems([...items, { id: Date.now().toString(), ...form }])
-    }
+    const updated = editing
+      ? items.map((i) => i.id === editing.id ? { ...editing, ...form } : i)
+      : [...items, { id: Date.now().toString(), ...form }]
+    setItems(updated)
     cancel()
-    flash()
+    await persist(updated)
   }
 
-  const remove = (id: string) => {
-    if (confirm('Delete this item?')) setItems(items.filter((i) => i.id !== id))
+  const remove = async (id: string) => {
+    if (!confirm('Delete this item?')) return
+    const updated = items.filter((i) => i.id !== id)
+    setItems(updated)
+    await persist(updated)
   }
 
-  const toggleVisible = (id: string) => {
-    setItems(items.map((i) => i.id === id ? { ...i, visible: !i.visible } : i))
+  const toggleVisible = async (id: string) => {
+    const updated = items.map((i) => i.id === id ? { ...i, visible: !i.visible } : i)
+    setItems(updated)
+    await persist(updated)
   }
 
-  const toggleAvailable = (id: string) => {
-    setItems(items.map((i) => i.id === id ? { ...i, available: !i.available } : i))
+  const toggleAvailable = async (id: string) => {
+    const updated = items.map((i) => i.id === id ? { ...i, available: !i.available } : i)
+    setItems(updated)
+    await persist(updated)
   }
 
   const Toggle = ({ checked, onToggle, label }: { checked: boolean; onToggle: () => void; label: string }) => (
@@ -73,7 +113,7 @@ export default function AdminMerch() {
     <div className="max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-8">
-        <div>
+        <div className="border-l-2 border-brand-red pl-4">
           <h1 className="font-display uppercase text-4xl text-white leading-none">Merch</h1>
           <p className="font-body text-xs text-white/30 mt-1.5">{items.length} product{items.length !== 1 ? 's' : ''} · Printful-ready</p>
         </div>
@@ -85,6 +125,9 @@ export default function AdminMerch() {
               </svg>
               Saved
             </div>
+          )}
+          {saving && (
+            <div className="font-heading text-[10px] text-white/30 uppercase tracking-widest">Saving…</div>
           )}
           <button
             onClick={openAdd}
@@ -100,7 +143,7 @@ export default function AdminMerch() {
 
       {/* Form */}
       {(isAdding || editing) && (
-        <div className="mb-8 border border-brand-red/25 bg-brand-red/4">
+        <div className="mb-8 border border-brand-red/25 bg-brand-red/[0.04] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
           <div className="flex items-center justify-between gap-3 px-6 py-3.5 border-b border-brand-red/15">
             <h2 className="font-heading text-xs uppercase tracking-widest text-brand-red">
               {editing ? 'Edit Item' : 'New Item'}
@@ -134,6 +177,15 @@ export default function AdminMerch() {
                 <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Buy URL (Printful / External)</label>
                 <input type="url" value={form.externalUrl} onChange={(e) => setForm({ ...form, externalUrl: e.target.value })} className={inputClass} placeholder="https://printful.com/..." />
               </div>
+              <div className="sm:col-span-2">
+                <ImageUpload
+                  label="Product Image"
+                  value={form.image ?? ''}
+                  onChange={(url) => setForm({ ...form, image: url })}
+                  previewClassName="w-28 h-28"
+                  helper="Upload a square product shot for best results in the merch grid."
+                />
+              </div>
             </div>
             <div className="flex gap-5 mb-5">
               {[
@@ -158,7 +210,7 @@ export default function AdminMerch() {
               ))}
             </div>
             <div className="flex gap-2.5">
-              <button onClick={save} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all">
+              <button onClick={save} disabled={saving} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60">
                 {editing ? 'Save Changes' : 'Add Item'}
               </button>
               <button onClick={cancel} className="font-heading text-xs uppercase tracking-widest border border-white/15 text-white/40 px-5 py-2.5 hover:border-white/30 hover:text-white transition-all">
@@ -174,15 +226,22 @@ export default function AdminMerch() {
         {items.map((item) => (
           <div
             key={item.id}
-            className={`flex items-center gap-0 border border-white/6 bg-[#0d0d1e] hover:border-white/10 transition-all overflow-hidden ${
+            className={`relative flex items-center gap-0 border border-white/6 bg-[#0d0d1e] hover:border-white/12 transition-all overflow-hidden group ${
               !item.visible ? 'opacity-40' : ''
             }`}
           >
+            {/* Animated left accent */}
+            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-brand-red origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
+
             {/* Image thumb */}
-            <div className="w-12 h-12 bg-white/4 border-r border-white/6 flex-shrink-0 flex items-center justify-center">
-              <svg className="w-5 h-5 text-white/15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" />
-              </svg>
+            <div className="relative w-14 h-14 bg-white/4 border-r border-white/6 flex-shrink-0 flex items-center justify-center overflow-hidden">
+              {item.image ? (
+                <Image src={item.image} alt={item.name} fill className="object-cover" sizes="56px" />
+              ) : (
+                <svg className="w-5 h-5 text-white/15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" />
+                </svg>
+              )}
             </div>
 
             {/* Info */}
@@ -201,16 +260,8 @@ export default function AdminMerch() {
 
             {/* Toggles */}
             <div className="flex gap-1.5 flex-shrink-0 px-3">
-              <Toggle
-                checked={item.available}
-                onToggle={() => toggleAvailable(item.id)}
-                label={item.available ? 'In Stock' : 'Sold Out'}
-              />
-              <Toggle
-                checked={item.visible}
-                onToggle={() => toggleVisible(item.id)}
-                label={item.visible ? 'Visible' : 'Hidden'}
-              />
+              <Toggle checked={item.available} onToggle={() => toggleAvailable(item.id)} label={item.available ? 'In Stock' : 'Sold Out'} />
+              <Toggle checked={item.visible} onToggle={() => toggleVisible(item.id)} label={item.visible ? 'Visible' : 'Hidden'} />
             </div>
 
             {/* Actions */}
@@ -225,6 +276,12 @@ export default function AdminMerch() {
           </div>
         ))}
       </div>
+
+      {items.length === 0 && (
+        <div className="text-center py-16 border border-white/6">
+          <p className="font-heading text-white/25 text-xs tracking-widest uppercase">No products yet — add one above</p>
+        </div>
+      )}
 
       <p className="font-body text-xs text-white/15 mt-8">
         Add a Printful or external URL to each item to enable &quot;Buy Now&quot; buttons on the public site.
