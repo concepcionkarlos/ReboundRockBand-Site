@@ -72,12 +72,12 @@ export default function MediaPreview() {
           </p>
           <div className="flex gap-2">
             <a
-              href={siteContent.instagram}
+              href={siteContent.facebook}
               target="_blank"
               rel="noopener noreferrer"
               className="font-heading text-xs uppercase tracking-widest border border-brand-border text-brand-muted hover:border-brand-red hover:text-brand-red transition-all px-4 py-2"
             >
-              Instagram
+              Facebook
             </a>
             <Link
               href="/media"

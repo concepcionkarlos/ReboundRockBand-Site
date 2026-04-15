@@ -121,12 +121,6 @@ export default function BookingPage() {
                     {siteContent.contactEmail}
                   </a>
                 </div>
-                <div>
-                  <div className="font-heading text-[10px] text-brand-muted/60 uppercase tracking-widest mb-1">Phone</div>
-                  <a href={`tel:${siteContent.contactPhone}`} className="font-body text-sm text-white hover:text-brand-red transition-colors">
-                    {siteContent.contactPhone}
-                  </a>
-                </div>
               </div>
             </div>
 

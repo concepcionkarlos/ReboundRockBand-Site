@@ -41,7 +41,6 @@ export interface SiteContent {
   ctaPrimaryLabel: string          // primary CTA label (default "Book Rebound Rock Band")
   ctaSecondaryLabel: string        // secondary CTA label (default "View Press Kit")
   contactEmail: string
-  contactPhone: string
   facebook: string
 }
 
@@ -215,7 +214,6 @@ export const siteContent: SiteContent = {
   ctaPrimaryLabel: 'Book Rebound Rock Band',
   ctaSecondaryLabel: 'View Press Kit',
   contactEmail: 'booking@reboundrockband.com',
-  contactPhone: '(305) 555-0100',
   facebook: 'https://www.facebook.com/share/18hs9R8x9S/?mibextid=wwXIfr',
 }
 
