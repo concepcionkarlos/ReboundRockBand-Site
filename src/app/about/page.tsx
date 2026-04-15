@@ -17,7 +17,6 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-brand-bg">
-
       {/* ── Page hero — text only ── */}
       <Reveal>
         <section className="relative overflow-hidden pt-36 pb-14 lg:pb-16">
@@ -35,7 +34,9 @@ export default function AboutPage() {
               style={{ fontSize: 'clamp(3.25rem, 9vw, 6.5rem)' }}
             >
               {siteContent.aboutHeadline.split(' ').slice(0, -1).join(' ')}{' '}
-              <span className="text-brand-red">{siteContent.aboutHeadline.split(' ').slice(-1)}</span>
+              <span className="text-brand-red">
+                {siteContent.aboutHeadline.split(' ').slice(-1)}
+              </span>
             </h1>
           </div>
         </section>
@@ -45,14 +46,14 @@ export default function AboutPage() {
       {siteContent.groupPhoto && (
         <Reveal delay={1}>
           <section className="max-w-7xl mx-auto px-0 sm:px-5 lg:px-10 pt-10 pb-0">
-            <div className="relative w-full aspect-[3/2] overflow-hidden border-y sm:border border-brand-border">
+            <div className="relative w-full overflow-hidden border-y sm:border border-brand-border aspect-[3/2] lg:aspect-[16/9] lg:max-w-[1080px] lg:mx-auto">
               <Image
                 src={siteContent.groupPhoto}
                 alt="Rebound Rock Band"
                 fill
                 priority
-                className="object-cover object-[50%_20%]"
-                sizes="(max-width: 640px) 100vw, 1280px"
+                className="object-cover object-[50%_20%] lg:object-[50%_44%]"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1080px"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/50 via-transparent to-transparent pointer-events-none" />
               <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-brand-red pointer-events-none" />
@@ -100,12 +101,10 @@ export default function AboutPage() {
           </div>
         </Reveal>
 
-        {/* Member cards */}
         <Reveal delay={1}>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 mb-20">
             {visibleMembers.map((member) => (
               <div key={member.id} className="group">
-                {/* Portrait photo */}
                 <div className="relative aspect-[3/4] overflow-hidden bg-brand-elevated mb-4">
                   {member.photo ? (
                     <Image
@@ -117,8 +116,18 @@ export default function AboutPage() {
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-brand-elevated">
-                      <svg className="w-10 h-10 text-brand-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                      <svg
+                        className="w-10 h-10 text-brand-border"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                        />
                       </svg>
                     </div>
                   )}
@@ -126,7 +135,6 @@ export default function AboutPage() {
                   <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-brand-red origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500" />
                 </div>
 
-                {/* Text */}
                 <div className="transition-transform duration-300 group-hover:-translate-y-0.5">
                   <div className="font-heading text-[10px] text-brand-red uppercase tracking-widest mb-1 leading-none">
                     {member.role}
@@ -143,7 +151,6 @@ export default function AboutPage() {
           </div>
         </Reveal>
 
-        {/* Booking CTA */}
         <Reveal>
           <div className="relative border-t border-brand-border pt-14 text-center">
             <div className="absolute top-0 inset-x-0 h-px divider-red" />
@@ -154,10 +161,16 @@ export default function AboutPage() {
               Get in touch to check availability and pricing for your event.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/booking" className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-all btn-glow-red text-center">
+              <Link
+                href="/booking"
+                className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-all btn-glow-red text-center"
+              >
                 {siteContent.ctaPrimaryLabel}
               </Link>
-              <Link href="/epk" className="font-heading text-sm uppercase tracking-widest border border-white/25 text-white px-8 py-4 hover:border-brand-red hover:text-brand-red transition-all text-center">
+              <Link
+                href="/epk"
+                className="font-heading text-sm uppercase tracking-widest border border-white/25 text-white px-8 py-4 hover:border-brand-red hover:text-brand-red transition-all text-center"
+              >
                 {siteContent.ctaSecondaryLabel}
               </Link>
             </div>
