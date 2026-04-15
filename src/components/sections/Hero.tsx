@@ -12,7 +12,7 @@ const stats = [
 export default function Hero() {
   const { siteContent } = readContent()
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-brand-bg">
+    <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-brand-bg">
       {/* Atmospheric glow — red only, no blue */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-brand-red/5 blur-[130px]" />
