@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Bebas_Neue, Oswald, Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'
@@ -46,6 +46,14 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'Rebound Rock Band',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#080810',
+  colorScheme: 'dark',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
