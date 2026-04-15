@@ -44,8 +44,8 @@ export default function AboutPage() {
       {/* ── Group photo ── */}
       {siteContent.groupPhoto && (
         <Reveal delay={1}>
-          <section className="max-w-7xl mx-auto px-5 lg:px-10 pt-10 pb-0">
-            <div className="relative w-full aspect-[3/2] overflow-hidden border border-brand-border">
+          <section className="max-w-7xl mx-auto px-0 sm:px-5 lg:px-10 pt-10 pb-0">
+            <div className="relative w-full aspect-[3/2] overflow-hidden border-y sm:border border-brand-border">
               <Image
                 src={siteContent.groupPhoto}
                 alt="Rebound Rock Band"
