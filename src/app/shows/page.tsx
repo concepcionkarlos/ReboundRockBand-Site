@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   description: 'Upcoming Rebound Rock Band shows and live performances across South Florida.',
 }
 
-export default function ShowsPage() {
-  const { shows, siteContent } = readContent()
+export default async function ShowsPage() {
+  const { shows, siteContent } = await readContent()
   const visibleShows = shows.filter((s) => s.visible !== false)
   const featuredShows = visibleShows.filter((s) => s.isFeatured)
   const regularShows = visibleShows.filter((s) => !s.isFeatured)

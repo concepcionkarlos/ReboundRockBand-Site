@@ -9,8 +9,8 @@ const stats = [
   { value: 'S. FL', label: 'Based In' },
 ]
 
-export default function Hero() {
-  const { siteContent } = readContent()
+export default async function Hero() {
+  const { siteContent } = await readContent()
   return (
     <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-brand-bg">
       {/* Atmospheric layers */}

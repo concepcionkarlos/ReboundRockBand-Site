@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   description: 'Meet Rebound Rock Band — South Florida\'s 5-piece live classic rock cover band.',
 }
 
-export default function AboutPage() {
-  const { bandMembers, siteContent } = readContent()
+export default async function AboutPage() {
+  const { bandMembers, siteContent } = await readContent()
   const visibleMembers = bandMembers.filter((m) => m.visible !== false)
 
   return (

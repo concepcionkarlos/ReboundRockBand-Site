@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   description: 'Rebound Rock Band electronic press kit — bio, tech rider, setlists, and booking info for promoters and venues.',
 }
 
-export default function EpkPage() {
-  const { epkContent, siteContent } = readContent()
+export default async function EpkPage() {
+  const { epkContent, siteContent } = await readContent()
 
   return (
     <div className="pt-24 pb-24 min-h-screen bg-brand-bg">

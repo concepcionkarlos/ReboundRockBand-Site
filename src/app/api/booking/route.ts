@@ -36,9 +36,9 @@ export async function POST(req: NextRequest) {
       updatedAt: now,
     }
 
-    const current = readContent()
+    const current = await readContent()
     const updated = [...(current.bookingRequests ?? []), newRequest]
-    writeContent({ bookingRequests: updated })
+    await writeContent({ bookingRequests: updated })
 
     return NextResponse.json({ success: true, id: newRequest.id })
   } catch {

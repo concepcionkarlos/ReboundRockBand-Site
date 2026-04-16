@@ -34,8 +34,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
   ),
 }
 
-export default function MerchPage() {
-  const { merch, siteContent } = readContent()
+export default async function MerchPage() {
+  const { merch, siteContent } = await readContent()
   const visible = merch.filter((m) => m.visible)
 
   return (

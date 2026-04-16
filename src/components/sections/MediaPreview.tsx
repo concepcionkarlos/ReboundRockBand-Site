@@ -2,8 +2,8 @@ import Link from 'next/link'
 import SectionHeader from '@/components/ui/SectionHeader'
 import { readContent } from '@/lib/store'
 
-export default function MediaPreview() {
-  const { mediaItems, siteContent } = readContent()
+export default async function MediaPreview() {
+  const { mediaItems, siteContent } = await readContent()
   const visible = mediaItems.filter((m) => m.visible !== false)
   const featured = visible.find((m) => m.type === 'video' && m.isFeatured) ?? visible[0]
 

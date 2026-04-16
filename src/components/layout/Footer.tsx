@@ -35,8 +35,8 @@ const FacebookIconSm = (
   </svg>
 )
 
-export default function Footer() {
-  const { siteContent } = readContent()
+export default async function Footer() {
+  const { siteContent } = await readContent()
 
   type SocialItem = { label: string; href: string; icon: React.ReactNode }
 

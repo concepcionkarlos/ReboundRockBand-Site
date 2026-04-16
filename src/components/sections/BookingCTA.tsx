@@ -12,8 +12,8 @@ const eventTypes = [
   'Holiday Parties',
 ]
 
-export default function BookingCTA() {
-  const { siteContent } = readContent()
+export default async function BookingCTA() {
+  const { siteContent } = await readContent()
 
   return (
     <section className="relative bg-brand-surface border-y border-brand-border overflow-hidden py-24 lg:py-32">

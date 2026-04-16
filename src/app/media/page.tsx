@@ -66,8 +66,8 @@ function SocialPills({ siteContent, label }: { siteContent: SiteContent; label?:
   )
 }
 
-export default function MediaPage() {
-  const { mediaItems, siteContent } = readContent()
+export default async function MediaPage() {
+  const { mediaItems, siteContent } = await readContent()
   const visible = mediaItems.filter((m) => m.visible !== false)
   const featured = visible.filter((m) => m.isFeatured)
   const rest = visible.filter((m) => !m.isFeatured)
