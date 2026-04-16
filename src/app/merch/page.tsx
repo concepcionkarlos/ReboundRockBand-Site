@@ -61,7 +61,7 @@ export default async function MerchPage() {
               {/* Free shipping callout */}
               <div className="flex-shrink-0 border border-brand-border bg-brand-surface px-5 py-4 text-center sm:text-right">
                 <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-1">Free Shipping</div>
-                <div className="font-body text-xs text-brand-text">On orders over $40</div>
+                <div className="font-body text-xs text-brand-text">On orders over $75</div>
               </div>
             </div>
           </div>
@@ -211,7 +211,7 @@ export default async function MerchPage() {
             <div className="border border-brand-border bg-brand-surface p-6 text-center">
               <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-2">Free Shipping</div>
               <p className="font-body text-sm text-brand-text leading-relaxed">
-                Free shipping on all orders over $40 in the US.
+                Free shipping on all orders over $75 in the US.
               </p>
             </div>
             <div className="border border-brand-border bg-brand-surface p-6 text-center">
