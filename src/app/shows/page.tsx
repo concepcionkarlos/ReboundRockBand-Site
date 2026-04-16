@@ -17,33 +17,33 @@ export default function ShowsPage() {
   const regularShows = visibleShows.filter((s) => !s.isFeatured)
 
   return (
-    <div className="pt-24 pb-20 min-h-screen bg-brand-bg">
+    <div className="pt-24 pb-24 min-h-screen bg-brand-bg">
       <div className="max-w-7xl mx-auto px-5 lg:px-10">
 
         {/* Page header */}
-        <div className="py-12 border-b border-brand-border mb-12">
-          <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
-            <span className="w-5 h-px bg-brand-red/60" />
+        <div className="py-14 border-b border-brand-border mb-14">
+          <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
+            <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
             On the Road
           </div>
-          <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-none mb-3">
+          <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-[0.9] mb-4">
             Upcoming <span className="text-brand-red">Shows</span>
           </h1>
-          <p className="font-body text-brand-muted text-base max-w-xl leading-relaxed">
+          <p className="font-body text-brand-text text-base max-w-xl leading-relaxed">
             Catch Rebound Rock Band live across South Florida. Check back often — new dates added regularly.
           </p>
         </div>
 
         {visibleShows.length > 0 ? (
-          <div className="mb-14">
+          <div className="mb-16">
             {/* Featured shows */}
             {featuredShows.length > 0 && (
-              <div className="mb-8">
-                <h2 className="font-heading text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-4 flex items-center gap-3">
+              <div className="mb-10">
+                <h2 className="font-heading text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-5 flex items-center gap-3">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse-slow" />
                   Highlighted Shows
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {featuredShows.map((show) => (
                     <ShowCard key={show.id} show={show} />
                   ))}
@@ -54,11 +54,11 @@ export default function ShowsPage() {
             {/* All other shows */}
             {regularShows.length > 0 && (
               <div>
-                <h2 className="font-heading text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-4 flex items-center gap-3">
-                  <span className="w-5 h-px bg-brand-border" />
+                <h2 className="font-heading text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-5 flex items-center gap-3">
+                  <span className="w-6 h-px bg-brand-border" />
                   All Upcoming Dates
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {regularShows.map((show) => (
                     <ShowCard key={show.id} show={show} />
                   ))}
@@ -67,7 +67,7 @@ export default function ShowsPage() {
             )}
           </div>
         ) : (
-          <div className="text-center py-20 border border-brand-border mb-14 flex flex-col items-center gap-4">
+          <div className="text-center py-24 border border-brand-border mb-16 flex flex-col items-center gap-5 bg-brand-surface">
             <p className="font-heading text-brand-muted text-xs tracking-widest uppercase">
               New dates are always in the works — follow us on Facebook for announcements
             </p>
@@ -76,7 +76,7 @@ export default function ShowsPage() {
                 href={siteContent.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 font-heading text-[10px] uppercase tracking-widest text-brand-muted/50 hover:text-brand-red transition-colors"
+                className="inline-flex items-center gap-2 font-heading text-[10px] uppercase tracking-widest text-brand-muted hover:text-brand-red transition-colors"
               >
                 <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -88,25 +88,28 @@ export default function ShowsPage() {
         )}
 
         {/* Booking pitch */}
-        <div className="relative p-8 lg:p-10 border border-brand-border bg-brand-surface overflow-hidden text-center">
-          <div className="absolute inset-0 bg-stripe-texture pointer-events-none opacity-50" />
+        <div className="relative p-10 lg:p-14 border border-brand-border bg-brand-surface overflow-hidden text-center">
+          <div className="absolute inset-0 bg-stripe-texture pointer-events-none" />
           <div className="absolute top-0 inset-x-0 h-px divider-red" />
+          <div className="absolute bottom-0 inset-x-0 h-px divider-red" />
           <div className="relative z-10">
-            <h2 className="font-display uppercase text-3xl sm:text-4xl text-white mb-3">Want Us at Your Venue?</h2>
-            <p className="font-body text-brand-muted text-sm max-w-md mx-auto mb-7 leading-relaxed">
+            <h2 className="font-display uppercase text-3xl sm:text-5xl text-white leading-[0.92] mb-4">
+              Want Us at Your <span className="text-brand-red">Venue?</span>
+            </h2>
+            <p className="font-body text-brand-text text-sm max-w-md mx-auto mb-8 leading-relaxed">
               We&apos;re always looking for great venues and events. Reach out to book Rebound Rock Band at your
               bar, restaurant, festival, or private event.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/booking"
-                className="inline-block font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-3.5 hover:bg-brand-red-bright transition-all btn-glow-red"
+                className="inline-block font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-9 py-4 hover:bg-brand-red-bright transition-all btn-glow-red"
               >
                 Contact Us for Booking
               </Link>
               <Link
                 href="/epk"
-                className="inline-block font-heading text-sm uppercase tracking-widest border border-white/25 text-white px-8 py-3.5 hover:border-brand-red hover:text-brand-red transition-all"
+                className="inline-block font-heading text-sm uppercase tracking-widest border border-white/20 text-white/85 px-9 py-4 hover:border-brand-red hover:text-brand-red transition-all"
               >
                 View Press Kit
               </Link>
@@ -115,7 +118,7 @@ export default function ShowsPage() {
                   href={siteContent.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 font-heading text-sm uppercase tracking-widest border border-white/15 text-brand-muted px-8 py-3.5 hover:border-brand-red hover:text-brand-red transition-all"
+                  className="inline-flex items-center justify-center gap-2 font-heading text-sm uppercase tracking-widest border border-brand-border text-brand-muted px-9 py-4 hover:border-brand-red hover:text-brand-red transition-all"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />

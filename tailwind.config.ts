@@ -10,15 +10,16 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          bg: '#080810',
-          surface: '#0f0f1c',
-          elevated: '#161626',
+          bg: '#07070f',
+          surface: '#0d0d1b',
+          elevated: '#141424',
           red: '#e0101e',
           'red-bright': '#ff2233',
           blue: '#1045c8',
           'blue-bright': '#2060ff',
-          border: '#1e1e2e',
+          border: '#1c1c2c',
           muted: '#6b6b80',
+          text: '#9898b0',
         },
       },
       fontFamily: {

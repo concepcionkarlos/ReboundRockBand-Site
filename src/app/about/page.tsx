@@ -17,24 +17,24 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-brand-bg">
-      {/* ── Page hero — text only ── */}
+      {/* ── Page hero ── */}
       <Reveal>
-        <section className="relative overflow-hidden pt-36 pb-14 lg:pb-16">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] h-[380px] rounded-full bg-brand-red/5 blur-[140px] pointer-events-none" />
-          <div className="absolute inset-0 bg-grid-texture opacity-35 pointer-events-none" />
+        <section className="relative overflow-hidden pt-36 pb-16">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[400px] rounded-full bg-brand-red/[0.05] blur-[150px] pointer-events-none" />
+          <div className="absolute inset-0 bg-grid-texture opacity-40 pointer-events-none" />
           <div className="absolute bottom-0 inset-x-0 h-px divider-red pointer-events-none" />
 
           <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-10">
-            <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-6">
-              <span className="w-5 h-px bg-brand-red/60" />
+            <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-7">
+              <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
               The Band
             </div>
             <h1
-              className="font-display uppercase leading-[0.95] text-white max-w-5xl"
+              className="font-display uppercase leading-[0.92] text-white max-w-5xl"
               style={{ fontSize: 'clamp(3.25rem, 9vw, 6.5rem)' }}
             >
               {siteContent.aboutHeadline.split(' ').slice(0, -1).join(' ')}{' '}
-              <span className="text-brand-red">
+              <span className="text-brand-red text-glow-red">
                 {siteContent.aboutHeadline.split(' ').slice(-1)}
               </span>
             </h1>
@@ -55,11 +55,11 @@ export default function AboutPage() {
                 className="object-cover object-[50%_24%] lg:object-[50%_44%]"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1080px"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/50 via-transparent to-transparent pointer-events-none" />
-              <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-brand-red pointer-events-none" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-brand-red pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-brand-red pointer-events-none" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-brand-red pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/40 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute top-0 left-0 w-10 h-10 border-l-2 border-t-2 border-brand-red pointer-events-none" />
+              <div className="absolute top-0 right-0 w-10 h-10 border-r-2 border-t-2 border-brand-red pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-10 h-10 border-l-2 border-b-2 border-brand-red pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-10 h-10 border-r-2 border-b-2 border-brand-red pointer-events-none" />
             </div>
           </section>
         </Reveal>
@@ -67,13 +67,13 @@ export default function AboutPage() {
 
       {/* ── Our Story ── */}
       <Reveal delay={1}>
-        <section className="max-w-7xl mx-auto px-5 lg:px-10 py-16 lg:py-20 border-b border-brand-border">
+        <section className="max-w-7xl mx-auto px-5 lg:px-10 py-20 lg:py-24 border-b border-brand-border">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
-              <span className="w-5 h-px bg-brand-red/60" />
+            <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
+              <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
               Our Story
             </div>
-            <div className="space-y-5 font-body text-gray-300/80 leading-relaxed text-base lg:text-lg">
+            <div className="space-y-6 font-body text-brand-text leading-relaxed text-base lg:text-lg">
               {siteContent.aboutText.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
@@ -83,66 +83,56 @@ export default function AboutPage() {
       </Reveal>
 
       {/* ── Meet the Band ── */}
-      <section className="max-w-7xl mx-auto px-5 lg:px-10 pt-16 lg:pt-20 pb-24">
+      <section className="max-w-7xl mx-auto px-5 lg:px-10 pt-20 pb-28">
         <Reveal>
-          <div className="flex items-end justify-between gap-6 mb-12 lg:mb-14 flex-wrap">
+          <div className="flex items-end justify-between gap-6 mb-14 lg:mb-16 flex-wrap">
             <div>
-              <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-4">
-                <span className="w-5 h-px bg-brand-red/60" />
+              <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-5">
+                <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
                 The Members
               </div>
-              <h2 className="font-display uppercase text-4xl sm:text-5xl lg:text-6xl text-white leading-none">
+              <h2 className="font-display uppercase text-4xl sm:text-5xl lg:text-6xl text-white leading-[0.92]">
                 Meet the <span className="text-brand-red">Band</span>
               </h2>
             </div>
-            <p className="font-body text-sm text-brand-muted max-w-xs leading-relaxed">
+            <p className="font-body text-sm text-brand-text max-w-xs leading-relaxed">
               {visibleMembers.length} musicians, one sound. No backing tracks, no shortcuts.
             </p>
           </div>
         </Reveal>
 
         <Reveal delay={1}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 mb-20">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 sm:gap-7 lg:gap-8 mb-24">
             {visibleMembers.map((member) => (
               <div key={member.id} className="group">
-                <div className="relative aspect-[3/4] overflow-hidden bg-brand-elevated mb-4">
+                <div className="relative aspect-[3/4] overflow-hidden bg-brand-elevated mb-5 border border-brand-border/50 group-hover:border-brand-red/30 transition-colors duration-500">
                   {member.photo ? (
                     <Image
                       src={member.photo}
                       alt={member.name}
                       fill
-                      className="object-cover object-top group-hover:scale-[1.04] transition-transform duration-[600ms] ease-out"
+                      className="object-cover object-top group-hover:scale-[1.05] transition-transform duration-700 ease-out"
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 18vw"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-brand-elevated">
-                      <svg
-                        className="w-10 h-10 text-brand-border"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                        />
+                      <svg className="w-10 h-10 text-brand-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                       </svg>
                     </div>
                   )}
-                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brand-bg/60 to-transparent pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-brand-bg/70 to-transparent pointer-events-none" />
                   <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-brand-red origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500" />
                 </div>
 
-                <div className="transition-transform duration-300 group-hover:-translate-y-0.5">
-                  <div className="font-heading text-[10px] text-brand-red uppercase tracking-widest mb-1 leading-none">
+                <div className="transition-transform duration-300 group-hover:-translate-y-1">
+                  <div className="font-heading text-[10px] text-brand-red uppercase tracking-widest mb-1.5 leading-none">
                     {member.role}
                   </div>
-                  <div className="font-display text-xl lg:text-2xl text-white uppercase leading-tight mb-1.5">
+                  <div className="font-display text-xl lg:text-2xl text-white uppercase leading-tight mb-2">
                     {member.name}
                   </div>
-                  <p className="font-body text-xs text-brand-muted leading-relaxed">
+                  <p className="font-body text-xs text-brand-text leading-relaxed">
                     {member.bio}
                   </p>
                 </div>
@@ -152,24 +142,24 @@ export default function AboutPage() {
         </Reveal>
 
         <Reveal>
-          <div className="relative border-t border-brand-border pt-14 text-center">
+          <div className="relative border-t border-brand-border pt-16 text-center">
             <div className="absolute top-0 inset-x-0 h-px divider-red" />
-            <h2 className="font-display uppercase text-4xl sm:text-5xl text-white mb-4">
+            <h2 className="font-display uppercase text-4xl sm:text-5xl text-white leading-[0.92] mb-5">
               Ready to <span className="text-brand-red">Book?</span>
             </h2>
-            <p className="font-body text-brand-muted max-w-md mx-auto mb-8 leading-relaxed">
+            <p className="font-body text-brand-text max-w-md mx-auto mb-9 leading-relaxed">
               Get in touch to check availability and pricing for your event.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/booking"
-                className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-all btn-glow-red text-center"
+                className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-9 py-4 hover:bg-brand-red-bright transition-all btn-glow-red text-center"
               >
                 {siteContent.ctaPrimaryLabel}
               </Link>
               <Link
                 href="/epk"
-                className="font-heading text-sm uppercase tracking-widest border border-white/25 text-white px-8 py-4 hover:border-brand-red hover:text-brand-red transition-all text-center"
+                className="font-heading text-sm uppercase tracking-widest border border-white/20 text-white/85 px-9 py-4 hover:border-brand-red hover:text-brand-red transition-all text-center"
               >
                 {siteContent.ctaSecondaryLabel}
               </Link>

@@ -20,7 +20,7 @@ export default function Header() {
   const isActive = (href: string) => pathname === href
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-brand-bg/92 backdrop-blur-md">
+    <header className="fixed top-0 inset-x-0 z-50 border-b border-white/[0.06] bg-brand-bg/95 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-5 lg:px-10 h-16 flex items-center justify-between gap-4">
 
         {/* Logo */}
@@ -48,7 +48,7 @@ export default function Header() {
               className={`relative font-heading text-xs uppercase tracking-widest px-3 py-2 transition-colors duration-150 group ${
                 isActive(link.href)
                   ? 'text-white'
-                  : 'text-white/50 hover:text-white/90'
+                  : 'text-white/55 hover:text-white'
               }`}
             >
               {link.label}
@@ -108,7 +108,7 @@ export default function Header() {
           menuOpen ? 'max-h-[28rem] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="bg-brand-surface border-t border-brand-border px-5 py-4 flex flex-col gap-0.5">
+        <div className="bg-brand-surface border-t border-brand-border px-5 py-5 flex flex-col gap-0.5">
           {navLinks.map((link) => (
             <Link
               key={link.href}

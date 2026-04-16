@@ -13,11 +13,15 @@ export interface MerchItem {
   id: string
   name: string
   price: number
-  image?: string          // path in /public/images/merch/
+  image?: string            // primary product image
+  images?: string[]         // additional gallery images (front, detail, etc.)
   category: 'tshirt' | 'hat' | 'sticker' | 'other'
   available: boolean
-  externalUrl?: string    // Printful / external checkout URL
+  externalUrl?: string      // Printful / external checkout URL
   visible: boolean
+  description?: string      // short product description
+  specs?: { label: string; value: string }[]   // fabric, fit, print method, etc.
+  atShows?: boolean         // sold at live shows
 }
 
 export interface BandMember {
@@ -97,6 +101,25 @@ export interface BookingRequest {
 
 export const bookingRequests: BookingRequest[] = []
 
+export type SongRequestStatus = 'New' | 'Review' | 'Consider' | 'Added' | 'Declined'
+
+export interface SongRequest {
+  id: string
+  fullName: string
+  email: string
+  eventDate?: string
+  song1: string
+  song2?: string
+  song3?: string
+  notes?: string
+  bookingRequestId?: string   // optional link to a BookingRequest
+  status: SongRequestStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export const songRequests: SongRequest[] = []
+
 export const shows: Show[] = [
   {
     id: '1',
@@ -161,11 +184,22 @@ export const merch: MerchItem[] = [
   {
     id: '1',
     name: 'Rebound Rock Band Tee',
-    price: 25,
+    price: 28,
+    image: '/images/tee-product.webp',
+    images: ['/images/tee-front-clean.webp', '/images/tee-product.webp'],
     category: 'tshirt',
     available: true,
     visible: true,
     externalUrl: '',
+    atShows: true,
+    description: 'Classic unisex crew-neck tee featuring the Rebound Rock Band gnome on the chest and a full back print. Soft, pre-shrunk, and built to last show after show.',
+    specs: [
+      { label: 'Fabric', value: '100% pre-shrunk cotton, 6 oz' },
+      { label: 'Fit', value: 'Unisex — slightly relaxed' },
+      { label: 'Print', value: 'Direct-to-garment (DTG)' },
+      { label: 'Color', value: 'Black only' },
+      { label: 'Care', value: 'Machine wash cold, tumble dry low' },
+    ],
   },
   {
     id: '2',
@@ -175,6 +209,14 @@ export const merch: MerchItem[] = [
     available: true,
     visible: true,
     externalUrl: '',
+    atShows: true,
+    description: 'Structured snapback with the Rebound Rock Band gnome logo embroidered on the front panel. One size fits most.',
+    specs: [
+      { label: 'Style', value: 'Structured 6-panel snapback' },
+      { label: 'Material', value: 'Polyester / cotton blend' },
+      { label: 'Closure', value: 'Adjustable snap back' },
+      { label: 'Color', value: 'Black with red embroidery' },
+    ],
   },
   {
     id: '3',
@@ -184,6 +226,14 @@ export const merch: MerchItem[] = [
     available: true,
     visible: true,
     externalUrl: '',
+    atShows: true,
+    description: 'Five die-cut vinyl stickers featuring the Rebound Rock Band gnome in different poses. Weatherproof and UV-resistant.',
+    specs: [
+      { label: 'Quantity', value: '5 stickers per pack' },
+      { label: 'Material', value: 'Weatherproof vinyl' },
+      { label: 'Finish', value: 'Gloss laminate' },
+      { label: 'Sizes', value: '2"–4" variety' },
+    ],
   },
 ]
 
