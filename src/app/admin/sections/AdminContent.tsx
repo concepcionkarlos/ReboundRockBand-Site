@@ -196,10 +196,13 @@ export default function AdminContent() {
             <div className="flex flex-col gap-4">
               {[
                 { key: 'facebook' as const, label: 'Facebook URL', placeholder: 'https://facebook.com/...' },
+                { key: 'instagram' as const, label: 'Instagram URL', placeholder: 'https://instagram.com/...' },
+                { key: 'youtube' as const, label: 'YouTube URL', placeholder: 'https://youtube.com/...' },
               ].map(({ key, label, placeholder }) => (
                 <div key={key} className="flex flex-col gap-2">
                   <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">{label}</label>
-                  <input type="url" value={content[key]} onChange={(e) => setContent({ ...content, [key]: e.target.value })} className={inputClass} placeholder={placeholder} />
+                  <input type="url" value={content[key] ?? ''} onChange={(e) => setContent({ ...content, [key]: e.target.value })} className={inputClass} placeholder={placeholder} />
+                  <p className="font-body text-xs text-white/20">Optional. Leave blank to hide from site.</p>
                 </div>
               ))}
             </div>

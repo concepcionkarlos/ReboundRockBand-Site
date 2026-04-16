@@ -141,6 +141,21 @@ export default function AdminMerch() {
         </div>
       </div>
 
+      {/* Storefront info callout */}
+      <div className="mb-6 p-5 border border-white/6 bg-[#0d0d1e] flex items-start gap-3">
+        <svg className="w-4 h-4 text-brand-red flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+        </svg>
+        <div>
+          <p className="font-heading text-[10px] uppercase tracking-widest text-white/40 mb-1">Connecting to a Storefront</p>
+          <p className="font-body text-xs text-white/25 leading-relaxed">
+            To enable <span className="text-white/50">"Buy Now"</span> buttons, set the <span className="text-white/50 font-mono">Buy URL</span> field on each item to your product&apos;s URL from{' '}
+            <span className="text-white/40">Spreadshop</span>, <span className="text-white/40">Fourthwall</span>, <span className="text-white/40">Printful</span>, or any other storefront. Items without a URL will show an{' '}
+            <span className="text-white/50">"Inquire to Order"</span> mailto link instead.
+          </p>
+        </div>
+      </div>
+
       {/* Form */}
       {(isAdding || editing) && (
         <div className="mb-8 border border-brand-red/25 bg-brand-red/[0.04] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
