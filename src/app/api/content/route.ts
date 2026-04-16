@@ -4,7 +4,7 @@ import { readContent, writeContent } from '@/lib/store'
 const ALLOWED = ['shows', 'merch', 'bandMembers', 'siteContent', 'mediaItems', 'epkContent', 'bookingRequests', 'songRequests']
 
 export async function GET() {
-  const content = readContent()
+  const content = await readContent()
   return NextResponse.json(content)
 }
 
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     if (!ALLOWED.includes(section)) {
       return NextResponse.json({ error: 'Invalid section' }, { status: 400 })
     }
-    const next = writeContent({ [section]: data } as Parameters<typeof writeContent>[0])
+    const next = await writeContent({ [section]: data } as Parameters<typeof writeContent>[0])
     return NextResponse.json(next)
   } catch {
     return NextResponse.json({ error: 'Bad request' }, { status: 400 })

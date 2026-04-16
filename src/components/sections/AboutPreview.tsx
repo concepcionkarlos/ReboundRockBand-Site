@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { readContent } from '@/lib/store'
 
-export default function AboutPreview() {
-  const { siteContent } = readContent()
+export default async function AboutPreview() {
+  const { siteContent } = await readContent()
   return (
     <section className="relative bg-brand-bg py-24 lg:py-32 overflow-hidden border-t border-brand-border">
       {/* Atmospheric red glow */}

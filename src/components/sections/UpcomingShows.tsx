@@ -8,8 +8,8 @@ interface UpcomingShowsProps {
   showViewAll?: boolean
 }
 
-export default function UpcomingShows({ limit = 4, showViewAll = true }: UpcomingShowsProps) {
-  const { shows } = readContent()
+export default async function UpcomingShows({ limit = 4, showViewAll = true }: UpcomingShowsProps) {
+  const { shows } = await readContent()
   const upcoming = shows.filter((s) => s.visible !== false).slice(0, limit)
 
   return (

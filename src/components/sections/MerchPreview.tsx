@@ -26,8 +26,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
   ),
 }
 
-export default function MerchPreview() {
-  const { merch } = readContent()
+export default async function MerchPreview() {
+  const { merch } = await readContent()
   const visible = merch.filter((m) => m.visible).slice(0, 3)
 
   return (

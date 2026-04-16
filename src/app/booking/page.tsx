@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   description: 'Book Rebound Rock Band for your bar, private event, festival, or corporate show in South Florida.',
 }
 
-export default function BookingPage() {
-  const { siteContent } = readContent()
+export default async function BookingPage() {
+  const { siteContent } = await readContent()
 
   return (
     <div className="pt-24 pb-24 min-h-screen bg-brand-bg">
