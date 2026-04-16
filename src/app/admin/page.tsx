@@ -8,13 +8,14 @@ import AdminContent from './sections/AdminContent'
 import AdminDashboard from './sections/AdminDashboard'
 import AdminBandMembers from './sections/AdminBandMembers'
 import AdminEPK from './sections/AdminEPK'
+import AdminBookings from './sections/AdminBookings'
 import AdminLogin from './AdminLogin'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type Section = 'dashboard' | 'members' | 'shows' | 'merch' | 'media' | 'epk' | 'content'
+type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'merch' | 'media' | 'epk' | 'content'
 
-interface Badges { members: number; shows: number; merch: number; media: number; epk: number }
+interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number }
 
 const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: React.ReactNode }[] = [
   {
@@ -43,6 +44,16 @@ const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: Rea
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'bookings',
+    label: 'Bookings',
+    badgeKey: 'bookings',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
       </svg>
     ),
   },
@@ -92,7 +103,7 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [active, setActive] = useState<Section>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0 })
+  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0 })
 
   useEffect(() => {
     setAuthed(true)
@@ -109,10 +120,11 @@ export default function AdminPage() {
           merch: d.merch?.length ?? 0,
           media: d.mediaItems?.length ?? 0,
           epk: d.epkContent?.repertoire?.length ?? 0,
+          bookings: (d.bookingRequests ?? []).filter((r: { status: string }) => r.status === 'New').length,
         })
       })
       .catch(() => {})
-  }, [active]) // refresh badge counts when switching sections
+  }, [active])
 
   const handleLogin = (_password: string): boolean => true
   const handleLogout = () => {}
@@ -129,6 +141,7 @@ export default function AdminPage() {
     dashboard: <AdminDashboard onNavigate={(s) => navigate(s as Section)} />,
     members: <AdminBandMembers />,
     shows: <AdminShows />,
+    bookings: <AdminBookings onNavigate={(s) => navigate(s as Section)} />,
     merch: <AdminMerch />,
     media: <AdminMedia />,
     epk: <AdminEPK />,
@@ -193,7 +206,9 @@ export default function AdminPage() {
                   </div>
                   {badgeCount !== undefined && badgeCount > 0 && (
                     <span className={`font-body text-[10px] px-1.5 py-0.5 rounded-sm tabular-nums ${
-                      isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/[0.08] text-white/30'
+                      item.id === 'bookings'
+                        ? 'bg-blue-400/20 text-blue-400'
+                        : isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/[0.08] text-white/30'
                     }`}>
                       {badgeCount}
                     </span>

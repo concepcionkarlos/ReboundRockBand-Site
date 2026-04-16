@@ -97,6 +97,20 @@ export default function AdminShows() {
       .catch(() => {})
   }, [])
 
+  // Pre-fill from "Convert to Show" in Bookings CRM
+  useEffect(() => {
+    const raw = sessionStorage.getItem('prefillShow')
+    if (raw) {
+      try {
+        const data = JSON.parse(raw) as Partial<Omit<Show, 'id'>>
+        setForm({ ...emptyShow, ...data })
+        setIsAdding(true)
+        setEditing(null)
+      } catch { /* ignore */ }
+      sessionStorage.removeItem('prefillShow')
+    }
+  }, [])
+
   const flash = () => { setSaved(true); setTimeout(() => setSaved(false), 2500) }
 
   const persist = useCallback(async (updated: Show[]) => {

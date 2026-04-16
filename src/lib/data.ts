@@ -42,6 +42,8 @@ export interface SiteContent {
   ctaSecondaryLabel: string        // secondary CTA label (default "View Press Kit")
   contactEmail: string
   facebook: string
+  instagram?: string
+  youtube?: string
 }
 
 export interface MediaItem {
@@ -61,6 +63,39 @@ export interface EpkContent {
   techSpecs: { label: string; value: string }[]
   setlists?: { title: string; songs: string[] }[]
 }
+
+export type BookingStatus =
+  | 'New'
+  | 'Contacted'
+  | 'Quote Sent'
+  | 'Follow-up'
+  | 'Negotiating'
+  | 'Confirmed'
+  | 'Lost'
+  | 'Archived'
+
+export interface BookingRequest {
+  id: string
+  fullName: string
+  venueOrCompany: string
+  email: string
+  phone: string
+  eventDate: string
+  city: string
+  eventType: string
+  budgetRange: string
+  guestCount: string
+  message: string
+  source: string
+  status: BookingStatus
+  assignedTo?: string
+  followUpDate?: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export const bookingRequests: BookingRequest[] = []
 
 export const shows: Show[] = [
   {

@@ -62,7 +62,7 @@ export default function MerchPage() {
             {visible.map((item) => (
               <div
                 key={item.id}
-                className="group flex flex-col bg-brand-surface overflow-hidden hover:bg-brand-elevated transition-colors"
+                className="group flex flex-col bg-brand-surface border border-brand-border group-hover:border-brand-red/30 overflow-hidden hover:bg-brand-elevated transition-all"
               >
                 {/* Image area */}
                 <div className="relative aspect-square bg-brand-elevated overflow-hidden">
@@ -75,10 +75,11 @@ export default function MerchPage() {
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="absolute inset-0 bg-grid-texture opacity-30" />
-                      <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-elevated via-brand-bg to-brand-surface flex flex-col items-center justify-center gap-2">
+                      <div className="absolute inset-0 bg-grid-texture opacity-20" />
+                      <div className="relative flex flex-col items-center gap-2">
                         {categoryIcons[item.category] ?? categoryIcons.other}
+                        <span className="font-heading text-[9px] uppercase tracking-widest text-brand-muted/25">{item.category}</span>
                       </div>
                     </div>
                   )}
@@ -99,7 +100,7 @@ export default function MerchPage() {
                 </div>
 
                 {/* Info */}
-                <div className="flex flex-col flex-1 pt-5 gap-4">
+                <div className="flex flex-col flex-1 px-4 pt-4 pb-5 gap-4">
                   <div>
                     <h2 className="font-display text-xl text-white uppercase leading-tight">{item.name}</h2>
                     <div className="font-display text-2xl text-brand-red leading-none mt-2">${item.price}</div>

@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { Show, MerchItem, MediaItem, BandMember } from '@/lib/data'
+import type { Show, MerchItem, MediaItem, BandMember, BookingRequest } from '@/lib/data'
 import Link from 'next/link'
 
 interface AdminDashboardProps {
-  onNavigate: (section: 'shows' | 'merch' | 'media' | 'content' | 'members' | 'epk') => void
+  onNavigate: (section: 'shows' | 'merch' | 'media' | 'content' | 'members' | 'epk' | 'bookings') => void
 }
 
 interface LiveData {
@@ -13,19 +13,26 @@ interface LiveData {
   merch: MerchItem[]
   mediaItems: MediaItem[]
   bandMembers: BandMember[]
+  bookingRequests: BookingRequest[]
 }
 
 export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
-  const [live, setLive] = useState<LiveData>({ shows: [], merch: [], mediaItems: [], bandMembers: [] })
+  const [live, setLive] = useState<LiveData>({ shows: [], merch: [], mediaItems: [], bandMembers: [], bookingRequests: [] })
 
   useEffect(() => {
     fetch('/api/content')
       .then((r) => r.json())
-      .then((d) => setLive({ shows: d.shows ?? [], merch: d.merch ?? [], mediaItems: d.mediaItems ?? [], bandMembers: d.bandMembers ?? [] }))
+      .then((d) => setLive({
+        shows: d.shows ?? [],
+        merch: d.merch ?? [],
+        mediaItems: d.mediaItems ?? [],
+        bandMembers: d.bandMembers ?? [],
+        bookingRequests: d.bookingRequests ?? [],
+      }))
       .catch(() => {})
   }, [])
 
-  const { shows, merch, mediaItems, bandMembers } = live
+  const { shows, merch, mediaItems, bandMembers, bookingRequests } = live
   const visibleShows = shows.filter((s) => s.visible !== false)
   const upcomingShows = visibleShows.length
   const nextShow = visibleShows[0]
@@ -35,7 +42,36 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const totalMembers = bandMembers.filter((m) => m.visible !== false).length
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 
+  const newBookings = bookingRequests.filter((r) => r.status === 'New').length
+  const confirmedBookings = bookingRequests.filter((r) => r.status === 'Confirmed').length
+
   const statCards = [
+    {
+      label: 'Booking Requests',
+      value: bookingRequests.length,
+      sub: newBookings > 0 ? `${newBookings} new — needs attention` : 'No new requests',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+        </svg>
+      ),
+      action: () => onNavigate('bookings'),
+      actionLabel: 'View Bookings',
+      color: (newBookings > 0 ? 'blue' : 'neutral') as 'blue' | 'neutral',
+    },
+    {
+      label: 'Confirmed',
+      value: confirmedBookings,
+      sub: confirmedBookings > 0 ? 'Bookings locked in' : 'No confirmed yet',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      action: () => onNavigate('bookings'),
+      actionLabel: 'View Confirmed',
+      color: (confirmedBookings > 0 ? 'green' : 'neutral') as 'green' | 'neutral',
+    },
     {
       label: 'Upcoming Shows',
       value: upcomingShows,
@@ -119,6 +155,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       value: 'text-green-400',
       btn: 'border-green-500/30 text-green-400/70 hover:bg-green-400/5',
     },
+    blue: {
+      icon: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+      value: 'text-blue-400',
+      btn: 'border-blue-400/30 text-blue-400 hover:bg-blue-400/5',
+    },
   }
 
   return (
@@ -134,7 +175,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-10">
         {statCards.map((card) => {
           const colors = colorMap[card.color]
           return (
@@ -180,6 +221,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         <h2 className="font-heading text-xs uppercase tracking-widest text-white/40 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           {[
+            { label: 'View Bookings', icon: '✉', action: () => onNavigate('bookings') },
             { label: 'Add Show', icon: '＋', action: () => onNavigate('shows') },
             { label: 'Add Merch Item', icon: '＋', action: () => onNavigate('merch') },
             { label: 'Upload Media', icon: '＋', action: () => onNavigate('media') },

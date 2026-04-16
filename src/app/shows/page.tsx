@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 }
 
 export default function ShowsPage() {
-  const { shows } = readContent()
+  const { shows, siteContent } = readContent()
   const visibleShows = shows.filter((s) => s.visible !== false)
   const featuredShows = visibleShows.filter((s) => s.isFeatured)
   const regularShows = visibleShows.filter((s) => !s.isFeatured)
@@ -67,10 +67,23 @@ export default function ShowsPage() {
             )}
           </div>
         ) : (
-          <div className="text-center py-20 border border-brand-border mb-14">
+          <div className="text-center py-20 border border-brand-border mb-14 flex flex-col items-center gap-4">
             <p className="font-heading text-brand-muted text-xs tracking-widest uppercase">
-              New dates being announced — check back soon
+              New dates are always in the works — follow us on Facebook for announcements
             </p>
+            {siteContent.facebook && (
+              <a
+                href={siteContent.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-heading text-[10px] uppercase tracking-widest text-brand-muted/50 hover:text-brand-red transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                Follow on Facebook
+              </a>
+            )}
           </div>
         )}
 
@@ -97,6 +110,19 @@ export default function ShowsPage() {
               >
                 View Press Kit
               </Link>
+              {siteContent.facebook && (
+                <a
+                  href={siteContent.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 font-heading text-sm uppercase tracking-widest border border-white/15 text-brand-muted px-8 py-3.5 hover:border-brand-red hover:text-brand-red transition-all"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                  Follow on Facebook
+                </a>
+              )}
             </div>
           </div>
         </div>
