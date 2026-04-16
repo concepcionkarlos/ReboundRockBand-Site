@@ -52,24 +52,24 @@ export default function BandHighlights() {
           {highlights.map((h, i) => (
             <div
               key={i}
-              className="flex flex-col gap-4 p-6 lg:p-7 group hover:bg-brand-elevated transition-colors duration-200 relative"
+              className="flex flex-col gap-5 p-8 lg:p-10 group hover:bg-brand-elevated transition-colors duration-200 relative"
             >
               {/* Number label */}
-              <span className="font-display text-5xl text-brand-border group-hover:text-brand-red/20 leading-none transition-colors duration-300 absolute top-4 right-5 select-none">
+              <span className="font-display text-6xl text-brand-border/70 group-hover:text-brand-red/15 leading-none transition-colors duration-300 absolute top-5 right-5 select-none">
                 {h.num}
               </span>
 
               {/* Icon */}
-              <div className="text-brand-red group-hover:scale-110 transition-transform duration-200 w-fit">
+              <div className="text-brand-red group-hover:scale-110 transition-transform duration-200 w-fit mt-1">
                 {h.icon}
               </div>
 
               {/* Text */}
               <div>
-                <h3 className="font-heading uppercase tracking-wide text-white text-sm mb-2 group-hover:text-brand-red transition-colors duration-200">
+                <h3 className="font-heading uppercase tracking-wide text-white text-sm mb-2.5 group-hover:text-brand-red transition-colors duration-200">
                   {h.title}
                 </h3>
-                <p className="font-body text-sm text-brand-muted leading-relaxed">{h.body}</p>
+                <p className="font-body text-sm text-brand-text leading-relaxed">{h.body}</p>
               </div>
 
               {/* Bottom accent on hover */}

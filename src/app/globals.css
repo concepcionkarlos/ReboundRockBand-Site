@@ -10,8 +10,8 @@
   }
 
   body {
-    background-color: #080810;
-    color: #ffffff;
+    background-color: #07070f;
+    color: #f2f2f8;
     overflow-x: hidden;
     min-height: 100svh;
   }
@@ -91,8 +91,8 @@
   /* ── Grid texture ── */
   .bg-grid-texture {
     background-image:
-      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.022) 0, rgba(255, 255, 255, 0.022) 1px, transparent 1px, transparent 64px),
-      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0, rgba(255, 255, 255, 0.022) 1px, transparent 1px, transparent 64px);
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.028) 0, rgba(255, 255, 255, 0.028) 1px, transparent 1px, transparent 60px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.028) 0, rgba(255, 255, 255, 0.028) 1px, transparent 1px, transparent 60px);
   }
 
   /* ── Diagonal stripe texture ── */
@@ -100,10 +100,15 @@
     background-image: repeating-linear-gradient(
       -45deg,
       transparent,
-      transparent 20px,
-      rgba(255, 255, 255, 0.012) 20px,
-      rgba(255, 255, 255, 0.012) 40px
+      transparent 24px,
+      rgba(255, 255, 255, 0.016) 24px,
+      rgba(255, 255, 255, 0.016) 48px
     );
+  }
+
+  /* ── Brand text utility ── */
+  .text-brand-text {
+    color: #9898b0;
   }
 
   /* ── Cards ── */

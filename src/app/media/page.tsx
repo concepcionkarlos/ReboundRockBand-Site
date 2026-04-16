@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 function MediaCard({ item }: { item: MediaItem }) {
   return (
-    <div className="group relative aspect-video overflow-hidden bg-brand-elevated border border-brand-border hover:border-brand-red/40 transition-colors">
+    <div className="group relative aspect-video overflow-hidden bg-brand-elevated border border-brand-border hover:border-brand-red/40 transition-all duration-300">
       {item.type === 'video' ? (
         <video src={item.url} controls poster={item.poster} className="w-full h-full object-cover" />
       ) : (
@@ -27,7 +27,7 @@ function MediaCard({ item }: { item: MediaItem }) {
         />
       )}
       {item.caption && (
-        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-brand-bg via-brand-bg/70 to-transparent pointer-events-none">
+        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-brand-bg via-brand-bg/60 to-transparent pointer-events-none">
           <div className="font-heading text-[10px] text-brand-red uppercase tracking-widest mb-0.5">{item.type}</div>
           <div className="font-body text-sm text-white truncate">{item.caption}</div>
         </div>
@@ -56,7 +56,7 @@ function SocialPills({ siteContent, label }: { siteContent: SiteContent; label?:
           href={p.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-heading text-[10px] uppercase tracking-widest border border-white/15 text-white/40 hover:border-brand-red hover:text-brand-red transition-all px-3 py-1.5 flex items-center gap-1.5"
+          className="font-heading text-[10px] uppercase tracking-widest border border-brand-border text-brand-muted hover:border-brand-red hover:text-brand-red transition-all px-3 py-1.5 flex items-center gap-1.5"
         >
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d={p.path} /></svg>
           {p.label}
@@ -74,20 +74,20 @@ export default function MediaPage() {
   const isEmpty = visible.length === 0
 
   return (
-    <div className="pt-24 pb-20 min-h-screen bg-brand-bg">
+    <div className="pt-24 pb-24 min-h-screen bg-brand-bg">
       <div className="max-w-7xl mx-auto px-5 lg:px-10">
 
         {/* Page header */}
         <Reveal>
-          <div className="py-12 border-b border-brand-border mb-12">
-            <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
-              <span className="w-5 h-px bg-brand-red/60" />
+          <div className="py-14 border-b border-brand-border mb-14">
+            <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
+              <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
               Watch &amp; Listen
             </div>
-            <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-none mb-3">
+            <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-[0.9] mb-4">
               Media <span className="text-brand-red">Gallery</span>
             </h1>
-            <p className="font-body text-brand-muted text-base max-w-xl leading-relaxed">
+            <p className="font-body text-brand-text text-base max-w-xl leading-relaxed">
               Live videos and photos from Rebound Rock Band shows across {siteContent.serviceArea}.
             </p>
           </div>
@@ -96,9 +96,9 @@ export default function MediaPage() {
         {/* Featured spotlight */}
         {featured.length > 0 && (
           <Reveal delay={1}>
-            <section className="mb-10">
-              <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
-                <span className="w-5 h-px bg-brand-red/60" />
+            <section className="mb-12">
+              <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
+                <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
                 Featured
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -109,28 +109,27 @@ export default function MediaPage() {
                     ) : (
                       <Image src={item.url} alt={item.caption} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
                     )}
-                    <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-brand-red pointer-events-none" />
-                    <div className="absolute top-0 right-0 w-6 h-6 border-r-2 border-t-2 border-brand-red pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-brand-red pointer-events-none" />
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-brand-red pointer-events-none" />
+                    <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-brand-red/70 pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-brand-red/70 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-brand-red/70 pointer-events-none" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-brand-red/70 pointer-events-none" />
                   </div>
                 ))}
               </div>
-              {/* Social callout below featured */}
-              <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <span className="font-body text-xs text-brand-muted/60">New clips added regularly</span>
+              <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <span className="font-body text-sm text-brand-text">New clips added regularly</span>
                 <SocialPills siteContent={siteContent} />
               </div>
             </section>
           </Reveal>
         )}
 
-        {/* Gallery grid (non-featured) */}
+        {/* Gallery grid */}
         {rest.length > 0 && (
           <Reveal delay={2}>
-            <section className="mb-14">
-              <div className="flex items-center gap-2.5 font-heading text-brand-red text-[11px] tracking-[0.2em] uppercase mb-5">
-                <span className="w-5 h-px bg-brand-red/60" />
+            <section className="mb-16">
+              <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
+                <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
                 More Media
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -140,18 +139,18 @@ export default function MediaPage() {
           </Reveal>
         )}
 
-        {/* Empty state — only show when there's truly nothing */}
+        {/* Empty state */}
         {isEmpty && (
           <Reveal delay={1}>
-            <section className="mb-14">
-              <div className="relative border border-brand-border bg-brand-surface p-10 lg:p-14 overflow-hidden text-center">
+            <section className="mb-16">
+              <div className="relative border border-brand-border bg-brand-surface p-12 lg:p-16 overflow-hidden text-center">
                 <div className="absolute top-0 inset-x-0 h-px divider-red" />
-                <div className="absolute inset-0 bg-stripe-texture pointer-events-none opacity-40" />
+                <div className="absolute inset-0 bg-stripe-texture pointer-events-none" />
                 <div className="relative z-10 max-w-lg mx-auto">
-                  <h2 className="font-display uppercase text-3xl text-white mb-3">
+                  <h2 className="font-display uppercase text-3xl sm:text-4xl text-white leading-[0.92] mb-4">
                     Media <span className="text-brand-red">Coming Soon</span>
                   </h2>
-                  <p className="font-body text-brand-muted text-sm leading-relaxed mb-6">
+                  <p className="font-body text-brand-text text-sm leading-relaxed mb-7">
                     Fresh photos and live clips are added regularly. Follow us on social for the latest from the road.
                   </p>
                   <div className="flex items-center justify-center flex-wrap gap-2">
@@ -165,16 +164,21 @@ export default function MediaPage() {
 
         {/* Booking pitch */}
         <Reveal>
-          <div className="relative p-8 border border-brand-border bg-brand-surface text-center overflow-hidden">
+          <div className="relative p-10 lg:p-12 border border-brand-border bg-brand-surface text-center overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-px divider-red" />
-            <h2 className="font-display uppercase text-3xl text-white mb-3">Saw Us Live?</h2>
-            <p className="font-body text-brand-muted text-sm max-w-md mx-auto mb-6 leading-relaxed">
-              Tag us on social media or reach out to book Rebound Rock Band for your next event.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/booking" className="inline-block font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-3.5 hover:bg-brand-red-bright transition-all btn-glow-red">
-                {siteContent.ctaPrimaryLabel}
-              </Link>
+            <div className="absolute inset-0 bg-stripe-texture pointer-events-none opacity-60" />
+            <div className="relative z-10">
+              <h2 className="font-display uppercase text-3xl sm:text-4xl text-white leading-[0.92] mb-4">
+                Saw Us <span className="text-brand-red">Live?</span>
+              </h2>
+              <p className="font-body text-brand-text text-sm max-w-md mx-auto mb-7 leading-relaxed">
+                Tag us on social media or reach out to book Rebound Rock Band for your next event.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/booking" className="inline-block font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-9 py-4 hover:bg-brand-red-bright transition-all btn-glow-red">
+                  {siteContent.ctaPrimaryLabel}
+                </Link>
+              </div>
             </div>
           </div>
         </Reveal>

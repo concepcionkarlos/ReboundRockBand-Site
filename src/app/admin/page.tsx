@@ -9,13 +9,14 @@ import AdminDashboard from './sections/AdminDashboard'
 import AdminBandMembers from './sections/AdminBandMembers'
 import AdminEPK from './sections/AdminEPK'
 import AdminBookings from './sections/AdminBookings'
+import AdminSongRequests from './sections/AdminSongRequests'
 import AdminLogin from './AdminLogin'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'merch' | 'media' | 'epk' | 'content'
+type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content'
 
-interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number }
+interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number; songRequests: number }
 
 const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: React.ReactNode }[] = [
   {
@@ -54,6 +55,16 @@ const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: Rea
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+      </svg>
+    ),
+  },
+  {
+    id: 'song-requests',
+    label: 'Song Requests',
+    badgeKey: 'songRequests',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
       </svg>
     ),
   },
@@ -103,7 +114,7 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [active, setActive] = useState<Section>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0 })
+  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0, songRequests: 0 })
 
   useEffect(() => {
     setAuthed(true)
@@ -121,6 +132,7 @@ export default function AdminPage() {
           media: d.mediaItems?.length ?? 0,
           epk: d.epkContent?.repertoire?.length ?? 0,
           bookings: (d.bookingRequests ?? []).filter((r: { status: string }) => r.status === 'New').length,
+          songRequests: (d.songRequests ?? []).filter((r: { status: string }) => r.status === 'New').length,
         })
       })
       .catch(() => {})
@@ -142,6 +154,7 @@ export default function AdminPage() {
     members: <AdminBandMembers />,
     shows: <AdminShows />,
     bookings: <AdminBookings onNavigate={(s) => navigate(s as Section)} />,
+    'song-requests': <AdminSongRequests />,
     merch: <AdminMerch />,
     media: <AdminMedia />,
     epk: <AdminEPK />,
@@ -206,7 +219,7 @@ export default function AdminPage() {
                   </div>
                   {badgeCount !== undefined && badgeCount > 0 && (
                     <span className={`font-body text-[10px] px-1.5 py-0.5 rounded-sm tabular-nums ${
-                      item.id === 'bookings'
+                      item.id === 'bookings' || item.id === 'song-requests'
                         ? 'bg-blue-400/20 text-blue-400'
                         : isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/[0.08] text-white/30'
                     }`}>

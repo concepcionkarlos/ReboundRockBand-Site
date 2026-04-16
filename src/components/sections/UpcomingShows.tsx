@@ -13,9 +13,9 @@ export default function UpcomingShows({ limit = 4, showViewAll = true }: Upcomin
   const upcoming = shows.filter((s) => s.visible !== false).slice(0, limit)
 
   return (
-    <section className="bg-brand-bg py-16 lg:py-20">
+    <section className="bg-brand-bg py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-5 lg:px-10">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-10">
           <SectionHeader
             eyebrow="On the Road"
             title="Upcoming Shows"
@@ -33,7 +33,7 @@ export default function UpcomingShows({ limit = 4, showViewAll = true }: Upcomin
         </div>
 
         {upcoming.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {upcoming.map((show) => (
               <ShowCard key={show.id} show={show} />
             ))}

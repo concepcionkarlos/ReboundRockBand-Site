@@ -66,7 +66,18 @@
       "visible": true
     }
   ],
-  "merch": [],
+  "merch": [
+    {
+      "id": "1776305859820",
+      "name": "Rebound Rock Band Classic Logo Tee",
+      "price": 29.99,
+      "category": "tshirt",
+      "available": true,
+      "visible": true,
+      "externalUrl": "https://jconcepcion-shop.fourthwall.com/products/rebound-rock-band-classic-logo-tee",
+      "image": "/uploads/1776305855652-06f1ca8a6532-rebound-collage.png"
+    }
+  ],
   "bandMembers": [
     {
       "id": "1",
@@ -116,9 +127,9 @@
     "aboutShort": "Five musicians, four decades of rock and roll, and one mission — bring the greatest hits of the 50s through 90s back to the stage with the energy they were written for.",
     "groupPhoto": "/Band Members.PNG",
     "aboutText": [
-      "Rebound Rock Band is a South Florida-based five-piece live cover band bringing the greatest rock and roll hits from the 1950s through the 1990s back to the stage — where they belong.",
-      "Whether it's Chuck Berry, The Beatles, Led Zeppelin, Queen, or Bon Jovi, we play the songs that shaped rock and roll history with the energy and authenticity they deserve. No backing tracks. No auto-tune. Just five musicians who love great music and know how to work a crowd.",
-      "Based in South Florida and available for shows, private events, festivals, and corporate engagements throughout the region and beyond."
+      "Rebound Rock Band is a South Florida-based five-piece live cover band bringing the greatest rock and roll hits from the 1950s through the 1990s back to the stage — where they belong.\n",
+      "Whether it’s Chuck Berry, The Beatles, Led Zeppelin, Queen, or Bon Jovi, we play the songs that shaped rock and roll history with the energy and authenticity they deserve. No backing tracks. No auto-tune. Just five musicians who love great music and know how to work a crowd.\n",
+      "At the center of Rebound’s story is founder Jose “Pepe” Ortiz, the creative force and musical foundation behind the band. With years of experience and a wide-ranging repertoire, Pepe helped build Rebound into a project rooted in authenticity, passion, and a true love for classic rock. His vision continues to shape the band’s sound, spirit, and commitment to delivering unforgettable live performances.\n\nBased in South Florida and available for shows, private events, festivals, and corporate engagements throughout the region and beyond."
     ],
     "serviceArea": "South Florida",
     "footerTagline": "South Florida's live 5-piece classic rock cover band. Greatest hits from the 1950s through the 1990s.",
@@ -140,28 +151,7 @@
   "epkContent": {
     "tagline": "South Florida · 5-Piece Live Cover Band · Classic Rock 50s–90s",
     "bookerIntro": "Contact us directly for availability, pricing, and to request the full press kit PDF with photos and setlist.",
-    "repertoire": [
-      {
-        "era": "50",
-        "artists": "Chuck Berry, Elvis Presley, Buddy Holly, Little Richard"
-      },
-      {
-        "era": "60",
-        "artists": "The Beatles, The Rolling Stones, The Doors, Jimi Hendrix"
-      },
-      {
-        "era": "70",
-        "artists": "Led Zeppelin, Queen, Fleetwood Mac, Aerosmith, Lynyrd Skynyrd"
-      },
-      {
-        "era": "80",
-        "artists": "Bon Jovi, Journey, Def Leppard, Van Halen, Guns N' Roses"
-      },
-      {
-        "era": "90",
-        "artists": "Nirvana, Pearl Jam, Red Hot Chili Peppers, Green Day, Counting Crows"
-      }
-    ],
+    "repertoire": [],
     "techSpecs": [
       {
         "label": "Set Length",
@@ -262,5 +252,28 @@
         ]
       }
     ]
-  }
+  },
+  "bookingRequests": [
+    {
+      "id": "b06794047a7abc37",
+      "fullName": "Manolo Hernandez",
+      "venueOrCompany": "Party shop",
+      "email": "concepcionkarlos@gmail.com",
+      "phone": "7863801169",
+      "eventDate": "2026-05-18",
+      "city": "Hollywood",
+      "eventType": "Private Party",
+      "budgetRange": "$1,000–$2,500",
+      "guestCount": "50–100",
+      "message": "Testingf the booking form",
+      "source": "website_form",
+      "status": "Contacted",
+      "createdAt": "2026-04-16T00:05:04.641Z",
+      "updatedAt": "2026-04-16T00:07:27.246Z",
+      "assignedTo": "Pepe",
+      "followUpDate": "2026-04-15",
+      "notes": "Test "
+    }
+  ],
+  "songRequests": []
 }

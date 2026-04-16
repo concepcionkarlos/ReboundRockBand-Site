@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import type { Show, MerchItem, BandMember, SiteContent, MediaItem, EpkContent, BookingRequest } from './data'
+import type { Show, MerchItem, BandMember, SiteContent, MediaItem, EpkContent, BookingRequest, SongRequest } from './data'
 import {
   shows as defaultShows,
   merch as defaultMerch,
@@ -9,6 +9,7 @@ import {
   mediaItems as defaultMediaItems,
   epkContent as defaultEpkContent,
   bookingRequests as defaultBookingRequests,
+  songRequests as defaultSongRequests,
 } from './data'
 
 export interface ContentStore {
@@ -19,6 +20,7 @@ export interface ContentStore {
   mediaItems: MediaItem[]
   epkContent: EpkContent
   bookingRequests: BookingRequest[]
+  songRequests: SongRequest[]
 }
 
 const DATA_PATH = path.join(process.cwd(), 'data', 'content.json')
@@ -32,6 +34,7 @@ function getDefaults(): ContentStore {
     mediaItems: defaultMediaItems,
     epkContent: defaultEpkContent,
     bookingRequests: defaultBookingRequests,
+    songRequests: defaultSongRequests,
   }
 }
 
