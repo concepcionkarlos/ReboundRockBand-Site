@@ -452,6 +452,23 @@ export interface OutreachLog {
   errorMessage?: string
 }
 
+// ── Booking / Song-Request email logs ─────────────────────────────────────────
+
+export interface BookingEmailLog {
+  id: string
+  entityType: 'booking' | 'song-request'
+  entityId: string            // bookingId or songRequestId
+  toEmail: string
+  subject: string
+  bodyHtml: string
+  templateId: string
+  templateSlug: string
+  sentAt: string
+  resendEmailId?: string
+  status: 'sent' | 'failed'
+  errorMessage?: string
+}
+
 // ── Venue Store (separate from ContentStore) ──────────────────────────────────
 
 export interface VenueStore {
@@ -459,6 +476,7 @@ export interface VenueStore {
   outreachLogs: OutreachLog[]
   emailTemplates: EmailTemplate[]
   autoReplyLogs: AutoReplyLog[]
+  bookingEmailLogs: BookingEmailLog[]
 }
 
 // ── Google Places search result (mapped from API response) ────────────────────

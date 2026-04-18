@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { SongRequest, SongRequestStatus } from '@/lib/data'
+import type { SongRequest, SongRequestStatus, EmailTemplate, BookingEmailLog } from '@/lib/data'
+import { renderTemplate } from '@/lib/templateUtils'
 
 const ALL_STATUSES: SongRequestStatus[] = ['New', 'Review', 'Consider', 'Added', 'Declined']
 
@@ -27,15 +28,36 @@ export default function AdminSongRequests() {
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState<SongRequestStatus | 'All'>('All')
   const [selected, setSelected] = useState<SongRequest | null>(null)
+  const [detailTab, setDetailTab] = useState<'crm' | 'reply'>('crm')
   const [editStatus, setEditStatus] = useState<SongRequestStatus>('New')
   const [editNotes, setEditNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Email reply state
+  const [templates, setTemplates] = useState<EmailTemplate[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [toEmail, setToEmail] = useState('')
+  const [editableSubject, setEditableSubject] = useState('')
+  const [editableBody, setEditableBody] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [emailLogs, setEmailLogs] = useState<BookingEmailLog[]>([])
+
   useEffect(() => {
-    fetch('/api/content')
-      .then((r) => r.json())
-      .then((d) => { if (d.songRequests) setRequests(d.songRequests) })
+    Promise.all([
+      fetch('/api/content').then((r) => r.json()),
+      fetch('/api/email-templates').then((r) => r.json()),
+    ])
+      .then(([d, td]) => {
+        if (d.songRequests) setRequests(d.songRequests)
+        if (td.templates) {
+          setTemplates(
+            (td.templates as EmailTemplate[]).filter((t) => t.slug === 'song-request-reply')
+          )
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -53,8 +75,17 @@ export default function AdminSongRequests() {
 
   const openDetail = (req: SongRequest) => {
     setSelected(req)
+    setDetailTab('crm')
     setEditStatus(req.status)
     setEditNotes(req.notes ?? '')
+    setSaved(false)
+    setSendResult(null)
+    setSelectedTemplateId('')
+    setToEmail(req.email)
+    setEditableSubject('')
+    setEditableBody('')
+    setShowPreview(false)
+    setEmailLogs([])
   }
 
   const closeDetail = () => setSelected(null)
@@ -72,6 +103,72 @@ export default function AdminSongRequests() {
     setSelected((prev) => prev ? { ...prev, status: editStatus, notes: editNotes || undefined, updatedAt: now } : null)
     setSaving(false)
     flash()
+  }
+
+  const loadEmailLogs = async (songRequestId: string) => {
+    try {
+      const res = await fetch(`/api/song-requests/${songRequestId}/email-logs`)
+      if (!res.ok) { setEmailLogs([]); return }
+      const data = await res.json()
+      setEmailLogs(data.logs ?? [])
+    } catch {
+      setEmailLogs([])
+    }
+  }
+
+  // Re-render when template or selected changes
+  useEffect(() => {
+    if (!selectedTemplateId || !selected) {
+      setEditableSubject('')
+      setEditableBody('')
+      return
+    }
+    const tmpl = templates.find((t) => t.id === selectedTemplateId)
+    if (!tmpl) return
+    const clientName = selected.fullName.split(' ')[0] || selected.fullName
+    const songs = [selected.song1, selected.song2, selected.song3].filter(Boolean).join(', ')
+    const { subject, bodyHtml } = renderTemplate(tmpl, {
+      clientName,
+      songList: songs,
+      bandName: 'Rebound Rock Band',
+      replyEmail: 'booking@reboundrockband.com',
+    })
+    setEditableSubject(subject)
+    setEditableBody(bodyHtml)
+  }, [selectedTemplateId, selected, templates])
+
+  const handleSendReply = async () => {
+    if (!selected || !selectedTemplateId || !toEmail) return
+    setSending(true)
+    setSendResult(null)
+    try {
+      const songs = [selected.song1, selected.song2, selected.song3].filter(Boolean).join(', ')
+      const res = await fetch(`/api/song-requests/${selected.id}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId: selectedTemplateId,
+          toEmail,
+          subject: editableSubject,
+          bodyHtml: editableBody,
+          vars: {
+            clientName: selected.fullName.split(' ')[0] || selected.fullName,
+            songList: songs,
+          },
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setSendResult({ ok: true, msg: 'Reply sent successfully.' })
+        if (data.emailLog) setEmailLogs((prev) => [data.emailLog, ...prev])
+      } else {
+        setSendResult({ ok: false, msg: data.error ?? 'Send failed.' })
+      }
+    } catch {
+      setSendResult({ ok: false, msg: 'Network error.' })
+    } finally {
+      setSending(false)
+    }
   }
 
   const exportCSV = () => {
@@ -189,91 +286,247 @@ export default function AdminSongRequests() {
 
               {/* Detail panel */}
               {selected?.id === req.id && (
-                <div className="border-t border-white/8 bg-[#0d0d1a] px-5 py-6 space-y-6">
-                  {/* Contact info */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Name</div>
-                      <div className="font-body text-sm text-white">{selected.fullName}</div>
-                    </div>
-                    <div>
-                      <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Email</div>
-                      <a href={`mailto:${selected.email}`} className="font-body text-sm text-brand-red hover:underline">{selected.email}</a>
-                    </div>
-                    {selected.eventDate && (
-                      <div>
-                        <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Event Date</div>
-                        <div className="font-body text-sm text-white">{fmt(selected.eventDate)}</div>
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Submitted</div>
-                      <div className="font-body text-sm text-white/60">{fmt(selected.createdAt)}</div>
-                    </div>
+                <div className="border-t border-white/8 bg-[#0d0d1a] px-5 py-6 space-y-5">
+                  {/* Tabs */}
+                  <div className="flex border-b border-white/8">
+                    {(['crm', 'reply'] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => {
+                          setDetailTab(tab)
+                          if (tab === 'reply') loadEmailLogs(selected.id)
+                        }}
+                        className={`font-heading text-[10px] uppercase tracking-widest px-5 py-3 transition-colors ${
+                          detailTab === tab
+                            ? 'text-white border-b-2 border-brand-red -mb-px'
+                            : 'text-white/35 hover:text-white'
+                        }`}
+                      >
+                        {tab === 'crm' ? 'CRM' : 'Reply by Email'}
+                        {tab === 'reply' && emailLogs.length > 0 && (
+                          <span className="ml-1.5 font-heading text-[9px] bg-white/10 text-white/50 px-1.5 py-0.5">
+                            {emailLogs.length}
+                          </span>
+                        )}
+                      </button>
+                    ))}
                   </div>
 
-                  {/* Songs */}
-                  <div>
-                    <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-2">Song Requests</div>
-                    <div className="space-y-1">
-                      {[selected.song1, selected.song2, selected.song3].filter(Boolean).map((song, idx) => (
-                        <div key={idx} className="font-body text-sm text-white px-3 py-2 bg-brand-surface border border-white/6">
-                          {idx + 1}. {song}
+                  {detailTab === 'crm' && (
+                    <>
+                      {/* Contact info */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Name</div>
+                          <div className="font-body text-sm text-white">{selected.fullName}</div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                        <div>
+                          <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Email</div>
+                          <a href={`mailto:${selected.email}`} className="font-body text-sm text-brand-red hover:underline">{selected.email}</a>
+                        </div>
+                        {selected.eventDate && (
+                          <div>
+                            <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Event Date</div>
+                            <div className="font-body text-sm text-white">{fmt(selected.eventDate)}</div>
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Submitted</div>
+                          <div className="font-body text-sm text-white/60">{fmt(selected.createdAt)}</div>
+                        </div>
+                      </div>
 
-                  {selected.notes && (
-                    <div>
-                      <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Notes from Requester</div>
-                      <p className="font-body text-sm text-white/70 leading-relaxed">{selected.notes}</p>
-                    </div>
+                      {/* Songs */}
+                      <div>
+                        <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-2">Song Requests</div>
+                        <div className="space-y-1">
+                          {[selected.song1, selected.song2, selected.song3].filter(Boolean).map((song, idx) => (
+                            <div key={idx} className="font-body text-sm text-white px-3 py-2 bg-brand-surface border border-white/6">
+                              {idx + 1}. {song}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {selected.notes && (
+                        <div>
+                          <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Notes from Requester</div>
+                          <p className="font-body text-sm text-white/70 leading-relaxed">{selected.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Editable fields */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/8">
+                        <div>
+                          <label className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1.5 block">Status</label>
+                          <select
+                            value={editStatus}
+                            onChange={(e) => setEditStatus(e.target.value as SongRequestStatus)}
+                            className={inputClass}
+                          >
+                            {ALL_STATUSES.map((s) => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1.5 block">Internal Notes</label>
+                        <textarea
+                          value={editNotes}
+                          onChange={(e) => setEditNotes(e.target.value)}
+                          rows={3}
+                          className={`${inputClass} resize-none`}
+                          placeholder="Notes for the band…"
+                        />
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-3 pt-2">
+                        <button
+                          onClick={handleSave}
+                          disabled={saving}
+                          className="font-heading text-[11px] uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-50"
+                        >
+                          {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save Changes'}
+                        </button>
+                        <button
+                          onClick={() => { setDetailTab('reply'); loadEmailLogs(selected.id) }}
+                          className="font-heading text-[11px] uppercase tracking-widest border border-brand-red/30 text-brand-red/70 px-5 py-2.5 hover:bg-brand-red/10 hover:border-brand-red transition-all flex items-center gap-2"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                          </svg>
+                          Reply by Email
+                        </button>
+                        <button
+                          onClick={closeDetail}
+                          className="font-heading text-[11px] uppercase tracking-widest border border-white/10 text-white/40 px-5 py-2.5 hover:border-white/25 hover:text-white/60 transition-all"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </>
                   )}
 
-                  {/* Editable fields */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/8">
-                    <div>
-                      <label className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1.5 block">Status</label>
-                      <select
-                        value={editStatus}
-                        onChange={(e) => setEditStatus(e.target.value as SongRequestStatus)}
-                        className={`${inputClass}`}
-                      >
-                        {ALL_STATUSES.map((s) => (
-                          <option key={s} value={s}>{s}</option>
+                  {detailTab === 'reply' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Compose */}
+                      <div className="flex flex-col gap-4">
+                        <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">
+                          Reply to {selected.fullName}
+                        </p>
+
+                        <div className="flex flex-col gap-1.5">
+                          <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Template</label>
+                          <select
+                            value={selectedTemplateId}
+                            onChange={(e) => { setSelectedTemplateId(e.target.value); setShowPreview(false) }}
+                            className={inputClass}
+                          >
+                            <option value="">— Select a template —</option>
+                            {templates.map((t) => (
+                              <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                          </select>
+                          {templates.length === 0 && (
+                            <p className="font-body text-[10px] text-white/25">No song request reply template found. Check Email Templates admin.</p>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">To</label>
+                          <input type="email" value={toEmail} onChange={(e) => setToEmail(e.target.value)} className={inputClass} />
+                        </div>
+
+                        {editableSubject !== '' && (
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Subject</label>
+                            <input
+                              type="text"
+                              value={editableSubject}
+                              onChange={(e) => setEditableSubject(e.target.value)}
+                              className={inputClass}
+                            />
+                          </div>
+                        )}
+
+                        {editableBody !== '' && (
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center justify-between">
+                              <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Body</label>
+                              <button
+                                type="button"
+                                onClick={() => setShowPreview((p) => !p)}
+                                className="font-heading text-[9px] uppercase tracking-widest text-white/30 hover:text-white border border-white/10 px-2 py-1 transition-colors"
+                              >
+                                {showPreview ? 'Edit' : 'Preview'}
+                              </button>
+                            </div>
+                            {showPreview ? (
+                              <iframe srcDoc={editableBody} className="w-full h-56 border border-white/8" sandbox="allow-same-origin" title="Email preview" />
+                            ) : (
+                              <textarea
+                                value={editableBody}
+                                onChange={(e) => setEditableBody(e.target.value)}
+                                className={`${inputClass} h-36 resize-y font-mono text-xs`}
+                                spellCheck={false}
+                              />
+                            )}
+                          </div>
+                        )}
+
+                        {sendResult && (
+                          <p className={`font-body text-xs flex items-center gap-1.5 ${sendResult.ok ? 'text-green-400' : 'text-red-400'}`}>
+                            {sendResult.ok && (
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                            {sendResult.msg}
+                          </p>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={handleSendReply}
+                          disabled={!selectedTemplateId || !toEmail || !editableSubject || sending}
+                          className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60 flex items-center gap-2 self-start"
+                        >
+                          {sending && (
+                            <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                          )}
+                          {sending ? 'Sending…' : 'Send Reply'}
+                        </button>
+                      </div>
+
+                      {/* History */}
+                      <div className="flex flex-col gap-3">
+                        <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">Reply History</p>
+                        {emailLogs.length === 0 && (
+                          <p className="font-body text-xs text-white/25 italic">No replies sent yet.</p>
+                        )}
+                        {emailLogs.map((log) => (
+                          <div key={log.id} className="border border-white/8 px-4 py-3 bg-[#111121]">
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <span className={`font-heading text-[9px] uppercase tracking-widest border px-1.5 py-0.5 ${log.status === 'sent' ? 'text-green-400 border-green-400/30' : 'text-red-400 border-red-400/30'}`}>
+                                {log.status}
+                              </span>
+                              <span className="font-body text-[10px] text-white/25">
+                                {new Date(log.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </span>
+                            </div>
+                            <p className="font-body text-xs text-white/70 truncate">{log.subject}</p>
+                            <p className="font-body text-[10px] text-white/30 mt-0.5">→ {log.toEmail}</p>
+                          </div>
                         ))}
-                      </select>
+                      </div>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1.5 block">Internal Notes</label>
-                    <textarea
-                      value={editNotes}
-                      onChange={(e) => setEditNotes(e.target.value)}
-                      rows={3}
-                      className={`${inputClass} resize-none`}
-                      placeholder="Notes for the band…"
-                    />
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-3 pt-2">
-                    <button
-                      onClick={handleSave}
-                      disabled={saving}
-                      className="font-heading text-[11px] uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-50"
-                    >
-                      {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save Changes'}
-                    </button>
-                    <button
-                      onClick={closeDetail}
-                      className="font-heading text-[11px] uppercase tracking-widest border border-white/10 text-white/40 px-5 py-2.5 hover:border-white/25 hover:text-white/60 transition-all"
-                    >
-                      Close
-                    </button>
-                  </div>
+                  )}
                 </div>
               )}
             </div>

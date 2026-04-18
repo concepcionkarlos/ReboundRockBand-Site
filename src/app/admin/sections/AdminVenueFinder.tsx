@@ -36,8 +36,10 @@ export default function AdminVenueFinder() {
   const [activeTab, setActiveTab] = useState<'crm' | 'outreach'>('crm')
 
   // Search
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchKeyword, setSearchKeyword] = useState('')
+  const [searchCity, setSearchCity] = useState('')
   const [searchResults, setSearchResults] = useState<PlaceSearchResult[]>([])
+  const [searchWarning, setSearchWarning] = useState<string | null>(null)
   const [searching, setSearching] = useState(false)
   const [savedPlaceIds, setSavedPlaceIds] = useState<Set<string>>(new Set())
   const [savingPlaceId, setSavingPlaceId] = useState<string | null>(null)
@@ -113,13 +115,18 @@ export default function AdminVenueFinder() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!searchQuery.trim()) return
+    if (!searchKeyword.trim() && !searchCity.trim()) return
     setSearching(true)
     setSearchResults([])
+    setSearchWarning(null)
     try {
-      const res = await fetch(`/api/places/search?q=${encodeURIComponent(searchQuery)}`)
+      const params = new URLSearchParams()
+      if (searchKeyword) params.set('keyword', searchKeyword)
+      if (searchCity) params.set('city', searchCity)
+      const res = await fetch(`/api/places/search?${params}`)
       const data = await res.json()
       setSearchResults(data.results ?? [])
+      if (data.devWarning) setSearchWarning(data.devWarning)
     } catch {
       setSearchResults([])
     } finally {
@@ -244,22 +251,67 @@ export default function AdminVenueFinder() {
       </div>
 
       {/* Search */}
-      <form onSubmit={handleSearch} className="flex gap-2 mb-6">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className={`${inputClass} flex-1`}
-          placeholder="Search: bar miami fl, brewery coral gables, live music venue homestead..."
-        />
-        <button
-          type="submit"
-          disabled={searching}
-          className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60 flex-shrink-0"
-        >
-          {searching ? 'Searching…' : 'Search'}
-        </button>
+      <form onSubmit={handleSearch} className="flex flex-col gap-3 mb-6">
+        <div className="flex gap-2">
+          <div className="flex-1 flex flex-col gap-1.5">
+            <label className="font-heading text-[9px] uppercase tracking-widest text-white/25">Keyword</label>
+            <input
+              type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              className={inputClass}
+              placeholder="e.g. live music venue, bar, brewery"
+            />
+          </div>
+          <div className="flex-1 flex flex-col gap-1.5">
+            <label className="font-heading text-[9px] uppercase tracking-widest text-white/25">City / Area</label>
+            <input
+              type="text"
+              value={searchCity}
+              onChange={(e) => setSearchCity(e.target.value)}
+              className={inputClass}
+              placeholder="e.g. Miami FL, Coral Gables, 33134"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="font-heading text-[9px] uppercase tracking-widest text-white/25 invisible">Go</label>
+            <button
+              type="submit"
+              disabled={searching || (!searchKeyword.trim() && !searchCity.trim())}
+              className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60 flex-shrink-0 h-[42px]"
+            >
+              {searching ? 'Searching…' : 'Search'}
+            </button>
+          </div>
+        </div>
+        {/* Quick keyword chips */}
+        <div className="flex gap-1.5 flex-wrap">
+          {['live music venue', 'bar', 'brewery', 'restaurant live music', 'event venue', 'private event venue'].map((kw) => (
+            <button
+              key={kw}
+              type="button"
+              onClick={() => setSearchKeyword(kw)}
+              className={`font-heading text-[9px] uppercase tracking-widest px-2 py-1 border transition-colors ${
+                searchKeyword === kw
+                  ? 'border-brand-red text-brand-red bg-brand-red/10'
+                  : 'border-white/10 text-white/30 hover:border-white/25 hover:text-white/60'
+              }`}
+            >
+              {kw}
+            </button>
+          ))}
+        </div>
       </form>
+
+      {/* Dev/API key warning */}
+      {searchWarning && (
+        <div className="mb-4 border border-yellow-400/20 bg-yellow-400/5 px-4 py-3 flex items-start gap-3">
+          <svg className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+          <p className="font-body text-xs text-yellow-400/80">{searchWarning}</p>
+        </div>
+      )}
 
       {/* Search Results */}
       {searchResults.length > 0 && (
