@@ -15,7 +15,7 @@ const ALLOWED_TYPES: Record<string, string> = {
   'image/avif': 'avif',
 }
 
-const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
+const MAX_SIZE = 5 * 1024 * 1024 // 5 MB
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,13 +36,10 @@ export async function POST(req: NextRequest) {
 
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { error: `File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 10 MB.` },
+        { error: `File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 5 MB.` },
         { status: 400 }
       )
     }
-
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    await fs.mkdir(uploadDir, { recursive: true })
 
     const id = crypto.randomBytes(6).toString('hex')
     const safeBase = (file.name || 'image')
@@ -51,12 +48,24 @@ export async function POST(req: NextRequest) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '')
       .slice(0, 40) || 'image'
-
     const filename = `${Date.now()}-${id}-${safeBase}.${ext}`
-    const buffer = Buffer.from(await file.arrayBuffer())
-    await fs.writeFile(path.join(uploadDir, filename), buffer)
 
-    return NextResponse.json({ url: `/uploads/${filename}` })
+    if (process.env.NODE_ENV === 'production') {
+      // Vercel Blob — requires BLOB_READ_WRITE_TOKEN in Vercel project env vars
+      const { put } = await import('@vercel/blob')
+      const blob = await put(`uploads/${filename}`, file, {
+        access: 'public',
+        contentType: file.type,
+      })
+      return NextResponse.json({ url: blob.url })
+    } else {
+      // Local dev — write to /public/uploads/
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+      await fs.mkdir(uploadDir, { recursive: true })
+      const buffer = Buffer.from(await file.arrayBuffer())
+      await fs.writeFile(path.join(uploadDir, filename), buffer)
+      return NextResponse.json({ url: `/uploads/${filename}` })
+    }
   } catch (err) {
     console.error('Upload failed:', err)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })

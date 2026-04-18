@@ -30,6 +30,7 @@ export default function ImageUpload({
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   const doUpload = async (file: File) => {
     setError(null)
@@ -54,6 +55,33 @@ export default function ImageUpload({
     e.target.value = ''
   }
 
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    e.dataTransfer.dropEffect = 'copy'
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) void doUpload(file)
+  }
+
   return (
     <div className="flex flex-col gap-2">
       {label && (
@@ -71,9 +99,18 @@ export default function ImageUpload({
       />
 
       <div className="flex items-start gap-3 flex-wrap">
-        {/* Preview */}
+        {/* Preview — drag & drop target, also clickable */}
         <div
-          className={`relative ${previewClassName} bg-[#0d0d1e] border border-white/8 overflow-hidden flex-shrink-0`}
+          className={`relative ${previewClassName} bg-[#0d0d1e] border overflow-hidden flex-shrink-0 transition-all cursor-pointer ${
+            isDragging
+              ? 'border-brand-red/70 shadow-[0_0_0_3px_rgba(224,16,30,0.15)]'
+              : 'border-white/8 hover:border-white/20'
+          }`}
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => !uploading && inputRef.current?.click()}
         >
           {value ? (
             <Image
@@ -86,7 +123,7 @@ export default function ImageUpload({
               onError={() => {}}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
               <svg
                 className="w-6 h-6 text-white/15"
                 fill="none"
@@ -99,6 +136,36 @@ export default function ImageUpload({
                   strokeLinejoin="round"
                   d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
+              </svg>
+              <span className="font-heading text-[8px] uppercase tracking-widest text-white/15">Drop or click</span>
+            </div>
+          )}
+
+          {/* Drag overlay */}
+          {isDragging && (
+            <div className="absolute inset-0 flex items-center justify-center bg-brand-red/10 border-2 border-brand-red/50 border-dashed">
+              <svg
+                className="w-6 h-6 text-brand-red/70"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                />
+              </svg>
+            </div>
+          )}
+
+          {/* Upload spinner overlay */}
+          {uploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <svg className="w-5 h-5 animate-spin text-brand-red" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.3" />
+                <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
               </svg>
             </div>
           )}
@@ -116,37 +183,15 @@ export default function ImageUpload({
               {uploading ? (
                 <>
                   <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      opacity="0.3"
-                    />
-                    <path
-                      d="M12 2a10 10 0 0110 10"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    />
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.3" />
+                    <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                   </svg>
                   Uploading…
                 </>
               ) : (
                 <>
-                  <svg
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-                    />
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                   </svg>
                   {value ? 'Replace Image' : 'Upload Image'}
                 </>
