@@ -10,13 +10,15 @@ import AdminBandMembers from './sections/AdminBandMembers'
 import AdminEPK from './sections/AdminEPK'
 import AdminBookings from './sections/AdminBookings'
 import AdminSongRequests from './sections/AdminSongRequests'
+import AdminVenueFinder from './sections/AdminVenueFinder'
+import AdminEmailTemplates from './sections/AdminEmailTemplates'
 import AdminLogin from './AdminLogin'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content'
+type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'venues' | 'email-templates'
 
-interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number; songRequests: number }
+interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number; songRequests: number; venues: number }
 
 const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: React.ReactNode }[] = [
   {
@@ -107,6 +109,26 @@ const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: Rea
       </svg>
     ),
   },
+  {
+    id: 'venues' as Section,
+    label: 'Venue Finder',
+    badgeKey: 'venues' as keyof Badges,
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'email-templates' as Section,
+    label: 'Email Templates',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+      </svg>
+    ),
+  },
 ]
 
 export default function AdminPage() {
@@ -114,7 +136,7 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [active, setActive] = useState<Section>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0, songRequests: 0 })
+  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0, songRequests: 0, venues: 0 })
 
   useEffect(() => {
     setAuthed(true)
@@ -122,9 +144,12 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    fetch('/api/content')
-      .then((r) => r.json())
-      .then((d) => {
+    Promise.all([
+      fetch('/api/content').then((r) => r.json()),
+      fetch('/api/venues').then((r) => r.json()),
+    ])
+      .then(([d, v]) => {
+        const venues: { status: string }[] = v.venues ?? []
         setBadges({
           members: d.bandMembers?.length ?? 0,
           shows: d.shows?.length ?? 0,
@@ -133,6 +158,7 @@ export default function AdminPage() {
           epk: d.epkContent?.repertoire?.length ?? 0,
           bookings: (d.bookingRequests ?? []).filter((r: { status: string }) => r.status === 'New').length,
           songRequests: (d.songRequests ?? []).filter((r: { status: string }) => r.status === 'New').length,
+          venues: venues.filter((vn) => vn.status === 'New' || vn.status === 'Reviewed').length,
         })
       })
       .catch(() => {})
@@ -159,6 +185,8 @@ export default function AdminPage() {
     media: <AdminMedia />,
     epk: <AdminEPK />,
     content: <AdminContent />,
+    venues: <AdminVenueFinder />,
+    'email-templates': <AdminEmailTemplates />,
   }
 
   const currentNav = navItems.find((n) => n.id === active)
