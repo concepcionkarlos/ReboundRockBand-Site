@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { mediaItems as initialMedia, type MediaItem } from '@/lib/data'
 import ImageUpload from '@/components/admin/ImageUpload'
+import VideoUpload, { isExternalVideoUrl } from '@/components/admin/VideoUpload'
 
 const inputClass =
   'w-full bg-[#111121] border border-white/8 text-white font-body text-sm px-3.5 py-2.5 focus:outline-none focus:border-brand-red/50 focus:shadow-[0_0_0_3px_rgba(224,16,30,0.07)] transition-all placeholder:text-white/20 rounded-none'
@@ -79,6 +80,12 @@ export default function AdminMedia() {
     await persist(updated)
   }
 
+  const toggleFeatured = async (id: string) => {
+    const updated = items.map((i) => i.id === id ? { ...i, isFeatured: !i.isFeatured } : i)
+    setItems(updated)
+    await persist(updated)
+  }
+
   return (
     <div className="max-w-4xl">
       {/* Header */}
@@ -123,7 +130,11 @@ export default function AdminMedia() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col gap-1.5">
                 <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Type</label>
-                <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as 'photo' | 'video' })} className={inputClass}>
+                <select
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value as 'photo' | 'video', url: '' })}
+                  className={inputClass}
+                >
                   <option value="photo">Photo</option>
                   <option value="video">Video</option>
                 </select>
@@ -145,28 +156,21 @@ export default function AdminMedia() {
                 />
               </div>
             ) : (
-              <div className="flex flex-col gap-4 mb-5">
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Video URL or Path *</label>
-                  <input type="text" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} className={inputClass} placeholder="/videos/show.mp4 or https://..." />
-                  <p className="font-body text-xs text-white/20">
-                    Videos: paste a URL (YouTube, Vimeo) or a path to a file in <code className="text-brand-red/70">/public/videos/</code>.
-                  </p>
-                </div>
-                <ImageUpload
-                  label="Poster Image (optional)"
-                  value={form.poster}
-                  onChange={(url) => setForm({ ...form, poster: url })}
-                  previewClassName="w-full aspect-video max-w-xs"
-                  helper="Thumbnail shown before the video plays."
+              <div className="flex flex-col gap-5 mb-5">
+                <VideoUpload
+                  label="Video *"
+                  value={form.url}
+                  onChange={(url) => setForm({ ...form, url })}
+                  helper="Upload an MP4/MOV/WebM, or paste a YouTube/Vimeo URL."
                 />
-                {form.url && (
-                  <div>
-                    <p className="font-heading text-[9px] uppercase tracking-widest text-white/20 mb-2">Video Preview</p>
-                    <div className="relative w-full aspect-video max-w-xs bg-[#0d0d1e] border border-white/8 overflow-hidden">
-                      <video src={form.url} poster={form.poster || undefined} className="w-full h-full object-cover" muted playsInline />
-                    </div>
-                  </div>
+                {!isExternalVideoUrl(form.url) && (
+                  <ImageUpload
+                    label="Poster Image (optional)"
+                    value={form.poster}
+                    onChange={(url) => setForm({ ...form, poster: url })}
+                    previewClassName="w-full aspect-video max-w-xs"
+                    helper="Thumbnail shown before the video plays."
+                  />
                 )}
               </div>
             )}
@@ -184,7 +188,7 @@ export default function AdminMedia() {
               ))}
             </div>
             <div className="flex gap-2.5">
-              <button onClick={save} disabled={saving} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60">
+              <button onClick={save} disabled={saving || !form.url} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60">
                 Add Item
               </button>
               <button onClick={() => setIsAdding(false)} className="font-heading text-xs uppercase tracking-widest border border-white/15 text-white/40 px-5 py-2.5 hover:border-white/30 hover:text-white transition-all">
@@ -214,6 +218,11 @@ export default function AdminMedia() {
             <div className="flex-1 min-w-0 px-4 py-3">
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="font-heading text-[9px] uppercase tracking-widest text-white/30">{item.type}</span>
+                {item.type === 'video' && isExternalVideoUrl(item.url) && (
+                  <span className="font-heading text-[9px] uppercase tracking-widest text-white/30 border border-white/10 bg-white/4 px-1">
+                    {/youtube/i.test(item.url) ? 'YouTube' : 'Vimeo'}
+                  </span>
+                )}
                 {item.isFeatured && <span className="font-heading text-[9px] uppercase tracking-widest text-brand-red border border-brand-red/40 bg-brand-red/10 px-1">★ Featured</span>}
                 {!item.visible && <span className="font-heading text-[9px] uppercase tracking-widest text-white/20 border border-white/10 px-1">Hidden</span>}
               </div>
@@ -221,6 +230,9 @@ export default function AdminMedia() {
               <div className="font-body text-xs text-white/25 truncate">{item.url}</div>
             </div>
             <div className="flex gap-1.5 flex-shrink-0 pr-3">
+              <button onClick={() => toggleFeatured(item.id)} className={`font-heading text-[9px] uppercase tracking-widest px-2 py-1 border transition-colors ${item.isFeatured ? 'border-brand-red/40 text-brand-red/70 hover:border-brand-red hover:text-brand-red' : 'border-white/15 text-white/40 hover:border-white/30 hover:text-white'}`}>
+                {item.isFeatured ? 'Unfeature' : 'Feature'}
+              </button>
               <button onClick={() => toggleVisible(item.id)} className={`font-heading text-[9px] uppercase tracking-widest px-2 py-1 border transition-colors ${item.visible ? 'border-white/15 text-white/40 hover:border-white/30 hover:text-white' : 'border-white/8 text-white/20 hover:border-white/20'}`}>
                 {item.visible ? 'Hide' : 'Show'}
               </button>
