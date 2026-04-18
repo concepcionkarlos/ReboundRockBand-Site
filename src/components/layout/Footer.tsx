@@ -1,15 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { readContent } from '@/lib/store'
-
-const quickLinks = [
-  { label: 'Shows & Events', href: '/shows' },
-  { label: 'About the Band', href: '/about' },
-  { label: 'Media Gallery', href: '/media' },
-  { label: 'Merch', href: '/merch' },
-  { label: 'Book Us', href: '/booking' },
-  { label: 'Press Kit (EPK)', href: '/epk' },
-]
+import { translations } from '@/lib/i18n'
+import { getLang } from '@/lib/getLang'
 
 const FacebookIcon = (
   <svg className="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -36,7 +29,17 @@ const FacebookIconSm = (
 )
 
 export default async function Footer() {
-  const { siteContent } = await readContent()
+  const [{ siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang]
+
+  const quickLinks = [
+    { label: tr.footer.links.shows, href: '/shows' },
+    { label: tr.footer.links.about, href: '/about' },
+    { label: tr.footer.links.media, href: '/media' },
+    { label: tr.footer.links.merch, href: '/merch' },
+    { label: tr.footer.links.booking, href: '/booking' },
+    { label: tr.footer.links.epk, href: '/epk' },
+  ]
 
   type SocialItem = { label: string; href: string; icon: React.ReactNode }
 
@@ -95,7 +98,7 @@ export default async function Footer() {
         <div>
           <h4 className="font-heading text-xs uppercase tracking-widest text-brand-red mb-5 flex items-center gap-2">
             <span className="w-4 h-px bg-brand-red/50" />
-            Follow the Band
+            {tr.footer.followBand}
           </h4>
           {/* Social platform rows */}
           {platformRows.length > 0 && (
@@ -116,7 +119,7 @@ export default async function Footer() {
           )}
           {/* Compact nav list */}
           <div className="border-t border-brand-border/50 pt-4">
-            <p className="font-heading text-[9px] uppercase tracking-widest text-brand-muted/40 mb-3">Quick Links</p>
+            <p className="font-heading text-[9px] uppercase tracking-widest text-brand-muted/40 mb-3">{tr.footer.quickLinks}</p>
             <ul className="flex flex-col gap-0">
               {quickLinks.map((link) => (
                 <li key={link.href}>
@@ -137,10 +140,10 @@ export default async function Footer() {
         <div>
           <h4 className="font-heading text-xs uppercase tracking-widest text-brand-red mb-5 flex items-center gap-2">
             <span className="w-4 h-px bg-brand-red/50" />
-            Book Rebound Rock Band
+            {tr.footer.bookSection}
           </h4>
           <p className="font-body text-sm text-brand-muted leading-relaxed mb-5">
-            Available for bars, private events, corporate shows, festivals, and parties across {siteContent.serviceArea}.
+            {tr.footer.available} {siteContent.serviceArea}.
           </p>
           <div className="flex flex-col gap-2.5 mb-5">
             <a
@@ -157,7 +160,7 @@ export default async function Footer() {
             href="/booking"
             className="inline-block font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-colors btn-glow-red"
           >
-            Get a Quote
+            {tr.footer.getQuote}
           </Link>
           {siteContent.facebook && (
             <a
@@ -167,7 +170,7 @@ export default async function Footer() {
               className="mt-3 flex items-center gap-1.5 font-heading text-[10px] uppercase tracking-widest text-brand-muted/50 hover:text-brand-red transition-colors"
             >
               {FacebookIconSm}
-              Follow on Facebook
+              {tr.footer.followFacebook}
             </a>
           )}
         </div>
