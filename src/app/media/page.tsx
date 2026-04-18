@@ -12,11 +12,44 @@ export const metadata: Metadata = {
   description: 'Watch and listen to Rebound Rock Band — live performance videos and photos.',
 }
 
+function getVideoType(url: string): 'youtube' | 'vimeo' | 'html5' {
+  if (/youtube\.com|youtu\.be/i.test(url)) return 'youtube'
+  if (/vimeo\.com/i.test(url)) return 'vimeo'
+  return 'html5'
+}
+
+function getEmbedUrl(url: string, type: 'youtube' | 'vimeo'): string {
+  if (type === 'youtube') {
+    const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+    const id = match?.[1] ?? ''
+    return `https://www.youtube.com/embed/${id}?rel=0`
+  }
+  const match = url.match(/vimeo\.com\/(\d+)/)
+  const id = match?.[1] ?? ''
+  return `https://player.vimeo.com/video/${id}`
+}
+
+function VideoEmbed({ item, sizes }: { item: MediaItem; sizes: string }) {
+  const vtype = getVideoType(item.url)
+  if (vtype === 'html5') {
+    return <video src={item.url} controls poster={item.poster} className="w-full h-full object-cover" />
+  }
+  return (
+    <iframe
+      src={getEmbedUrl(item.url, vtype)}
+      className="absolute inset-0 w-full h-full"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+      title={item.caption || 'Video'}
+    />
+  )
+}
+
 function MediaCard({ item }: { item: MediaItem }) {
   return (
     <div className="group relative aspect-video overflow-hidden bg-brand-elevated border border-brand-border hover:border-brand-red/40 transition-all duration-300">
       {item.type === 'video' ? (
-        <video src={item.url} controls poster={item.poster} className="w-full h-full object-cover" />
+        <VideoEmbed item={item} sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
       ) : (
         <Image
           src={item.url}
@@ -105,7 +138,7 @@ export default async function MediaPage() {
                 {featured.map((item) => (
                   <div key={item.id} className="relative aspect-video bg-brand-elevated border border-brand-border overflow-hidden group">
                     {item.type === 'video' ? (
-                      <video src={item.url} controls poster={item.poster ?? '/logo-improved.png'} className="w-full h-full object-cover" />
+                      <VideoEmbed item={item} sizes="(max-width: 1024px) 100vw, 50vw" />
                     ) : (
                       <Image src={item.url} alt={item.caption} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
                     )}
