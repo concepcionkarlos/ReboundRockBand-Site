@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { BookingRequest, BookingStatus } from '@/lib/data'
+import type { BookingRequest, BookingStatus, EmailTemplate, BookingEmailLog } from '@/lib/data'
+import { renderTemplate } from '@/lib/templateUtils'
 
 const ALL_STATUSES: BookingStatus[] = [
   'New', 'Contacted', 'Quote Sent', 'Follow-up', 'Negotiating', 'Confirmed', 'Lost', 'Archived',
@@ -36,13 +37,38 @@ export default function AdminBookings({ onNavigate }: Props) {
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState<BookingStatus | 'All'>('All')
   const [selected, setSelected] = useState<BookingRequest | null>(null)
+  const [detailTab, setDetailTab] = useState<'crm' | 'email'>('crm')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Email compose state
+  const [templates, setTemplates] = useState<EmailTemplate[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [toEmail, setToEmail] = useState('')
+  const [editableSubject, setEditableSubject] = useState('')
+  const [editableBody, setEditableBody] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [emailLogs, setEmailLogs] = useState<BookingEmailLog[]>([])
+  const [loadingLogs, setLoadingLogs] = useState(false)
+
   useEffect(() => {
-    fetch('/api/content')
-      .then((r) => r.json())
-      .then((d) => { if (d.bookingRequests) setRequests(d.bookingRequests) })
+    Promise.all([
+      fetch('/api/content').then((r) => r.json()),
+      fetch('/api/email-templates').then((r) => r.json()),
+    ])
+      .then(([d, td]) => {
+        if (d.bookingRequests) setRequests(d.bookingRequests)
+        if (td.templates) {
+          // Only show booking-relevant templates in the booking panel
+          setTemplates(
+            (td.templates as EmailTemplate[]).filter((t) =>
+              t.slug.startsWith('booking-reply') || t.slug === 'booking-auto-reply'
+            )
+          )
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -70,6 +96,108 @@ export default function AdminBookings({ onNavigate }: Props) {
       r.id === selected.id ? { ...selected, updatedAt: new Date().toISOString() } : r
     )
     await persist(updated)
+  }
+
+  const openDetail = (r: BookingRequest) => {
+    setSelected(r)
+    setDetailTab('crm')
+    setSaved(false)
+    setSendResult(null)
+    setSelectedTemplateId('')
+    setToEmail(r.email)
+    setEditableSubject('')
+    setEditableBody('')
+    setShowPreview(false)
+    setEmailLogs([])
+  }
+
+  const loadEmailLogs = async (bookingId: string) => {
+    setLoadingLogs(true)
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/email-logs`)
+      const data = await res.json()
+      setEmailLogs(data.logs ?? [])
+    } catch {
+      setEmailLogs([])
+    } finally {
+      setLoadingLogs(false)
+    }
+  }
+
+  const switchToEmailTab = (r: BookingRequest) => {
+    setDetailTab('email')
+    setToEmail(r.email)
+    loadEmailLogs(r.id)
+  }
+
+  // Re-render preview when template or booking changes
+  useEffect(() => {
+    if (!selectedTemplateId || !selected) {
+      setEditableSubject('')
+      setEditableBody('')
+      return
+    }
+    const tmpl = templates.find((t) => t.id === selectedTemplateId)
+    if (!tmpl) return
+    const clientName = selected.fullName.split(' ')[0] || selected.fullName
+    const { subject, bodyHtml } = renderTemplate(tmpl, {
+      clientName,
+      eventDate: selected.eventDate || '(not specified)',
+      eventType: selected.eventType || 'your event',
+      bandName: 'Rebound Rock Band',
+      replyEmail: 'booking@reboundrockband.com',
+    })
+    setEditableSubject(subject)
+    setEditableBody(bodyHtml)
+  }, [selectedTemplateId, selected, templates])
+
+  const handleSendEmail = async () => {
+    if (!selected || !selectedTemplateId || !toEmail) return
+    setSending(true)
+    setSendResult(null)
+    try {
+      const res = await fetch(`/api/bookings/${selected.id}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId: selectedTemplateId,
+          toEmail,
+          subject: editableSubject,
+          bodyHtml: editableBody,
+          vars: {
+            clientName: selected.fullName.split(' ')[0] || selected.fullName,
+            eventDate: selected.eventDate || '(not specified)',
+            eventType: selected.eventType || 'your event',
+          },
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setSendResult({ ok: true, msg: 'Email sent successfully.' })
+        if (data.emailLog) setEmailLogs((prev) => [data.emailLog, ...prev])
+        // Auto-advance status to Contacted if still New
+        if (selected.status === 'New') {
+          const updated = requests.map((r) =>
+            r.id === selected.id
+              ? { ...r, status: 'Contacted' as BookingStatus, updatedAt: new Date().toISOString() }
+              : r
+          )
+          setRequests(updated)
+          setSelected((prev) => prev ? { ...prev, status: 'Contacted' as BookingStatus } : null)
+          await fetch('/api/content', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ section: 'bookingRequests', data: updated }),
+          })
+        }
+      } else {
+        setSendResult({ ok: false, msg: data.error ?? 'Send failed.' })
+      }
+    } catch {
+      setSendResult({ ok: false, msg: 'Network error.' })
+    } finally {
+      setSending(false)
+    }
   }
 
   const exportCSV = () => {
@@ -180,7 +308,6 @@ export default function AdminBookings({ onNavigate }: Props) {
         </div>
       ) : (
         <div className="flex flex-col gap-px mb-6">
-          {/* Column headers */}
           <div className="hidden lg:grid grid-cols-[2fr_2fr_1fr_1.5fr_1fr_1fr] gap-3 px-4 py-2 font-heading text-[9px] uppercase tracking-widest text-white/20">
             <span>Name</span>
             <span>Venue / Company</span>
@@ -192,7 +319,7 @@ export default function AdminBookings({ onNavigate }: Props) {
           {filtered.map((r) => (
             <button
               key={r.id}
-              onClick={() => setSelected(selected?.id === r.id ? null : r)}
+              onClick={() => selected?.id === r.id ? setSelected(null) : openDetail(r)}
               className={`w-full text-left border transition-all group ${
                 selected?.id === r.id
                   ? 'border-brand-red/50 bg-brand-red/5'
@@ -227,127 +354,298 @@ export default function AdminBookings({ onNavigate }: Props) {
               <h2 className="font-display uppercase text-2xl text-white leading-none">{selected.fullName}</h2>
               <p className="font-body text-xs text-white/30 mt-1">{selected.source} · {fmt(selected.createdAt)}</p>
             </div>
-            <button
-              onClick={() => setSelected(null)}
-              className="font-heading text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors flex items-center gap-1"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Close
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => switchToEmailTab(selected)}
+                className="font-heading text-[10px] uppercase tracking-widest border border-brand-red/30 text-brand-red/70 px-3 py-1.5 hover:bg-brand-red/10 hover:border-brand-red transition-all flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+                Reply
+              </button>
+              <button
+                onClick={() => setSelected(null)}
+                className="font-heading text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors flex items-center gap-1"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Close
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left: Contact & event info (read-only) */}
-            <div className="flex flex-col gap-4">
-              <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">Contact Details</p>
-              {[
-                { label: 'Email', value: selected.email, href: `mailto:${selected.email}` },
-                { label: 'Phone', value: selected.phone || '—' },
-                { label: 'Venue / Company', value: selected.venueOrCompany || '—' },
-                { label: 'City', value: selected.city || '—' },
-                { label: 'Event Date', value: fmt(selected.eventDate) },
-                { label: 'Event Type', value: selected.eventType },
-                { label: 'Budget Range', value: selected.budgetRange || '—' },
-                { label: 'Guest Count', value: selected.guestCount || '—' },
-              ].map(({ label, value, href }) => (
-                <div key={label}>
-                  <div className="font-heading text-[9px] uppercase tracking-widest text-white/25 mb-0.5">{label}</div>
-                  {href ? (
-                    <a href={href} className="font-body text-sm text-white hover:text-brand-red transition-colors">{value}</a>
-                  ) : (
-                    <div className="font-body text-sm text-white/80">{value}</div>
+          {/* Tabs */}
+          <div className="flex border-b border-white/8 mb-6">
+            {(['crm', 'email'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setDetailTab(tab)
+                  if (tab === 'email') loadEmailLogs(selected.id)
+                }}
+                className={`font-heading text-[10px] uppercase tracking-widest px-5 py-3 transition-colors ${
+                  detailTab === tab
+                    ? 'text-white border-b-2 border-brand-red -mb-px'
+                    : 'text-white/35 hover:text-white'
+                }`}
+              >
+                {tab === 'crm' ? 'CRM Details' : 'Send Email'}
+                {tab === 'email' && emailLogs.length > 0 && (
+                  <span className="ml-1.5 font-heading text-[9px] bg-white/10 text-white/50 px-1.5 py-0.5">
+                    {emailLogs.length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {detailTab === 'crm' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left: Contact & event info (read-only) */}
+              <div className="flex flex-col gap-4">
+                <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">Contact Details</p>
+                {[
+                  { label: 'Email', value: selected.email, href: `mailto:${selected.email}` },
+                  { label: 'Phone', value: selected.phone || '—' },
+                  { label: 'Venue / Company', value: selected.venueOrCompany || '—' },
+                  { label: 'City', value: selected.city || '—' },
+                  { label: 'Event Date', value: fmt(selected.eventDate) },
+                  { label: 'Event Type', value: selected.eventType },
+                  { label: 'Budget Range', value: selected.budgetRange || '—' },
+                  { label: 'Guest Count', value: selected.guestCount || '—' },
+                ].map(({ label, value, href }) => (
+                  <div key={label}>
+                    <div className="font-heading text-[9px] uppercase tracking-widest text-white/25 mb-0.5">{label}</div>
+                    {href ? (
+                      <a href={href} className="font-body text-sm text-white hover:text-brand-red transition-colors">{value}</a>
+                    ) : (
+                      <div className="font-body text-sm text-white/80">{value}</div>
+                    )}
+                  </div>
+                ))}
+                {selected.message && (
+                  <div>
+                    <div className="font-heading text-[9px] uppercase tracking-widest text-white/25 mb-0.5">Message</div>
+                    <p className="font-body text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{selected.message}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Right: Editable CRM fields */}
+              <div className="flex flex-col gap-4">
+                <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">CRM</p>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Status</label>
+                  <select
+                    value={selected.status}
+                    onChange={(e) => setSelected({ ...selected, status: e.target.value as BookingStatus })}
+                    className={inputClass}
+                  >
+                    {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Assigned To</label>
+                  <input
+                    type="text"
+                    value={selected.assignedTo ?? ''}
+                    onChange={(e) => setSelected({ ...selected, assignedTo: e.target.value })}
+                    className={inputClass}
+                    placeholder="Team member name"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Follow-up Date</label>
+                  <input
+                    type="date"
+                    value={selected.followUpDate ?? ''}
+                    onChange={(e) => setSelected({ ...selected, followUpDate: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Internal Notes</label>
+                  <textarea
+                    value={selected.notes ?? ''}
+                    onChange={(e) => setSelected({ ...selected, notes: e.target.value })}
+                    rows={5}
+                    className={`${inputClass} resize-none`}
+                    placeholder="Internal notes about this booking request…"
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button
+                    onClick={saveDetail}
+                    disabled={saving}
+                    className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red disabled:opacity-60 flex items-center gap-2"
+                  >
+                    {saving && (
+                      <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    )}
+                    Save Changes
+                  </button>
+                  {selected.status === 'Confirmed' && (
+                    <button
+                      onClick={() => {
+                        sessionStorage.setItem('prefillShow', JSON.stringify({
+                          date: selected.eventDate,
+                          venue: selected.venueOrCompany || selected.fullName,
+                          city: selected.city,
+                          time: '',
+                        }))
+                        onNavigate('shows')
+                      }}
+                      className="font-heading text-xs uppercase tracking-widest border border-green-400/30 text-green-400/80 px-5 py-2.5 hover:border-green-400 hover:text-green-400 transition-all flex items-center gap-2"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Convert to Show
+                    </button>
                   )}
                 </div>
-              ))}
-              {selected.message && (
-                <div>
-                  <div className="font-heading text-[9px] uppercase tracking-widest text-white/25 mb-0.5">Message</div>
-                  <p className="font-body text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{selected.message}</p>
-                </div>
-              )}
+              </div>
             </div>
+          )}
 
-            {/* Right: Editable CRM fields */}
-            <div className="flex flex-col gap-4">
-              <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">CRM</p>
-              <div className="flex flex-col gap-1.5">
-                <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Status</label>
-                <select
-                  value={selected.status}
-                  onChange={(e) => setSelected({ ...selected, status: e.target.value as BookingStatus })}
-                  className={inputClass}
-                >
-                  {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Assigned To</label>
-                <input
-                  type="text"
-                  value={selected.assignedTo ?? ''}
-                  onChange={(e) => setSelected({ ...selected, assignedTo: e.target.value })}
-                  className={inputClass}
-                  placeholder="Team member name"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Follow-up Date</label>
-                <input
-                  type="date"
-                  value={selected.followUpDate ?? ''}
-                  onChange={(e) => setSelected({ ...selected, followUpDate: e.target.value })}
-                  className={inputClass}
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Internal Notes</label>
-                <textarea
-                  value={selected.notes ?? ''}
-                  onChange={(e) => setSelected({ ...selected, notes: e.target.value })}
-                  rows={5}
-                  className={`${inputClass} resize-none`}
-                  placeholder="Internal notes about this booking request…"
-                />
-              </div>
+          {detailTab === 'email' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Compose */}
+              <div className="flex flex-col gap-4">
+                <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">Compose Reply</p>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                {templates.length === 0 && (
+                  <p className="font-body text-xs text-white/30 italic">No booking reply templates found. Add them in Email Templates.</p>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Template</label>
+                  <select
+                    value={selectedTemplateId}
+                    onChange={(e) => { setSelectedTemplateId(e.target.value); setShowPreview(false) }}
+                    className={inputClass}
+                  >
+                    <option value="">— Select a template —</option>
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">To</label>
+                  <input
+                    type="email"
+                    value={toEmail}
+                    onChange={(e) => setToEmail(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+
+                {editableSubject !== '' && (
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Subject</label>
+                    <input
+                      type="text"
+                      value={editableSubject}
+                      onChange={(e) => setEditableSubject(e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                )}
+
+                {editableBody !== '' && (
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Body</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowPreview((p) => !p)}
+                        className="font-heading text-[9px] uppercase tracking-widest text-white/30 hover:text-white border border-white/10 px-2 py-1 transition-colors"
+                      >
+                        {showPreview ? 'Edit HTML' : 'Preview'}
+                      </button>
+                    </div>
+                    {showPreview ? (
+                      <iframe
+                        srcDoc={editableBody}
+                        className="w-full h-64 border border-white/8"
+                        sandbox="allow-same-origin"
+                        title="Email preview"
+                      />
+                    ) : (
+                      <textarea
+                        value={editableBody}
+                        onChange={(e) => setEditableBody(e.target.value)}
+                        className={`${inputClass} h-40 resize-y font-mono text-xs`}
+                        spellCheck={false}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {sendResult && (
+                  <p className={`font-body text-xs flex items-center gap-1.5 ${sendResult.ok ? 'text-green-400' : 'text-red-400'}`}>
+                    {sendResult.ok && (
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {sendResult.msg}
+                  </p>
+                )}
+
                 <button
-                  onClick={saveDetail}
-                  disabled={saving}
-                  className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red disabled:opacity-60 flex items-center gap-2"
+                  type="button"
+                  onClick={handleSendEmail}
+                  disabled={!selectedTemplateId || !toEmail || !editableSubject || sending}
+                  className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60 flex items-center gap-2 self-start"
                 >
-                  {saving && (
+                  {sending && (
                     <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
                   )}
-                  Save Changes
+                  {sending ? 'Sending…' : 'Send Email'}
                 </button>
-                {selected.status === 'Confirmed' && (
-                  <button
-                    onClick={() => {
-                      sessionStorage.setItem('prefillShow', JSON.stringify({
-                        date: selected.eventDate,
-                        venue: selected.venueOrCompany || selected.fullName,
-                        city: selected.city,
-                        time: '',
-                      }))
-                      onNavigate('shows')
-                    }}
-                    className="font-heading text-xs uppercase tracking-widest border border-green-400/30 text-green-400/80 px-5 py-2.5 hover:border-green-400 hover:text-green-400 transition-all flex items-center gap-2"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Convert to Show
-                  </button>
+              </div>
+
+              {/* Email history */}
+              <div className="flex flex-col gap-3">
+                <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">
+                  Email History
+                </p>
+                {loadingLogs && <p className="font-body text-xs text-white/30">Loading…</p>}
+                {!loadingLogs && emailLogs.length === 0 && (
+                  <p className="font-body text-xs text-white/25 italic">No emails sent yet for this booking.</p>
                 )}
+                {emailLogs.map((log) => (
+                  <div key={log.id} className="border border-white/8 px-4 py-3 bg-[#111121]">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className={`font-heading text-[9px] uppercase tracking-widest border px-1.5 py-0.5 ${log.status === 'sent' ? 'text-green-400 border-green-400/30' : 'text-red-400 border-red-400/30'}`}>
+                        {log.status}
+                      </span>
+                      <span className="font-body text-[10px] text-white/25">
+                        {new Date(log.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="font-body text-xs text-white/70 truncate">{log.subject}</p>
+                    <p className="font-body text-[10px] text-white/30 mt-0.5">→ {log.toEmail}</p>
+                    {log.errorMessage && (
+                      <p className="font-body text-[10px] text-red-400/70 mt-1 truncate">{log.errorMessage}</p>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
