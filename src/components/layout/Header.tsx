@@ -4,18 +4,21 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
-
-const navLinks = [
-  { label: 'Shows', href: '/shows' },
-  { label: 'About', href: '/about' },
-  { label: 'Media', href: '/media' },
-  { label: 'Merch', href: '/merch' },
-  { label: 'EPK', href: '/epk' },
-]
+import { useLanguage } from '@/context/LanguageContext'
+import LanguageToggle from '@/components/ui/LanguageToggle'
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const pathname = usePathname()
+  const { tr } = useLanguage()
+
+  const navLinks = [
+    { label: tr.nav.shows, href: '/shows' },
+    { label: tr.nav.about, href: '/about' },
+    { label: tr.nav.media, href: '/media' },
+    { label: tr.nav.merch, href: '/merch' },
+    { label: tr.nav.epk, href: '/epk' },
+  ]
 
   const isActive = (href: string) => pathname === href
 
@@ -52,7 +55,6 @@ export default function Header() {
               }`}
             >
               {link.label}
-              {/* Sliding underline — grows from center on hover, full-width when active */}
               <span
                 className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-px bg-brand-red transition-all duration-200 ${
                   isActive(link.href)
@@ -64,8 +66,9 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* CTA — right (desktop) */}
+        {/* Right side — desktop */}
         <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+          <LanguageToggle />
           <Link
             href="/booking"
             className={`font-heading text-xs uppercase tracking-widest px-5 py-2.5 transition-all btn-glow-red ${
@@ -74,32 +77,35 @@ export default function Header() {
                 : 'bg-brand-red text-white hover:bg-brand-red-bright'
             }`}
           >
-            Book Now
+            {tr.nav.bookNow}
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden flex flex-col justify-center gap-1.5 p-2 -mr-2 text-white"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
-        >
-          <span
-            className={`block w-5 h-0.5 bg-white transition-all duration-200 origin-center ${
-              menuOpen ? 'rotate-45 translate-y-2' : ''
-            }`}
-          />
-          <span
-            className={`block w-5 h-0.5 bg-white transition-all duration-200 ${
-              menuOpen ? 'opacity-0 scale-x-0' : ''
-            }`}
-          />
-          <span
-            className={`block w-5 h-0.5 bg-white transition-all duration-200 origin-center ${
-              menuOpen ? '-rotate-45 -translate-y-2' : ''
-            }`}
-          />
-        </button>
+        {/* Mobile — language toggle + hamburger */}
+        <div className="md:hidden flex items-center gap-2">
+          <LanguageToggle />
+          <button
+            className="flex flex-col justify-center gap-1.5 p-2 -mr-2 text-white"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
+          >
+            <span
+              className={`block w-5 h-0.5 bg-white transition-all duration-200 origin-center ${
+                menuOpen ? 'rotate-45 translate-y-2' : ''
+              }`}
+            />
+            <span
+              className={`block w-5 h-0.5 bg-white transition-all duration-200 ${
+                menuOpen ? 'opacity-0 scale-x-0' : ''
+              }`}
+            />
+            <span
+              className={`block w-5 h-0.5 bg-white transition-all duration-200 origin-center ${
+                menuOpen ? '-rotate-45 -translate-y-2' : ''
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -132,7 +138,7 @@ export default function Header() {
               className="block text-center font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-5 py-3.5 hover:bg-brand-red-bright transition-colors btn-glow-red"
               onClick={() => setMenuOpen(false)}
             >
-              Book Rebound Rock Band
+              {tr.nav.bookFull}
             </Link>
           </div>
         </div>

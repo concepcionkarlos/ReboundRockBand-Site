@@ -1,16 +1,19 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { readContent } from '@/lib/store'
-
-const stats = [
-  { value: '5', label: 'Live Members' },
-  { value: '4', label: 'Decades of Hits' },
-  { value: '100+', label: 'Shows Played' },
-  { value: 'S. FL', label: 'Based In' },
-]
+import { translations } from '@/lib/i18n'
+import { getLang } from '@/lib/getLang'
 
 export default async function Hero() {
-  const { siteContent } = await readContent()
+  const [{ siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang]
+
+  const stats = [
+    { value: '5', label: tr.hero.stats.members },
+    { value: '4', label: tr.hero.stats.decades },
+    { value: '100+', label: tr.hero.stats.shows },
+    { value: 'S. FL', label: tr.hero.stats.basedIn },
+  ]
   return (
     <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-brand-bg">
       {/* Atmospheric layers */}
@@ -37,7 +40,7 @@ export default async function Hero() {
             {/* Eyebrow */}
             <div className="inline-flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-7">
               <span className="w-10 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-              {siteContent.serviceArea}&apos;s Live Rock Experience
+              {siteContent.serviceArea}&apos;s {tr.hero.eyebrow}
               <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse-slow" />
             </div>
 
@@ -67,14 +70,14 @@ export default async function Hero() {
                 href="/shows"
                 className="font-heading text-sm uppercase tracking-widest border border-white/20 text-white/85 px-9 py-4 hover:border-brand-red hover:text-brand-red transition-all text-center"
               >
-                Upcoming Shows
+                {tr.hero.upcomingShows}
               </Link>
             </div>
 
             {/* Social follow line */}
             {(siteContent.facebook || siteContent.instagram || siteContent.youtube) && (
               <div className="flex items-center justify-center lg:justify-start gap-4 mt-5 flex-wrap">
-                <span className="font-body text-[11px] text-brand-muted/50">Follow us:</span>
+                <span className="font-body text-[11px] text-brand-muted/50">{tr.hero.followUs}</span>
                 {siteContent.facebook && (
                   <a
                     href={siteContent.facebook}
@@ -160,7 +163,7 @@ export default async function Hero() {
 
       {/* Scroll indicator */}
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-brand-muted/50 animate-bounce-slow">
-        <span className="font-body text-[9px] tracking-[0.25em] uppercase">Scroll</span>
+        <span className="font-body text-[9px] tracking-[0.25em] uppercase">{tr.hero.scroll}</span>
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>

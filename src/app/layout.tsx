@@ -3,6 +3,9 @@ import { Bebas_Neue, Oswald, Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import { LanguageProvider } from '@/context/LanguageContext'
+import type { Lang } from '@/lib/i18n'
+import { getLang } from '@/lib/getLang'
 
 const bebasNeue = Bebas_Neue({
   weight: '400',
@@ -56,13 +59,17 @@ export const viewport: Viewport = {
   colorScheme: 'dark',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const lang: Lang = await getLang()
+
   return (
-    <html lang="en" className={`${bebasNeue.variable} ${oswald.variable} ${inter.variable}`}>
+    <html lang={lang} className={`${bebasNeue.variable} ${oswald.variable} ${inter.variable}`}>
       <body className="bg-brand-bg text-white font-body antialiased overflow-x-hidden">
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <LanguageProvider initialLang={lang}>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   )
