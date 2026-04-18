@@ -5,7 +5,7 @@ import type { Show, MerchItem, MediaItem, BandMember, BookingRequest } from '@/l
 import Link from 'next/link'
 
 interface AdminDashboardProps {
-  onNavigate: (section: 'shows' | 'merch' | 'media' | 'content' | 'members' | 'epk' | 'bookings') => void
+  onNavigate: (section: 'shows' | 'merch' | 'media' | 'content' | 'members' | 'epk' | 'bookings' | 'venues') => void
 }
 
 interface LiveData {
@@ -14,25 +14,33 @@ interface LiveData {
   mediaItems: MediaItem[]
   bandMembers: BandMember[]
   bookingRequests: BookingRequest[]
+  venueTotal: number
+  venueInterested: number
+  venueBooked: number
 }
 
 export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
-  const [live, setLive] = useState<LiveData>({ shows: [], merch: [], mediaItems: [], bandMembers: [], bookingRequests: [] })
+  const [live, setLive] = useState<LiveData>({ shows: [], merch: [], mediaItems: [], bandMembers: [], bookingRequests: [], venueTotal: 0, venueInterested: 0, venueBooked: 0 })
 
   useEffect(() => {
-    fetch('/api/content')
-      .then((r) => r.json())
-      .then((d) => setLive({
+    Promise.all([
+      fetch('/api/content').then((r) => r.json()),
+      fetch('/api/venues').then((r) => r.json()),
+    ])
+      .then(([d, v]) => setLive({
         shows: d.shows ?? [],
         merch: d.merch ?? [],
         mediaItems: d.mediaItems ?? [],
         bandMembers: d.bandMembers ?? [],
         bookingRequests: d.bookingRequests ?? [],
+        venueTotal: (v.venues ?? []).length,
+        venueInterested: (v.venues ?? []).filter((vn: { status: string }) => vn.status === 'Interested').length,
+        venueBooked: (v.venues ?? []).filter((vn: { status: string }) => vn.status === 'Booked').length,
       }))
       .catch(() => {})
   }, [])
 
-  const { shows, merch, mediaItems, bandMembers, bookingRequests } = live
+  const { shows, merch, mediaItems, bandMembers, bookingRequests, venueTotal, venueInterested, venueBooked } = live
   const visibleShows = shows.filter((s) => s.visible !== false)
   const upcomingShows = visibleShows.length
   const nextShow = visibleShows[0]
@@ -123,6 +131,20 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       action: () => onNavigate('media'),
       actionLabel: 'Manage Media',
       color: 'neutral' as const,
+    },
+    {
+      label: 'Venues Tracked',
+      value: venueTotal,
+      sub: venueTotal === 0 ? 'No venues saved yet' : `${venueInterested} interested · ${venueBooked} booked`,
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+        </svg>
+      ),
+      action: () => onNavigate('venues'),
+      actionLabel: 'Venue Finder',
+      color: (venueBooked > 0 ? 'green' : venueInterested > 0 ? 'blue' : 'neutral') as 'green' | 'blue' | 'neutral',
     },
     {
       label: 'Site Status',

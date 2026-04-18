@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readContent, writeContent } from '@/lib/store'
 import type { BookingRequest } from '@/lib/data'
 import crypto from 'crypto'
+import { triggerAutoReply } from '@/lib/emailService'
 
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const REQUIRED_FIELDS = ['fullName', 'email', 'eventDate', 'eventType'] as const
@@ -39,6 +41,11 @@ export async function POST(req: NextRequest) {
     const current = await readContent()
     const updated = [...(current.bookingRequests ?? []), newRequest]
     await writeContent({ bookingRequests: updated })
+
+    // Fire-and-forget — never blocks the HTTP response
+    void triggerAutoReply(newRequest).catch((e) =>
+      console.error('[auto-reply] failed to trigger:', e)
+    )
 
     return NextResponse.json({ success: true, id: newRequest.id })
   } catch {

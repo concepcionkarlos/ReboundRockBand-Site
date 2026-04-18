@@ -373,6 +373,106 @@ export const epkContent: EpkContent = {
   ],
 }
 
+// ── Email Templates ───────────────────────────────────────────────────────────
+
+export interface EmailTemplate {
+  id: string
+  slug: string        // 'booking-auto-reply' | 'venue-first-outreach' | 'venue-follow-up' | 'venue-thanks-booked'
+  name: string
+  subject: string     // supports {{variables}}
+  bodyHtml: string    // full HTML; supports {{variables}}
+  isSystem: boolean   // system templates: edit only, no delete
+  createdAt: string
+  updatedAt: string
+}
+
+// ── Auto-Reply Logs ───────────────────────────────────────────────────────────
+
+export type AutoReplyStatus = 'scheduled' | 'sent' | 'failed' | 'skipped'
+
+export interface AutoReplyLog {
+  id: string
+  bookingId: string
+  scheduledAt: string
+  sentAt?: string
+  resendEmailId?: string
+  status: AutoReplyStatus
+  errorMessage?: string
+}
+
+// ── Venue Finder ──────────────────────────────────────────────────────────────
+
+export type VenueStatus =
+  | 'New'
+  | 'Reviewed'
+  | 'Contact Added'
+  | 'Draft Ready'
+  | 'Sent'
+  | 'Follow-up'
+  | 'Interested'
+  | 'Not Interested'
+  | 'Booked'
+  | 'Archived'
+
+export interface Venue {
+  id: string
+  placeId: string           // Google Place ID — used for deduplication
+  name: string
+  address: string
+  website?: string
+  phone?: string
+  rating?: number
+  types: string[]
+  status: VenueStatus
+  contactEmail?: string     // manually entered by admin
+  notes?: string
+  assignedTo?: string
+  followUpDate?: string     // YYYY-MM-DD
+  lastContactedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+// ── Outreach Logs ─────────────────────────────────────────────────────────────
+
+export type OutreachStatus = 'sent' | 'failed'
+
+export interface OutreachLog {
+  id: string
+  venueId: string
+  venueName: string         // denormalized
+  toEmail: string
+  subject: string
+  bodyHtml: string          // rendered (variables already substituted)
+  templateId: string
+  templateSlug: string      // denormalized
+  sentAt: string
+  resendEmailId?: string
+  status: OutreachStatus
+  errorMessage?: string
+}
+
+// ── Venue Store (separate from ContentStore) ──────────────────────────────────
+
+export interface VenueStore {
+  venues: Venue[]
+  outreachLogs: OutreachLog[]
+  emailTemplates: EmailTemplate[]
+  autoReplyLogs: AutoReplyLog[]
+}
+
+// ── Google Places search result (mapped from API response) ────────────────────
+
+export interface PlaceSearchResult {
+  placeId: string
+  name: string
+  address: string
+  phone?: string
+  website?: string
+  rating?: number
+  types: string[]
+}
+
 export function formatDate(isoDate: string): {
   day: string
   month: string
