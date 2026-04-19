@@ -39,7 +39,9 @@ export default function AdminVenueFinder() {
   const [searchKeyword, setSearchKeyword] = useState('')
   const [searchCity, setSearchCity] = useState('')
   const [searchResults, setSearchResults] = useState<PlaceSearchResult[]>([])
-  const [searchWarning, setSearchWarning] = useState<string | null>(null)
+  const [searchWarning, setSearchWarning] = useState<string | null>(
+    !process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY ? null : null
+  )
   const [searching, setSearching] = useState(false)
   const [savedPlaceIds, setSavedPlaceIds] = useState<Set<string>>(new Set())
   const [savingPlaceId, setSavingPlaceId] = useState<string | null>(null)

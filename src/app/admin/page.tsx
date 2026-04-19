@@ -139,7 +139,8 @@ export default function AdminPage() {
   const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0, songRequests: 0, venues: 0 })
 
   useEffect(() => {
-    setAuthed(true)
+    const stored = sessionStorage.getItem('admin_authed')
+    if (stored === '1') setAuthed(true)
     setAuthChecked(true)
   }, [])
 
@@ -164,8 +165,19 @@ export default function AdminPage() {
       .catch(() => {})
   }, [active])
 
-  const handleLogin = (_password: string): boolean => true
-  const handleLogout = () => {}
+  const handleLogin = (password: string): boolean => {
+    const correct = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
+    if (!correct || password === correct) {
+      sessionStorage.setItem('admin_authed', '1')
+      setAuthed(true)
+      return true
+    }
+    return false
+  }
+  const handleLogout = () => {
+    sessionStorage.removeItem('admin_authed')
+    setAuthed(false)
+  }
 
   const navigate = (section: Section) => {
     setActive(section)
