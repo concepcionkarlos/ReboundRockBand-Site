@@ -54,6 +54,7 @@ export default function AdminVenueFinder() {
   // Outreach form
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [toEmail, setToEmail] = useState('')
+  const [outreachVenueName, setOutreachVenueName] = useState('')
   const [renderedSubject, setRenderedSubject] = useState('')
   const [renderedBody, setRenderedBody] = useState('')
   const [sending, setSending] = useState(false)
@@ -77,12 +78,14 @@ export default function AdminVenueFinder() {
   const selectVenue = useCallback(async (venue: Venue) => {
     setSelected(venue)
     setCrmForm({
+      name: venue.name,
       status: venue.status,
       contactEmail: venue.contactEmail ?? '',
       assignedTo: venue.assignedTo ?? '',
       followUpDate: venue.followUpDate ?? '',
       notes: venue.notes ?? '',
     })
+    setOutreachVenueName(venue.name)
     setActiveTab('crm')
     setSaved(false)
     setSendResult(null)
@@ -105,7 +108,7 @@ export default function AdminVenueFinder() {
     const tmpl = templates.find((t) => t.id === selectedTemplateId)
     if (!tmpl) return
     const { subject, bodyHtml } = renderTemplate(tmpl, {
-      venueName: selected.name,
+      venueName: outreachVenueName || selected.name,
       bandName: 'Rebound Rock Band',
       serviceArea: 'South Florida',
       contactEmail: 'booking@reboundrockband.com',
@@ -113,7 +116,7 @@ export default function AdminVenueFinder() {
     setRenderedSubject(subject)
     setRenderedBody(bodyHtml)
     if (!toEmail && selected.contactEmail) setToEmail(selected.contactEmail)
-  }, [selectedTemplateId, selected, templates, toEmail])
+  }, [selectedTemplateId, selected, templates, toEmail, outreachVenueName])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -195,7 +198,11 @@ export default function AdminVenueFinder() {
       const res = await fetch(`/api/venues/${selected.id}/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateId: selectedTemplateId, toEmail }),
+        body: JSON.stringify({
+          templateId: selectedTemplateId,
+          toEmail,
+          vars: outreachVenueName ? { venueName: outreachVenueName } : undefined,
+        }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -485,6 +492,18 @@ export default function AdminVenueFinder() {
 
             {activeTab === 'crm' && (
               <div className="p-5 flex flex-col gap-4">
+                {/* Name */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Venue Name</label>
+                  <input
+                    type="text"
+                    value={crmForm.name ?? ''}
+                    onChange={(e) => setCrmForm({ ...crmForm, name: e.target.value })}
+                    className={inputClass}
+                    placeholder="Nombre del venue"
+                  />
+                </div>
+
                 {/* Status */}
                 <div className="flex flex-col gap-1.5">
                   <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Status</label>
@@ -599,6 +618,19 @@ export default function AdminVenueFinder() {
                       onChange={(e) => setToEmail(e.target.value)}
                       className={inputClass}
                       placeholder="contact@venue.com"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">
+                      Nombre en el correo
+                    </label>
+                    <input
+                      type="text"
+                      value={outreachVenueName}
+                      onChange={(e) => setOutreachVenueName(e.target.value)}
+                      className={inputClass}
+                      placeholder="Nombre que aparecerá en el email"
                     />
                   </div>
 
