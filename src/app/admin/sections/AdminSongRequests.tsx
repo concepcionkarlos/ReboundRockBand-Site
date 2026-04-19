@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { SongRequest, SongRequestStatus, EmailTemplate, BookingEmailLog } from '@/lib/data'
+import type { SongRequest, SongRequestStatus, EmailTemplate, BookingEmailLog, InboundEmail } from '@/lib/data'
 import { renderTemplate } from '@/lib/templateUtils'
 
 const ALL_STATUSES: SongRequestStatus[] = ['New', 'Review', 'Consider', 'Added', 'Declined']
@@ -44,6 +44,7 @@ export default function AdminSongRequests() {
   const [sending, setSending] = useState(false)
   const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null)
   const [emailLogs, setEmailLogs] = useState<BookingEmailLog[]>([])
+  const [inboundEmails, setInboundEmails] = useState<InboundEmail[]>([])
 
   useEffect(() => {
     Promise.all([
@@ -107,12 +108,17 @@ export default function AdminSongRequests() {
 
   const loadEmailLogs = async (songRequestId: string) => {
     try {
-      const res = await fetch(`/api/song-requests/${songRequestId}/email-logs`)
-      if (!res.ok) { setEmailLogs([]); return }
-      const data = await res.json()
-      setEmailLogs(data.logs ?? [])
+      const [logsRes, inboundRes] = await Promise.all([
+        fetch(`/api/song-requests/${songRequestId}/email-logs`),
+        fetch(`/api/inbound-emails?entityType=song-request&entityId=${songRequestId}`),
+      ])
+      const logsData = await logsRes.json()
+      const inboundData = await inboundRes.json()
+      setEmailLogs(logsData.logs ?? [])
+      setInboundEmails(inboundData.emails ?? [])
     } catch {
       setEmailLogs([])
+      setInboundEmails([])
     }
   }
 
@@ -506,7 +512,30 @@ export default function AdminSongRequests() {
 
                       {/* History */}
                       <div className="flex flex-col gap-3">
-                        <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">Reply History</p>
+                        {inboundEmails.length > 0 && (
+                          <>
+                            <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">Received Replies</p>
+                            {inboundEmails.map((email) => (
+                              <div key={email.id} className={`border px-4 py-3 ${email.read ? 'border-white/8 bg-[#111121]' : 'border-blue-400/20 bg-blue-400/5'}`}>
+                                <div className="flex items-center justify-between gap-2 mb-1">
+                                  {!email.read && <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />}
+                                  <span className="font-body text-[10px] text-white/25 ml-auto">
+                                    {new Date(email.receivedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  </span>
+                                </div>
+                                <p className="font-body text-xs text-white/70 truncate">{email.subject}</p>
+                                <p className="font-body text-[10px] text-white/40 mt-0.5">← {email.fromName || email.fromEmail}</p>
+                                {email.bodyText && (
+                                  <p className="font-body text-[10px] text-white/30 mt-2 leading-relaxed">
+                                    {email.bodyText.slice(0, 150)}{email.bodyText.length > 150 ? '…' : ''}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </>
+                        )}
+
+                        <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">Sent Replies</p>
                         {emailLogs.length === 0 && (
                           <p className="font-body text-xs text-white/25 italic">No replies sent yet.</p>
                         )}

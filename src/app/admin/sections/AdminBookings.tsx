@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { BookingRequest, BookingStatus, EmailTemplate, BookingEmailLog } from '@/lib/data'
+import type { BookingRequest, BookingStatus, EmailTemplate, BookingEmailLog, InboundEmail } from '@/lib/data'
 import { renderTemplate } from '@/lib/templateUtils'
 
 const ALL_STATUSES: BookingStatus[] = [
@@ -52,6 +52,7 @@ export default function AdminBookings({ onNavigate }: Props) {
   const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null)
   const [emailLogs, setEmailLogs] = useState<BookingEmailLog[]>([])
   const [loadingLogs, setLoadingLogs] = useState(false)
+  const [inboundEmails, setInboundEmails] = useState<InboundEmail[]>([])
 
   useEffect(() => {
     Promise.all([
@@ -114,11 +115,17 @@ export default function AdminBookings({ onNavigate }: Props) {
   const loadEmailLogs = async (bookingId: string) => {
     setLoadingLogs(true)
     try {
-      const res = await fetch(`/api/bookings/${bookingId}/email-logs`)
-      const data = await res.json()
-      setEmailLogs(data.logs ?? [])
+      const [logsRes, inboundRes] = await Promise.all([
+        fetch(`/api/bookings/${bookingId}/email-logs`),
+        fetch(`/api/inbound-emails?entityType=booking&entityId=${bookingId}`),
+      ])
+      const logsData = await logsRes.json()
+      const inboundData = await inboundRes.json()
+      setEmailLogs(logsData.logs ?? [])
+      setInboundEmails(inboundData.emails ?? [])
     } catch {
       setEmailLogs([])
+      setInboundEmails([])
     } finally {
       setLoadingLogs(false)
     }
@@ -619,10 +626,38 @@ export default function AdminBookings({ onNavigate }: Props) {
 
               {/* Email history */}
               <div className="flex flex-col gap-3">
-                <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">
-                  Email History
-                </p>
                 {loadingLogs && <p className="font-body text-xs text-white/30">Loading…</p>}
+
+                {/* Received replies */}
+                {inboundEmails.length > 0 && (
+                  <>
+                    <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">
+                      Received Replies
+                    </p>
+                    {inboundEmails.map((email) => (
+                      <div key={email.id} className={`border px-4 py-3 ${email.read ? 'border-white/8 bg-[#111121]' : 'border-blue-400/20 bg-blue-400/5'}`}>
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          {!email.read && <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />}
+                          <span className="font-body text-[10px] text-white/25 ml-auto">
+                            {new Date(email.receivedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="font-body text-xs text-white/70 truncate">{email.subject}</p>
+                        <p className="font-body text-[10px] text-white/40 mt-0.5">← {email.fromName || email.fromEmail}</p>
+                        {email.bodyText && (
+                          <p className="font-body text-[10px] text-white/30 mt-2 line-clamp-3 leading-relaxed">
+                            {email.bodyText.slice(0, 200)}{email.bodyText.length > 200 ? '…' : ''}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {/* Sent emails */}
+                <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 border-b border-white/6 pb-2">
+                  Sent Emails
+                </p>
                 {!loadingLogs && emailLogs.length === 0 && (
                   <p className="font-body text-xs text-white/25 italic">No emails sent yet for this booking.</p>
                 )}

@@ -86,9 +86,10 @@ export async function sendOutreachEmail(opts: {
   toEmail: string
   subject: string
   bodyHtml: string
+  replyTo?: string
 }): Promise<{ resendEmailId?: string }> {
   if (DEV_MODE) {
-    console.log(`[outreach][DEV] Would send to ${opts.toEmail}: ${opts.subject}`)
+    console.log(`[outreach][DEV] Would send to ${opts.toEmail}: ${opts.subject}${opts.replyTo ? ` (reply-to: ${opts.replyTo})` : ''}`)
     return { resendEmailId: `dev-${Date.now()}` }
   }
   const { Resend } = await import('resend')
@@ -98,6 +99,7 @@ export async function sendOutreachEmail(opts: {
     to: opts.toEmail,
     subject: opts.subject,
     html: opts.bodyHtml,
+    ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
   })
   return { resendEmailId: result.data?.id }
 }

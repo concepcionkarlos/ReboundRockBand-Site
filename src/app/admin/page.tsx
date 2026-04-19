@@ -12,13 +12,14 @@ import AdminBookings from './sections/AdminBookings'
 import AdminSongRequests from './sections/AdminSongRequests'
 import AdminVenueFinder from './sections/AdminVenueFinder'
 import AdminEmailTemplates from './sections/AdminEmailTemplates'
+import AdminInbox from './sections/AdminInbox'
 import AdminLogin from './AdminLogin'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'venues' | 'email-templates'
+type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'venues' | 'email-templates' | 'inbox'
 
-interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number; songRequests: number; venues: number }
+interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number; songRequests: number; venues: number; inbox: number }
 
 const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: React.ReactNode }[] = [
   {
@@ -129,6 +130,16 @@ const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: Rea
       </svg>
     ),
   },
+  {
+    id: 'inbox' as Section,
+    label: 'Inbox',
+    badgeKey: 'inbox' as keyof Badges,
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z" />
+      </svg>
+    ),
+  },
 ]
 
 export default function AdminPage() {
@@ -136,7 +147,7 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [active, setActive] = useState<Section>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0, songRequests: 0, venues: 0 })
+  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0, songRequests: 0, venues: 0, inbox: 0 })
 
   useEffect(() => {
     const stored = sessionStorage.getItem('admin_authed')
@@ -148,9 +159,11 @@ export default function AdminPage() {
     Promise.all([
       fetch('/api/content').then((r) => r.json()),
       fetch('/api/venues').then((r) => r.json()),
+      fetch('/api/inbound-emails').then((r) => r.json()),
     ])
-      .then(([d, v]) => {
+      .then(([d, v, inbox]) => {
         const venues: { status: string }[] = v.venues ?? []
+        const inboundEmails: { read: boolean }[] = inbox.emails ?? []
         setBadges({
           members: d.bandMembers?.length ?? 0,
           shows: d.shows?.length ?? 0,
@@ -160,6 +173,7 @@ export default function AdminPage() {
           bookings: (d.bookingRequests ?? []).filter((r: { status: string }) => r.status === 'New').length,
           songRequests: (d.songRequests ?? []).filter((r: { status: string }) => r.status === 'New').length,
           venues: venues.filter((vn) => vn.status === 'New' || vn.status === 'Reviewed').length,
+          inbox: inboundEmails.filter((e) => !e.read).length,
         })
       })
       .catch(() => {})
@@ -199,6 +213,7 @@ export default function AdminPage() {
     content: <AdminContent />,
     venues: <AdminVenueFinder />,
     'email-templates': <AdminEmailTemplates />,
+    inbox: <AdminInbox onNavigate={(s) => navigate(s as Section)} />,
   }
 
   const currentNav = navItems.find((n) => n.id === active)
@@ -259,7 +274,7 @@ export default function AdminPage() {
                   </div>
                   {badgeCount !== undefined && badgeCount > 0 && (
                     <span className={`font-body text-[10px] px-1.5 py-0.5 rounded-sm tabular-nums ${
-                      item.id === 'bookings' || item.id === 'song-requests'
+                      item.id === 'bookings' || item.id === 'song-requests' || item.id === 'inbox'
                         ? 'bg-blue-400/20 text-blue-400'
                         : isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/[0.08] text-white/30'
                     }`}>
