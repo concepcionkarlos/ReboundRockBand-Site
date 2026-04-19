@@ -20,7 +20,6 @@ export default function AdminEmailTemplates() {
   const [form, setForm] = useState({ name: '', subject: '', bodyHtml: '' })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
 
   useEffect(() => {
     fetch('/api/email-templates')
@@ -39,7 +38,6 @@ export default function AdminEmailTemplates() {
     setSelected(t)
     setForm({ name: t.name, subject: t.subject, bodyHtml: t.bodyHtml })
     setSaved(false)
-    setShowPreview(false)
   }
 
   const handleSave = async () => {
@@ -124,13 +122,6 @@ export default function AdminEmailTemplates() {
                 )}
                 <button
                   type="button"
-                  onClick={() => setShowPreview((p) => !p)}
-                  className="font-heading text-[10px] uppercase tracking-widest border border-white/15 text-white/40 hover:border-white/30 hover:text-white px-3 py-1.5 transition-all"
-                >
-                  {showPreview ? 'Edit' : 'Preview'}
-                </button>
-                <button
-                  type="button"
                   onClick={handleSave}
                   disabled={saving}
                   className="font-heading text-[10px] uppercase tracking-widest bg-brand-red text-white px-4 py-1.5 hover:bg-brand-red-bright transition-all disabled:opacity-60"
@@ -140,85 +131,69 @@ export default function AdminEmailTemplates() {
               </div>
             </div>
 
-            {showPreview ? (
-              <div className="p-6">
-                <p className="font-heading text-[9px] uppercase tracking-widest text-white/25 mb-3">
-                  HTML Preview (rendered with placeholder values)
+            <div className="p-6 flex flex-col gap-5">
+              {/* Template Name */}
+              <div className="flex flex-col gap-1.5">
+                <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">
+                  Template Name
+                </label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+
+              {/* Subject */}
+              <div className="flex flex-col gap-1.5">
+                <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">
+                  Subject Line
+                </label>
+                <input
+                  type="text"
+                  value={form.subject}
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                  className={inputClass}
+                  placeholder="Subject supports {{variables}}"
+                />
+              </div>
+
+              {/* Variable hints */}
+              {vars.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <p className="font-heading text-[9px] uppercase tracking-widest text-white/25">
+                    Variables disponibles
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {vars.map((v) => (
+                      <code
+                        key={v}
+                        className="font-mono text-[10px] bg-white/5 border border-white/10 text-brand-red/80 px-1.5 py-0.5"
+                      >
+                        {`{{${v}}}`}
+                      </code>
+                    ))}
+                  </div>
+                  <p className="font-body text-xs text-white/20">
+                    Estas variables se reemplazan automáticamente al enviar el correo.
+                  </p>
+                </div>
+              )}
+
+              {/* Preview */}
+              <div className="flex flex-col gap-1.5">
+                <p className="font-heading text-[9px] uppercase tracking-widest text-white/25">
+                  Vista previa del correo
                 </p>
                 <iframe
-                  srcDoc={form.bodyHtml
-                    .replace(/\{\{(\w+)\}\}/g, (_: string, k: string) => `[${k}]`)}
-                  className="w-full h-[600px] border border-white/8"
+                  srcDoc={form.bodyHtml.replace(/\{\{(\w+)\}\}/g, (_: string, k: string) => `[${k}]`)}
+                  className="w-full h-[520px] border border-white/8"
                   sandbox="allow-same-origin"
                   title="Email preview"
                 />
               </div>
-            ) : (
-              <div className="p-6 flex flex-col gap-5">
-                {/* Template Name */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">
-                    Template Name
-                  </label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-
-                {/* Subject */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">
-                    Subject Line
-                  </label>
-                  <input
-                    type="text"
-                    value={form.subject}
-                    onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    className={inputClass}
-                    placeholder="Subject supports {{variables}}"
-                  />
-                </div>
-
-                {/* Body */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">
-                    HTML Body
-                  </label>
-                  <textarea
-                    value={form.bodyHtml}
-                    onChange={(e) => setForm({ ...form, bodyHtml: e.target.value })}
-                    className={`${inputClass} h-80 resize-y font-mono text-xs leading-relaxed`}
-                    spellCheck={false}
-                  />
-                </div>
-
-                {/* Variable hints */}
-                {vars.length > 0 && (
-                  <div className="flex flex-col gap-2">
-                    <p className="font-heading text-[9px] uppercase tracking-widest text-white/25">
-                      Template Variables Detected
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {vars.map((v) => (
-                        <code
-                          key={v}
-                          className="font-mono text-[10px] bg-white/5 border border-white/10 text-brand-red/80 px-1.5 py-0.5"
-                        >
-                          {`{{${v}}}`}
-                        </code>
-                      ))}
-                    </div>
-                    <p className="font-body text-xs text-white/20">
-                      Variables above are automatically filled when emails are sent. Missing
-                      substitutions render literally so you can spot them in previews.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+            </div>
           </div>
         ) : (
           <div className="border border-white/6 flex items-center justify-center py-16">
