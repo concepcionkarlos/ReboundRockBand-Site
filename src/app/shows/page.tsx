@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 
 export default async function ShowsPage() {
   const { shows, siteContent } = await readContent()
-  const visibleShows = shows.filter((s) => s.visible !== false)
+  const visibleShows = shows
+    .filter((s) => s.visible !== false)
+    .sort((a, b) => a.date.localeCompare(b.date))
   const featuredShows = visibleShows.filter((s) => s.isFeatured)
   const regularShows = visibleShows.filter((s) => !s.isFeatured)
 
