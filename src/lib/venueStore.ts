@@ -7,6 +7,7 @@ import type {
   EmailTemplate,
   AutoReplyLog,
   BookingEmailLog,
+  InboundEmail,
   VenueStore,
 } from './data'
 
@@ -19,6 +20,7 @@ const KV_KEYS = {
   emailTemplates: 'emailTemplates',
   autoReplyLogs: 'autoReplyLogs',
   bookingEmailLogs: 'bookingEmailLogs',
+  inboundEmails: 'inboundEmails',
 } as const
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -312,6 +314,7 @@ function readLocal(): VenueStore {
         emailTemplates: DEFAULT_TEMPLATES,
         autoReplyLogs: [],
         bookingEmailLogs: [],
+        inboundEmails: [],
       }
       fs.writeFileSync(VENUE_DATA_PATH, JSON.stringify(seed, null, 2))
       return seed
@@ -335,6 +338,7 @@ function readLocal(): VenueStore {
       emailTemplates: templates,
       autoReplyLogs: parsed.autoReplyLogs ?? [],
       bookingEmailLogs: parsed.bookingEmailLogs ?? [],
+      inboundEmails: parsed.inboundEmails ?? [],
     }
     if (changed) fs.writeFileSync(VENUE_DATA_PATH, JSON.stringify(store, null, 2))
     return store
@@ -345,6 +349,7 @@ function readLocal(): VenueStore {
       emailTemplates: DEFAULT_TEMPLATES,
       autoReplyLogs: [],
       bookingEmailLogs: [],
+      inboundEmails: [],
     }
   }
 }
@@ -360,12 +365,13 @@ function writeLocal(updates: Partial<VenueStore>): VenueStore {
 
 async function readKV(): Promise<VenueStore> {
   const { kv } = await import('@vercel/kv')
-  const [venues, outreachLogs, emailTemplates, autoReplyLogs, bookingEmailLogs] = await Promise.all([
+  const [venues, outreachLogs, emailTemplates, autoReplyLogs, bookingEmailLogs, inboundEmails] = await Promise.all([
     kv.get<Venue[]>(KV_KEYS.venues),
     kv.get<OutreachLog[]>(KV_KEYS.outreachLogs),
     kv.get<EmailTemplate[]>(KV_KEYS.emailTemplates),
     kv.get<AutoReplyLog[]>(KV_KEYS.autoReplyLogs),
     kv.get<BookingEmailLog[]>(KV_KEYS.bookingEmailLogs),
+    kv.get<InboundEmail[]>(KV_KEYS.inboundEmails),
   ])
   let templates = emailTemplates ?? []
   if (templates.length === 0) {
@@ -384,6 +390,7 @@ async function readKV(): Promise<VenueStore> {
     emailTemplates: templates,
     autoReplyLogs: autoReplyLogs ?? [],
     bookingEmailLogs: bookingEmailLogs ?? [],
+    inboundEmails: inboundEmails ?? [],
   }
 }
 
@@ -520,4 +527,37 @@ export async function getBookingEmailLogs(entityType: 'booking' | 'song-request'
   return (store.bookingEmailLogs ?? [])
     .filter((l) => l.entityType === entityType && l.entityId === entityId)
     .sort((a, b) => b.sentAt.localeCompare(a.sentAt))
+}
+
+// ── Inbound Emails ────────────────────────────────────────────────────────────
+
+export async function addInboundEmail(email: Omit<InboundEmail, 'id'>): Promise<InboundEmail> {
+  const store = await readVenueStore()
+  const newEmail: InboundEmail = { ...email, id: crypto.randomBytes(8).toString('hex') }
+  const inboundEmails = [...(store.inboundEmails ?? []), newEmail]
+  useKV ? await writeKV({ inboundEmails }) : writeLocal({ inboundEmails })
+  return newEmail
+}
+
+export async function getInboundEmails(): Promise<InboundEmail[]> {
+  const store = await readVenueStore()
+  return (store.inboundEmails ?? []).sort((a, b) => b.receivedAt.localeCompare(a.receivedAt))
+}
+
+export async function getInboundEmailsForEntity(
+  entityType: InboundEmail['entityType'],
+  entityId: string
+): Promise<InboundEmail[]> {
+  const store = await readVenueStore()
+  return (store.inboundEmails ?? [])
+    .filter((e) => e.entityType === entityType && e.entityId === entityId)
+    .sort((a, b) => b.receivedAt.localeCompare(a.receivedAt))
+}
+
+export async function markInboundEmailRead(id: string): Promise<void> {
+  const store = await readVenueStore()
+  const inboundEmails = (store.inboundEmails ?? []).map((e) =>
+    e.id === id ? { ...e, read: true } : e
+  )
+  useKV ? await writeKV({ inboundEmails }) : writeLocal({ inboundEmails })
 }

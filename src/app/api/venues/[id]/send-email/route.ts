@@ -52,7 +52,7 @@ export async function POST(
     let errorMessage: string | undefined
 
     try {
-      const result = await sendOutreachEmail({ toEmail: body.toEmail, subject, bodyHtml })
+      const result = await sendOutreachEmail({ toEmail: body.toEmail, subject, bodyHtml, replyTo: `booking+ve-${id}@reboundrockband.com` })
       resendEmailId = result.resendEmailId
     } catch (err) {
       sendStatus = 'failed'

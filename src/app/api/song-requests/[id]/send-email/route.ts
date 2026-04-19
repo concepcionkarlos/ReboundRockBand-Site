@@ -51,6 +51,7 @@ export async function POST(
         toEmail: body.toEmail,
         subject: rendered.subject,
         bodyHtml: rendered.bodyHtml,
+        replyTo: `booking+sr-${id}@reboundrockband.com`,
       })
       resendEmailId = result.resendEmailId
     } catch (err) {

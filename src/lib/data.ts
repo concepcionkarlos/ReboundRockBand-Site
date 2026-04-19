@@ -469,6 +469,23 @@ export interface BookingEmailLog {
   errorMessage?: string
 }
 
+// ── Inbound Emails ────────────────────────────────────────────────────────────
+
+export interface InboundEmail {
+  id: string
+  fromEmail: string
+  fromName?: string
+  toEmail: string            // full to address (may include +tag for entity routing)
+  subject: string
+  bodyText?: string
+  bodyHtml?: string
+  receivedAt: string
+  entityType?: 'booking' | 'venue' | 'song-request'
+  entityId?: string          // parsed from +tag
+  read: boolean
+  resendMessageId?: string
+}
+
 // ── Venue Store (separate from ContentStore) ──────────────────────────────────
 
 export interface VenueStore {
@@ -477,6 +494,7 @@ export interface VenueStore {
   emailTemplates: EmailTemplate[]
   autoReplyLogs: AutoReplyLog[]
   bookingEmailLogs: BookingEmailLog[]
+  inboundEmails: InboundEmail[]
 }
 
 // ── Google Places search result (mapped from API response) ────────────────────
