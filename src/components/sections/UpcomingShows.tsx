@@ -10,7 +10,10 @@ interface UpcomingShowsProps {
 
 export default async function UpcomingShows({ limit = 4, showViewAll = true }: UpcomingShowsProps) {
   const { shows } = await readContent()
-  const upcoming = shows.filter((s) => s.visible !== false).slice(0, limit)
+  const upcoming = shows
+    .filter((s) => s.visible !== false)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, limit)
 
   return (
     <section className="bg-brand-bg py-20 lg:py-28">
