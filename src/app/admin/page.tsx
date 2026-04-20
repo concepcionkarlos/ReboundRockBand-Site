@@ -181,6 +181,7 @@ export default function AdminPage() {
 
   const handleLogin = (password: string): boolean => {
     const correct = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
+    console.log('ADMIN_PASSWORD set:', !!correct, '| length:', correct?.length)
     if (!correct || password === correct) {
       sessionStorage.setItem('admin_authed', '1')
       setAuthed(true)
