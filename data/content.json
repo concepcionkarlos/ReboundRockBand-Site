@@ -70,7 +70,7 @@
     {
       "id": "1776305859820",
       "name": "Rebound Rock Band Classic Logo Tee",
-      "price": 29.99,
+      "price": 34.99,
       "category": "tshirt",
       "available": true,
       "visible": true,
@@ -132,7 +132,7 @@
       "name": "Tianny Cendan-Gomez",
       "role": "Lead Vocals",
       "bio": "Front of stage powerhouse — built for anthems and crowd energy.",
-      "photo": "/Tianny Cedan Gomez - lead singer.PNG",
+      "photo": "/uploads/1776561630669-8c3e17665dbc-d779b7f1-09d5-487a-8472-362efc691e51.png",
       "visible": true
     },
     {
@@ -164,7 +164,7 @@
       "name": "Anthony Curcio",
       "role": "Drums & Backup Vocals",
       "bio": "Precision and power behind the kit — the heartbeat of Rebound.",
-      "photo": "/Anthony Curcio Drums.PNG",
+      "photo": "/uploads/1776561533447-e570b2b37e14-anthony.png",
       "visible": true
     }
   ],

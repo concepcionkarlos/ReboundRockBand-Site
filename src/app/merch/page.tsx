@@ -55,7 +55,7 @@ export default async function MerchPage() {
                   Official <span className="text-brand-red">Merch</span>
                 </h1>
                 <p className="font-body text-brand-text text-base max-w-xl leading-relaxed">
-                  Tees, hats, stickers, and more. Available online and at every show.
+                  Tees, hats, stickers, and more. Available online.
                 </p>
               </div>
               {/* Free shipping callout */}
@@ -131,12 +131,6 @@ export default async function MerchPage() {
                           <span className="font-heading text-[9px] uppercase tracking-widest border border-brand-border text-brand-muted/70 px-2 py-0.5">
                             {item.category}
                           </span>
-                          {item.atShows && (
-                            <span className="font-heading text-[9px] uppercase tracking-widest border border-brand-red/40 text-brand-red px-2 py-0.5 flex items-center gap-1">
-                              <span className="w-1 h-1 rounded-full bg-brand-red animate-pulse-slow" />
-                              At Every Show
-                            </span>
-                          )}
                         </div>
                       </div>
                       <div className="font-display text-2xl text-brand-red leading-none flex-shrink-0 pt-0.5">
@@ -201,13 +195,7 @@ export default async function MerchPage() {
 
         {/* Bottom info */}
         <Reveal delay={2}>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-            <div className="border border-brand-border bg-brand-surface p-6 text-center">
-              <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-2">Available at Shows</div>
-              <p className="font-body text-sm text-brand-text leading-relaxed">
-                Pick up merch at any Rebound Rock Band live performance.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div className="border border-brand-border bg-brand-surface p-6 text-center">
               <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-2">Free Shipping</div>
               <p className="font-body text-sm text-brand-text leading-relaxed">
