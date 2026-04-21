@@ -432,24 +432,24 @@ export default function AdminSongRequests() {
                             onChange={(e) => { setSelectedTemplateId(e.target.value); setShowPreview(false) }}
                             className={inputClass}
                           >
-                            <option value="">— Selecciona una plantilla —</option>
+                            <option value="">— Select a template —</option>
                             {templates.map((t) => (
                               <option key={t.id} value={t.id}>{t.name}</option>
                             ))}
                           </select>
                           {templates.length === 0 && (
-                            <p className="font-body text-sm text-white/30">No hay plantilla de song request. Agrégala en Email Templates.</p>
+                            <p className="font-body text-sm text-white/30">No song request template found. Add one in Email Templates.</p>
                           )}
                         </div>
 
                         <div className="flex flex-col gap-2">
-                          <label className="font-heading text-xs uppercase tracking-widest text-white/45">Para</label>
+                          <label className="font-heading text-xs uppercase tracking-widest text-white/45">To</label>
                           <input type="email" value={toEmail} onChange={(e) => setToEmail(e.target.value)} className={inputClass} />
                         </div>
 
                         {editableSubject !== '' && (
                           <div className="flex flex-col gap-2">
-                            <label className="font-heading text-xs uppercase tracking-widest text-white/45">Asunto</label>
+                            <label className="font-heading text-xs uppercase tracking-widest text-white/45">Subject</label>
                             <input type="text" value={editableSubject} onChange={(e) => setEditableSubject(e.target.value)} className={inputClass} />
                           </div>
                         )}
@@ -457,13 +457,13 @@ export default function AdminSongRequests() {
                         {editableBody !== '' && (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <label className="font-heading text-xs uppercase tracking-widest text-white/45">Mensaje</label>
+                              <label className="font-heading text-xs uppercase tracking-widest text-white/45">Message</label>
                               <button
                                 type="button"
                                 onClick={() => setShowPreview((p) => !p)}
                                 className="font-heading text-xs uppercase tracking-widest text-white/35 hover:text-white border border-white/10 px-3 py-1.5 transition-colors"
                               >
-                                {showPreview ? 'Editar' : 'Preview'}
+                                {showPreview ? 'Edit' : 'Preview'}
                               </button>
                             </div>
                             {showPreview ? (
@@ -502,23 +502,23 @@ export default function AdminSongRequests() {
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                             </svg>
                           )}
-                          {sending ? 'Enviando…' : 'Enviar respuesta'}
+                          {sending ? 'Sending…' : 'Send Reply'}
                         </button>
                       </div>
 
-                      {/* ── Conversación unificada ── */}
+                      {/* ── Unified conversation ── */}
                       <div className="flex flex-col gap-4">
                         <p className="font-heading text-sm uppercase tracking-widest text-white/50 border-b border-white/8 pb-3">
-                          Conversación
+                          Conversation
                           {(emailLogs.length + inboundEmails.length) > 0 && (
                             <span className="ml-2 font-body text-xs text-white/30 normal-case tracking-normal">
-                              {emailLogs.length + inboundEmails.length} mensajes
+                              {emailLogs.length + inboundEmails.length} messages
                             </span>
                           )}
                         </p>
 
                         {emailLogs.length === 0 && inboundEmails.length === 0 && (
-                          <p className="font-body text-sm text-white/30 italic">No hay correos todavía para esta solicitud.</p>
+                          <p className="font-body text-sm text-white/30 italic">No emails yet for this request.</p>
                         )}
 
                         {[

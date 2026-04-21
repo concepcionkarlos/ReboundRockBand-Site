@@ -176,7 +176,7 @@ export default function AdminEmailTemplates() {
                     ))}
                   </div>
                   <p className="font-body text-xs text-white/20">
-                    Estas variables se reemplazan automáticamente al enviar el correo.
+                    These variables are automatically replaced when the email is sent.
                   </p>
                 </div>
               )}
