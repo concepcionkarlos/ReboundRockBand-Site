@@ -38,9 +38,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const body = await req.json() as {
+    const raw = await req.json()
+    console.log('[inbound-email] raw payload keys:', Object.keys(raw))
+
+    // Resend may wrap payload in .data (newer format) or send fields at root
+    const body = (raw.data && typeof raw.data === 'object' ? raw.data : raw) as {
       from?: string
-      to?: string[]
+      to?: string | string[]
       subject?: string
       text?: string
       html?: string
