@@ -58,9 +58,10 @@ export default function AdminEmailManagement({ onNavigate, inboxUnread = 0 }: Pr
 }
 
 function EmailSetup() {
-  const webhookUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/api/inbound-email`
-    : '/api/inbound-email'
+  const [secret, setSecret] = useState('')
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://reboundrockband.com'
+  const baseUrl = `${origin}/api/inbound-email`
+  const webhookUrl = secret ? `${baseUrl}?secret=${encodeURIComponent(secret)}` : baseUrl
 
   return (
     <div className="max-w-2xl flex flex-col gap-8">
@@ -74,10 +75,30 @@ function EmailSetup() {
           </p>
         </div>
         <div className="p-6 flex flex-col gap-5">
+
+          {/* Secret input */}
           <div className="flex flex-col gap-2">
-            <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Webhook URL</label>
+            <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">
+              RESEND_WEBHOOK_SECRET <span className="text-white/20">(de tus Vercel env vars)</span>
+            </label>
+            <input
+              type="text"
+              value={secret}
+              onChange={(e) => setSecret(e.target.value)}
+              placeholder="Pega aquí el valor de RESEND_WEBHOOK_SECRET…"
+              className="w-full bg-[#111121] border border-white/8 text-white font-mono text-sm px-3.5 py-2.5 focus:outline-none focus:border-brand-red/50 transition-all placeholder:text-white/20"
+            />
+            <p className="font-body text-xs text-white/25">
+              Vercel → tu proyecto → Settings → Environment Variables → RESEND_WEBHOOK_SECRET
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">
+              Webhook URL {secret ? <span className="text-green-400/70">— con secret incluido</span> : <span className="text-yellow-400/60">— agrega el secret arriba</span>}
+            </label>
             <div className="flex items-center gap-2">
-              <code className="flex-1 font-mono text-sm text-brand-red bg-black/30 border border-white/8 px-4 py-3 truncate">
+              <code className={`flex-1 font-mono text-sm bg-black/30 border px-4 py-3 truncate ${secret ? 'text-green-400 border-green-400/20' : 'text-brand-red border-white/8'}`}>
                 {webhookUrl}
               </code>
               <button
@@ -95,9 +116,9 @@ function EmailSetup() {
             <ol className="flex flex-col gap-3">
               {[
                 'Ve a resend.com → Domains → tu dominio (reboundrockband.com)',
-                'En la sección "Inbound", agrega la URL del webhook de arriba',
+                'En la sección "Inbound", agrega la URL del webhook — debe incluir ?secret=… al final',
                 'Asegúrate de que el dominio esté verificado para recibir emails',
-                'Opcionalmente añade RESEND_WEBHOOK_SECRET en Vercel env vars para seguridad',
+                'Envía un email de prueba a booking@reboundrockband.com y revisa el Inbox',
               ].map((step, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <span className="font-heading text-[10px] text-brand-red border border-brand-red/40 w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
