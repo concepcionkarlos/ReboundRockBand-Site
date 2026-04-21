@@ -11,13 +11,12 @@ import AdminEPK from './sections/AdminEPK'
 import AdminBookings from './sections/AdminBookings'
 import AdminSongRequests from './sections/AdminSongRequests'
 import AdminVenueFinder from './sections/AdminVenueFinder'
-import AdminEmailTemplates from './sections/AdminEmailTemplates'
-import AdminInbox from './sections/AdminInbox'
+import AdminEmailManagement from './sections/AdminEmailManagement'
 import AdminLogin from './AdminLogin'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'venues' | 'email-templates' | 'inbox'
+type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'venues' | 'email'
 
 interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number; songRequests: number; venues: number; inbox: number }
 
@@ -122,21 +121,12 @@ const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: Rea
     ),
   },
   {
-    id: 'email-templates' as Section,
-    label: 'Email Templates',
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-      </svg>
-    ),
-  },
-  {
-    id: 'inbox' as Section,
-    label: 'Inbox',
+    id: 'email' as Section,
+    label: 'Email Management',
     badgeKey: 'inbox' as keyof Badges,
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
       </svg>
     ),
   },
@@ -213,8 +203,7 @@ export default function AdminPage() {
     epk: <AdminEPK />,
     content: <AdminContent />,
     venues: <AdminVenueFinder />,
-    'email-templates': <AdminEmailTemplates />,
-    inbox: <AdminInbox onNavigate={(s) => navigate(s as Section)} />,
+    email: <AdminEmailManagement onNavigate={(s) => navigate(s as Section)} inboxUnread={badges.inbox} />,
   }
 
   const currentNav = navItems.find((n) => n.id === active)
@@ -251,38 +240,45 @@ export default function AdminPage() {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-2.5">
           <div className="mb-1">
-            <span className="font-heading text-[9px] uppercase tracking-[0.18em] text-white/20 px-2.5 mb-2 block">
-              Navigation
-            </span>
-            {navItems.map((item) => {
+            {navItems.map((item, idx) => {
+              const prevItem = navItems[idx - 1]
+              const showDivider = item.id === 'email' && prevItem?.id !== 'email'
               const isActive = active === item.id
               const badgeCount = item.badgeKey !== undefined ? badges[item.badgeKey] : undefined
               return (
-                <button
-                  key={item.id}
-                  onClick={() => navigate(item.id)}
-                  className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 mb-0.5 text-left transition-all font-heading text-xs uppercase tracking-widest relative group
-                    ${isActive
-                      ? 'text-white bg-white/[0.06] border-l-[2px] border-brand-red'
-                      : 'text-white/40 hover:text-white/80 hover:bg-white/[0.03] border-l-[2px] border-transparent'
-                    }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className={isActive ? 'text-brand-red' : 'text-white/30 group-hover:text-white/50 transition-colors'}>
-                      {item.icon}
-                    </span>
-                    {item.label}
-                  </div>
-                  {badgeCount !== undefined && badgeCount > 0 && (
-                    <span className={`font-body text-[10px] px-1.5 py-0.5 rounded-sm tabular-nums ${
-                      item.id === 'bookings' || item.id === 'song-requests' || item.id === 'inbox'
-                        ? 'bg-blue-400/20 text-blue-400'
-                        : isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/[0.08] text-white/30'
-                    }`}>
-                      {badgeCount}
-                    </span>
+                <div key={item.id}>
+                  {showDivider && (
+                    <div className="px-2.5 pt-4 pb-1.5">
+                      <span className="font-heading text-[9px] uppercase tracking-[0.18em] text-white/20 block">
+                        Email
+                      </span>
+                    </div>
                   )}
-                </button>
+                  <button
+                    onClick={() => navigate(item.id)}
+                    className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 mb-0.5 text-left transition-all font-heading text-xs uppercase tracking-widest relative group
+                      ${isActive
+                        ? 'text-white bg-white/[0.06] border-l-[2px] border-brand-red'
+                        : 'text-white/40 hover:text-white/80 hover:bg-white/[0.03] border-l-[2px] border-transparent'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={isActive ? 'text-brand-red' : 'text-white/30 group-hover:text-white/50 transition-colors'}>
+                        {item.icon}
+                      </span>
+                      {item.label}
+                    </div>
+                    {badgeCount !== undefined && badgeCount > 0 && (
+                      <span className={`font-body text-[10px] px-1.5 py-0.5 rounded-sm tabular-nums ${
+                        item.id === 'email'
+                          ? 'bg-blue-400/20 text-blue-400'
+                          : isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/[0.08] text-white/30'
+                      }`}>
+                        {badgeCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
               )
             })}
           </div>
