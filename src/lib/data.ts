@@ -75,6 +75,9 @@ export type BookingStatus =
   | 'Follow-up'
   | 'Negotiating'
   | 'Confirmed'
+  | 'Advance Sent'
+  | 'Paid'
+  | 'Completed'
   | 'Lost'
   | 'Archived'
 
@@ -92,6 +95,7 @@ export interface BookingRequest {
   message: string
   source: string
   status: BookingStatus
+  quoteAmount?: number
   assignedTo?: string
   followUpDate?: string
   notes?: string
