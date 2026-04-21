@@ -630,7 +630,7 @@ export default function AdminVenueFinder() {
                       value={outreachVenueName}
                       onChange={(e) => setOutreachVenueName(e.target.value)}
                       className={inputClass}
-                      placeholder="Nombre que aparecerá en el email"
+                      placeholder="Name shown in the email"
                     />
                   </div>
 

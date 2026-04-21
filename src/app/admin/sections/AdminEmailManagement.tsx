@@ -25,7 +25,7 @@ export default function AdminEmailManagement({ onNavigate, inboxUnread = 0 }: Pr
       {/* Header */}
       <div className="border-l-2 border-brand-red pl-4 mb-8">
         <h1 className="font-display uppercase text-4xl text-white leading-none">Email Management</h1>
-        <p className="font-body text-xs text-white/30 mt-1.5">Inbox, templates y configuración de correos</p>
+        <p className="font-body text-xs text-white/30 mt-1.5">Inbox, templates, and email configuration</p>
       </div>
 
       {/* Tabs */}
@@ -71,7 +71,7 @@ function EmailSetup() {
         <div className="px-6 py-4 border-b border-white/6">
           <h2 className="font-heading text-xs uppercase tracking-widest text-white">Resend Inbound Webhook</h2>
           <p className="font-body text-xs text-white/35 mt-1">
-            Configura esta URL en el dashboard de Resend para recibir correos entrantes.
+            Configure this URL in your Resend dashboard to receive inbound emails.
           </p>
         </div>
         <div className="p-6 flex flex-col gap-5">
@@ -85,7 +85,7 @@ function EmailSetup() {
               type="text"
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
-              placeholder="Pega aquí el valor de RESEND_WEBHOOK_SECRET…"
+              placeholder="Paste the value of RESEND_WEBHOOK_SECRET here…"
               className="w-full bg-[#111121] border border-white/8 text-white font-mono text-sm px-3.5 py-2.5 focus:outline-none focus:border-brand-red/50 transition-all placeholder:text-white/20"
             />
             <p className="font-body text-xs text-white/25">
@@ -116,9 +116,9 @@ function EmailSetup() {
             <ol className="flex flex-col gap-3">
               {[
                 'Ve a resend.com → Domains → tu dominio (reboundrockband.com)',
-                'En la sección "Inbound", agrega la URL del webhook — debe incluir ?secret=… al final',
-                'Asegúrate de que el dominio esté verificado para recibir emails',
-                'Envía un email de prueba a booking@reboundrockband.com y revisa el Inbox',
+                'Under "Inbound", add the webhook URL — it must include ?secret=… at the end if using a secret',
+                'Make sure the domain is verified to receive emails',
+                'Send a test email to booking@reboundrockband.com and check the Inbox tab',
               ].map((step, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <span className="font-heading text-[10px] text-brand-red border border-brand-red/40 w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -137,7 +137,7 @@ function EmailSetup() {
         <div className="px-6 py-4 border-b border-white/6">
           <h2 className="font-heading text-xs uppercase tracking-widest text-white">Tagged Addressing</h2>
           <p className="font-body text-xs text-white/35 mt-1">
-            Para vincular un correo entrante a un booking, song request o venue usa estas direcciones como Reply-To al enviar.
+            Use these addresses as Reply-To when sending emails to link replies to a booking, song request, or venue.
           </p>
         </div>
         <div className="p-6">

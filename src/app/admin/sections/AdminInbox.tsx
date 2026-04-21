@@ -84,8 +84,8 @@ export default function AdminInbox({ onNavigate }: Props) {
   }
 
   const filterItems: { id: Filter; label: string }[] = [
-    { id: 'all', label: 'Todos' },
-    { id: 'unread', label: 'Sin leer' },
+    { id: 'all', label: 'All' },
+    { id: 'unread', label: 'Unread' },
     { id: 'booking', label: 'Bookings' },
     { id: 'song-request', label: 'Song Requests' },
     { id: 'venue', label: 'Venues' },
@@ -99,13 +99,13 @@ export default function AdminInbox({ onNavigate }: Props) {
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="border-l-2 border-brand-red pl-4">
           <h1 className="font-display uppercase text-4xl text-white leading-none">Inbox</h1>
-          <p className="font-body text-sm text-white/40 mt-1.5">Correos recibidos de clientes, fans y venues</p>
+          <p className="font-body text-sm text-white/40 mt-1.5">Incoming emails from clients, fans, and venues</p>
         </div>
         {unreadCount > 0 && (
           <div className="flex items-center gap-2 border border-blue-400/30 bg-blue-400/8 px-4 py-2">
             <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
             <span className="font-heading text-xs uppercase tracking-widest text-blue-400">
-              {unreadCount} sin leer
+              {unreadCount} unread
             </span>
           </div>
         )}
@@ -136,14 +136,14 @@ export default function AdminInbox({ onNavigate }: Props) {
       </div>
 
       {loading ? (
-        <div className="font-body text-base text-white/30 py-16 text-center">Cargando…</div>
+        <div className="font-body text-base text-white/30 py-16 text-center">Loading…</div>
       ) : filtered.length === 0 ? (
         <div className="border border-white/8 p-16 text-center bg-[#0d0d1e]">
           <svg className="w-10 h-10 text-white/15 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.022.55m0 0l-4.661 2.51m16.5 1.615a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V8.844a2.25 2.25 0 011.183-1.981l7.5-4.039a2.25 2.25 0 012.134 0l7.5 4.039a2.25 2.25 0 011.183 1.98V19.5z" />
           </svg>
           <p className="font-body text-base text-white/30">
-            {filter === 'all' ? 'No hay correos recibidos todavía.' : 'No hay correos en esta categoría.'}
+            {filter === 'all' ? 'No emails received yet.' : 'No emails in this category.'}
           </p>
         </div>
       ) : (
@@ -209,7 +209,7 @@ export default function AdminInbox({ onNavigate }: Props) {
                         onClick={(e) => { e.stopPropagation(); onNavigate(SECTION_MAP[email.entityType!]) }}
                         className="font-heading text-[10px] uppercase tracking-widest text-white/30 hover:text-brand-red transition-colors"
                       >
-                        Ver detalle →
+                        View detail →
                       </button>
                     )}
                   </div>
@@ -261,7 +261,7 @@ export default function AdminInbox({ onNavigate }: Props) {
                         onClick={() => onNavigate(SECTION_MAP[selected.entityType!])}
                         className="font-heading text-[10px] uppercase tracking-widest text-white/30 hover:text-brand-red transition-colors"
                       >
-                        Ir al detalle →
+                        Go to detail →
                       </button>
                     </div>
                   )}
@@ -276,13 +276,13 @@ export default function AdminInbox({ onNavigate }: Props) {
                       onClick={() => setShowHtml(true)}
                       className={`font-heading text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors ${showHtml ? 'border-white/20 text-white' : 'border-white/8 text-white/30 hover:text-white/60'}`}
                     >
-                      Vista HTML
+                      HTML View
                     </button>
                     <button
                       onClick={() => setShowHtml(false)}
                       className={`font-heading text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors ${!showHtml ? 'border-white/20 text-white' : 'border-white/8 text-white/30 hover:text-white/60'}`}
                     >
-                      Texto plano
+                      Plain Text
                     </button>
                   </div>
                 )}
@@ -296,7 +296,7 @@ export default function AdminInbox({ onNavigate }: Props) {
                     />
                   ) : (
                     <pre className="font-body text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
-                      {selected.bodyText || selected.bodyHtml?.replace(/<[^>]+>/g, '') || '(vacío)'}
+                      {selected.bodyText || selected.bodyHtml?.replace(/<[^>]+>/g, '') || '(empty)'}
                     </pre>
                   )}
                 </div>
@@ -304,7 +304,7 @@ export default function AdminInbox({ onNavigate }: Props) {
             </div>
           ) : (
             <div className="flex-1 hidden lg:flex items-center justify-center bg-[#0d0d1e]">
-              <p className="font-body text-base text-white/20">Selecciona un correo para leerlo</p>
+              <p className="font-body text-base text-white/20">Select an email to read it</p>
             </div>
           )}
         </div>
