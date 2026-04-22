@@ -163,7 +163,7 @@ export default async function MerchPage() {
                     )}
 
                     {/* Size guide — only for tshirts */}
-                    {item.category === 'tshirt' && <SizeGuide />}
+                    {item.category === 'tshirt' && <SizeGuide lang={lang} />}
 
                     {/* CTA */}
                     {item.available ? (

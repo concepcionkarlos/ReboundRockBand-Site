@@ -80,7 +80,7 @@ export default async function EpkPage() {
               <h2 className="font-display uppercase text-3xl sm:text-4xl text-white leading-[0.92] mb-7">
                 {tr.setlistsHeading} <span className="text-brand-red">{tr.setlistsHeadingAccent}</span>
               </h2>
-              <SetlistAccordion setlists={epkContent.setlists} />
+              <SetlistAccordion setlists={epkContent.setlists} lang={lang} />
             </section>
           </Reveal>
         )}

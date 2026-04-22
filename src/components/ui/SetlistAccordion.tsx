@@ -1,12 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { translations, type Lang } from '@/lib/i18n'
 
 interface SetlistAccordionProps {
   setlists: { title: string; songs: string[] }[]
+  lang?: Lang
 }
 
-export default function SetlistAccordion({ setlists }: SetlistAccordionProps) {
+export default function SetlistAccordion({ setlists, lang = 'en' }: SetlistAccordionProps) {
+  const tr = translations[lang].epk
   const [openIndex, setOpenIndex] = useState<number | null>(0)
 
   if (!setlists || setlists.length === 0) return null
@@ -30,7 +33,7 @@ export default function SetlistAccordion({ setlists }: SetlistAccordionProps) {
                   {set.title}
                 </span>
                 <span className="font-body text-xs text-brand-muted/50 hidden sm:block">
-                  · {set.songs.length} songs
+                  · {tr.setlistSongs(set.songs.length)}
                 </span>
               </div>
               <svg
@@ -65,7 +68,7 @@ export default function SetlistAccordion({ setlists }: SetlistAccordionProps) {
 
       <div className="px-5 py-3 bg-brand-surface border-t border-brand-border">
         <p className="font-body text-xs text-brand-muted/50 italic">
-          Sets can be adjusted based on event, audience, and venue. Contact us to discuss a custom arrangement.
+          {tr.setlistNote}
         </p>
       </div>
     </div>

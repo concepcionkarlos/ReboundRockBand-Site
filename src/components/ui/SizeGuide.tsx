@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { translations, type Lang } from '@/lib/i18n'
 
 const sizes = [
   { size: 'S',   chest: '36–38"', length: '28"', sleeve: '8"'  },
@@ -11,7 +12,8 @@ const sizes = [
   { size: '3XL', chest: '54–56"', length: '33"', sleeve: '10.5"' },
 ]
 
-export default function SizeGuide() {
+export default function SizeGuide({ lang = 'en' }: { lang?: Lang }) {
+  const tr = translations[lang].merch
   const [open, setOpen] = useState(false)
 
   return (
@@ -24,7 +26,7 @@ export default function SizeGuide() {
           <svg className="w-3.5 h-3.5 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
           </svg>
-          Size Guide
+          {tr.sizeGuide}
         </span>
         <svg
           className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
@@ -37,13 +39,13 @@ export default function SizeGuide() {
       <div className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-96' : 'max-h-0'}`}>
         <div className="border-t border-brand-border px-5 py-4">
           <p className="font-body text-xs text-brand-text mb-4 leading-relaxed">
-            Measurements are body measurements in inches. If between sizes, size up for a relaxed fit.
+            {tr.sizeGuideTip}
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-brand-border">
-                  {['Size', 'Chest', 'Length', 'Sleeve'].map((h) => (
+                  {[tr.sizeGuideSize, tr.sizeGuideChest, tr.sizeGuideLength, tr.sizeGuideSleeve].map((h) => (
                     <th key={h} className="font-heading text-[10px] uppercase tracking-widest text-brand-muted pb-2 pr-5 last:pr-0">
                       {h}
                     </th>

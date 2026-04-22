@@ -40,7 +40,7 @@ export default async function Hero() {
             {/* Eyebrow */}
             <div className="inline-flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-7">
               <span className="w-10 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-              {siteContent.serviceArea}&apos;s {tr.hero.eyebrow}
+              {tr.hero.eyebrow(siteContent.serviceArea)}
               <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse-slow" />
             </div>
 
