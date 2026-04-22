@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { translations, type Lang } from '@/lib/i18n'
 
 const eventTypes = [
   'Bar / Nightclub',
@@ -50,9 +51,11 @@ const emptyForm = {
 
 interface Props {
   contactEmail: string
+  lang?: Lang
 }
 
-export default function BookingForm({ contactEmail }: Props) {
+export default function BookingForm({ contactEmail, lang = 'en' }: Props) {
+  const tr = translations[lang].bookingForm
   const [form, setForm] = useState(emptyForm)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -65,10 +68,10 @@ export default function BookingForm({ contactEmail }: Props) {
 
   const validate = () => {
     const next: Record<string, string> = {}
-    if (!form.fullName.trim()) next.fullName = 'Required'
-    if (!form.email.trim()) next.email = 'Required'
-    if (!form.eventDate.trim()) next.eventDate = 'Required'
-    if (!form.eventType.trim()) next.eventType = 'Required'
+    if (!form.fullName.trim()) next.fullName = tr.errorRequired
+    if (!form.email.trim()) next.email = tr.errorRequired
+    if (!form.eventDate.trim()) next.eventDate = tr.errorRequired
+    if (!form.eventType.trim()) next.eventType = tr.errorRequired
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -106,17 +109,17 @@ export default function BookingForm({ contactEmail }: Props) {
         </div>
         <div>
           <h2 className="font-display uppercase text-4xl text-white leading-none mb-3">
-            We Got Your <span className="text-brand-red">Request</span>
+            {tr.successHeading} <span className="text-brand-red">{tr.successHeadingAccent}</span>
           </h2>
           <p className="font-body text-brand-muted text-sm max-w-sm leading-relaxed mx-auto">
-            We&apos;ll get back to you within 24 hours with availability and pricing. Check your inbox.
+            {tr.successSub}
           </p>
         </div>
         <Link
           href="/"
           className="font-heading text-xs uppercase tracking-widest border border-white/20 text-white/60 px-5 py-2.5 hover:border-brand-red hover:text-brand-red transition-all"
         >
-          Back to Home
+          {tr.backHome}
         </Link>
       </div>
     )
@@ -127,27 +130,27 @@ export default function BookingForm({ contactEmail }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">
-            Your Name <span className="text-brand-red">*</span>
+            {tr.name} <span className="text-brand-red">*</span>
           </label>
           <input
             type="text"
             value={form.fullName}
             onChange={(e) => set('fullName', e.target.value)}
             className={`${inputClass} ${errors.fullName ? 'border-brand-red/60' : ''}`}
-            placeholder="Full name"
+            placeholder={tr.namePlaceholder}
           />
           {errors.fullName && <span className="font-body text-[11px] text-brand-red">{errors.fullName}</span>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">
-            Email <span className="text-brand-red">*</span>
+            {tr.email} <span className="text-brand-red">*</span>
           </label>
           <input
             type="email"
             value={form.email}
             onChange={(e) => set('email', e.target.value)}
             className={`${inputClass} ${errors.email ? 'border-brand-red/60' : ''}`}
-            placeholder="your@email.com"
+            placeholder={tr.emailPlaceholder}
           />
           {errors.email && <span className="font-body text-[11px] text-brand-red">{errors.email}</span>}
         </div>
@@ -155,7 +158,7 @@ export default function BookingForm({ contactEmail }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">Phone</label>
+          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">{tr.phone}</label>
           <input
             type="tel"
             value={form.phone}
@@ -166,7 +169,7 @@ export default function BookingForm({ contactEmail }: Props) {
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">
-            Event Date <span className="text-brand-red">*</span>
+            {tr.eventDate} <span className="text-brand-red">*</span>
           </label>
           <input
             type="date"
@@ -180,37 +183,37 @@ export default function BookingForm({ contactEmail }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">Venue / Company</label>
+          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">{tr.venueCompany}</label>
           <input
             type="text"
             value={form.venueOrCompany}
             onChange={(e) => set('venueOrCompany', e.target.value)}
             className={inputClass}
-            placeholder="Venue or company name"
+            placeholder={tr.venueCompanyPlaceholder}
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">City</label>
+          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">{tr.city}</label>
           <input
             type="text"
             value={form.city}
             onChange={(e) => set('city', e.target.value)}
             className={inputClass}
-            placeholder="Event city"
+            placeholder={tr.cityPlaceholder}
           />
         </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
         <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">
-          Event Type <span className="text-brand-red">*</span>
+          {tr.eventType} <span className="text-brand-red">*</span>
         </label>
         <select
           value={form.eventType}
           onChange={(e) => set('eventType', e.target.value)}
           className={`${inputClass} ${errors.eventType ? 'border-brand-red/60' : ''}`}
         >
-          <option value="">Select event type</option>
+          <option value="">{tr.eventTypePlaceholder}</option>
           {eventTypes.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
         {errors.eventType && <span className="font-body text-[11px] text-brand-red">{errors.eventType}</span>}
@@ -218,37 +221,37 @@ export default function BookingForm({ contactEmail }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">Budget Range</label>
+          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">{tr.budget}</label>
           <select
             value={form.budgetRange}
             onChange={(e) => set('budgetRange', e.target.value)}
             className={inputClass}
           >
-            <option value="">Select budget range</option>
+            <option value="">{tr.budgetPlaceholder}</option>
             {budgetRanges.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">Expected Guests</label>
+          <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">{tr.guests}</label>
           <select
             value={form.guestCount}
             onChange={(e) => set('guestCount', e.target.value)}
             className={inputClass}
           >
-            <option value="">Select guest count</option>
+            <option value="">{tr.guestsPlaceholder}</option>
             {guestCounts.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
         </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">Message / Details</label>
+        <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">{tr.message}</label>
         <textarea
           value={form.message}
           onChange={(e) => set('message', e.target.value)}
           rows={4}
           className={`${inputClass} resize-none`}
-          placeholder="Tell us about your event — set length, special requests, stage setup..."
+          placeholder={tr.messagePlaceholder}
         />
       </div>
 
@@ -263,10 +266,10 @@ export default function BookingForm({ contactEmail }: Props) {
         disabled={submitStatus === 'submitting'}
         className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-all btn-glow-red mt-1 disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {submitStatus === 'submitting' ? 'Sending…' : 'Send Booking Request'}
+        {submitStatus === 'submitting' ? tr.submitting : tr.submit}
       </button>
       <p className="font-body text-xs text-brand-muted/60 text-center">
-        We typically respond within 24 hours. Or email us directly at{' '}
+        {tr.responseTime}{' '}
         <a href={`mailto:${contactEmail}`} className="text-white/40 hover:text-brand-red transition-colors">
           {contactEmail}
         </a>

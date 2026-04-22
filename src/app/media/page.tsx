@@ -3,6 +3,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Reveal from '@/components/ui/Reveal'
 import { readContent } from '@/lib/store'
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 import type { MediaItem, SiteContent } from '@/lib/data'
 
 export const dynamic = 'force-dynamic'
@@ -100,7 +102,8 @@ function SocialPills({ siteContent, label }: { siteContent: SiteContent; label?:
 }
 
 export default async function MediaPage() {
-  const { mediaItems, siteContent } = await readContent()
+  const [{ mediaItems, siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang].media
   const visible = mediaItems.filter((m) => m.visible !== false)
   const featured = visible.filter((m) => m.isFeatured)
   const rest = visible.filter((m) => !m.isFeatured)
@@ -115,13 +118,13 @@ export default async function MediaPage() {
           <div className="py-14 border-b border-brand-border mb-14">
             <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
               <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-              Watch &amp; Listen
+              {tr.eyebrow}
             </div>
             <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-[0.9] mb-4">
-              Media <span className="text-brand-red">Gallery</span>
+              {tr.heading} <span className="text-brand-red">{tr.headingAccent}</span>
             </h1>
             <p className="font-body text-brand-text text-base max-w-xl leading-relaxed">
-              Live videos and photos from Rebound Rock Band shows across {siteContent.serviceArea}.
+              {tr.sub(siteContent.serviceArea)}
             </p>
           </div>
         </Reveal>
@@ -132,7 +135,7 @@ export default async function MediaPage() {
             <section className="mb-12">
               <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
                 <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-                Featured
+                {tr.featuredVideos}
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 {featured.map((item) => (
@@ -163,7 +166,7 @@ export default async function MediaPage() {
             <section className="mb-16">
               <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
                 <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-                More Media
+                {tr.liveVideos}
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {rest.map((item) => <MediaCard key={item.id} item={item} />)}
@@ -181,10 +184,10 @@ export default async function MediaPage() {
                 <div className="absolute inset-0 bg-stripe-texture pointer-events-none" />
                 <div className="relative z-10 max-w-lg mx-auto">
                   <h2 className="font-display uppercase text-3xl sm:text-4xl text-white leading-[0.92] mb-4">
-                    Media <span className="text-brand-red">Coming Soon</span>
+                    {tr.heading} <span className="text-brand-red">{tr.headingAccent}</span>
                   </h2>
                   <p className="font-body text-brand-text text-sm leading-relaxed mb-7">
-                    Fresh photos and live clips are added regularly. Follow us on social for the latest from the road.
+                    {tr.noMedia}
                   </p>
                   <div className="flex items-center justify-center flex-wrap gap-2">
                     <SocialPills siteContent={siteContent} />
@@ -202,10 +205,10 @@ export default async function MediaPage() {
             <div className="absolute inset-0 bg-stripe-texture pointer-events-none opacity-60" />
             <div className="relative z-10">
               <h2 className="font-display uppercase text-3xl sm:text-4xl text-white leading-[0.92] mb-4">
-                Saw Us <span className="text-brand-red">Live?</span>
+                {tr.ctaHeading} <span className="text-brand-red">{tr.ctaHeadingAccent}</span>
               </h2>
               <p className="font-body text-brand-text text-sm max-w-md mx-auto mb-7 leading-relaxed">
-                Tag us on social media or reach out to book Rebound Rock Band for your next event.
+                {tr.ctaSub}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link href="/booking" className="inline-block font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-9 py-4 hover:bg-brand-red-bright transition-all btn-glow-red">

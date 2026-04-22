@@ -3,6 +3,8 @@ import Reveal from '@/components/ui/Reveal'
 import SizeGuide from '@/components/ui/SizeGuide'
 import MerchGallery from '@/components/merch/MerchGallery'
 import { readContent } from '@/lib/store'
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +37,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
 }
 
 export default async function MerchPage() {
-  const { merch, siteContent } = await readContent()
+  const [{ merch, siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang].merch
   const visible = merch.filter((m) => m.visible)
 
   return (
@@ -49,13 +52,13 @@ export default async function MerchPage() {
               <div>
                 <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
                   <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-                  Rep the Band
+                  {tr.eyebrow}
                 </div>
                 <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-[0.9] mb-4">
-                  Official <span className="text-brand-red">Merch</span>
+                  {tr.heading} <span className="text-brand-red">{tr.headingAccent}</span>
                 </h1>
                 <p className="font-body text-brand-text text-base max-w-xl leading-relaxed">
-                  Tees, hats, stickers, and more. Available online.
+                  {tr.sub}
                 </p>
               </div>
               {/* Free shipping callout */}
@@ -94,7 +97,7 @@ export default async function MerchPage() {
                       {!item.available && (
                         <div className="absolute inset-0 bg-brand-bg/75 flex items-center justify-center">
                           <span className="font-heading text-xs uppercase tracking-widest text-white/70 border border-white/30 px-4 py-2">
-                            Sold Out
+                            {tr.soldOut}
                           </span>
                         </div>
                       )}
@@ -112,7 +115,7 @@ export default async function MerchPage() {
                       {!item.available && (
                         <div className="absolute inset-0 bg-brand-bg/75 flex items-center justify-center">
                           <span className="font-heading text-xs uppercase tracking-widest text-white/70 border border-white/30 px-4 py-2">
-                            Sold Out
+                            {tr.soldOut}
                           </span>
                         </div>
                       )}
@@ -171,14 +174,14 @@ export default async function MerchPage() {
                           rel="noopener noreferrer"
                           className="block text-center font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-4 py-4 hover:bg-brand-red-bright transition-all btn-glow-red mt-auto"
                         >
-                          Buy Now — ${item.price}
+                          {tr.buyNow} — ${item.price}
                         </a>
                       ) : (
                         <a
                           href={`mailto:${siteContent.contactEmail}?subject=Merch Order: ${encodeURIComponent(item.name)}`}
                           className="block text-center font-heading text-sm uppercase tracking-widest border border-brand-red text-brand-red px-4 py-4 hover:bg-brand-red hover:text-white transition-all mt-auto"
                         >
-                          Order via Email
+                          {tr.inquire}
                         </a>
                       )
                     ) : (

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { readContent } from '@/lib/store'
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 import ShowCard from '@/components/ui/ShowCard'
 import Link from 'next/link'
 
@@ -11,7 +13,8 @@ export const metadata: Metadata = {
 }
 
 export default async function ShowsPage() {
-  const { shows, siteContent } = await readContent()
+  const [{ shows, siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang].shows
   const visibleShows = shows
     .filter((s) => s.visible !== false)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -26,13 +29,13 @@ export default async function ShowsPage() {
         <div className="py-14 border-b border-brand-border mb-14">
           <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
             <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-            On the Road
+            {tr.eyebrow}
           </div>
           <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-[0.9] mb-4">
-            Upcoming <span className="text-brand-red">Shows</span>
+            {tr.heading} <span className="text-brand-red">{tr.headingAccent}</span>
           </h1>
           <p className="font-body text-brand-text text-base max-w-xl leading-relaxed">
-            Catch Rebound Rock Band live across South Florida. Check back often — new dates added regularly.
+            {tr.sub}
           </p>
         </div>
 
@@ -43,7 +46,7 @@ export default async function ShowsPage() {
               <div className="mb-10">
                 <h2 className="font-heading text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-5 flex items-center gap-3">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse-slow" />
-                  Highlighted Shows
+                  {tr.highlighted}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {featuredShows.map((show) => (
@@ -58,7 +61,7 @@ export default async function ShowsPage() {
               <div>
                 <h2 className="font-heading text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-5 flex items-center gap-3">
                   <span className="w-6 h-px bg-brand-border" />
-                  All Upcoming Dates
+                  {tr.allDates}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {regularShows.map((show) => (
@@ -71,7 +74,7 @@ export default async function ShowsPage() {
         ) : (
           <div className="text-center py-24 border border-brand-border mb-16 flex flex-col items-center gap-5 bg-brand-surface">
             <p className="font-heading text-brand-muted text-xs tracking-widest uppercase">
-              New dates are always in the works — follow us on Facebook for announcements
+              {tr.empty}
             </p>
             {siteContent.facebook && (
               <a
@@ -83,7 +86,7 @@ export default async function ShowsPage() {
                 <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>
-                Follow on Facebook
+                {tr.followFacebook}
               </a>
             )}
           </div>
@@ -96,24 +99,23 @@ export default async function ShowsPage() {
           <div className="absolute bottom-0 inset-x-0 h-px divider-red" />
           <div className="relative z-10">
             <h2 className="font-display uppercase text-3xl sm:text-5xl text-white leading-[0.92] mb-4">
-              Want Us at Your <span className="text-brand-red">Venue?</span>
+              {tr.ctaHeading} <span className="text-brand-red">{tr.ctaHeadingAccent}</span>
             </h2>
             <p className="font-body text-brand-text text-sm max-w-md mx-auto mb-8 leading-relaxed">
-              We&apos;re always looking for great venues and events. Reach out to book Rebound Rock Band at your
-              bar, restaurant, festival, or private event.
+              {tr.ctaSub}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/booking"
                 className="inline-block font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-9 py-4 hover:bg-brand-red-bright transition-all btn-glow-red"
               >
-                Contact Us for Booking
+                {tr.ctaBooking}
               </Link>
               <Link
                 href="/epk"
                 className="inline-block font-heading text-sm uppercase tracking-widest border border-white/20 text-white/85 px-9 py-4 hover:border-brand-red hover:text-brand-red transition-all"
               >
-                View Press Kit
+                {tr.ctaEpk}
               </Link>
               {siteContent.facebook && (
                 <a
@@ -125,7 +127,7 @@ export default async function ShowsPage() {
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
-                  Follow on Facebook
+                  {tr.followFacebook}
                 </a>
               )}
             </div>
