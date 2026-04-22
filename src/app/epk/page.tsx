@@ -5,6 +5,8 @@ import Reveal from '@/components/ui/Reveal'
 import SetlistAccordion from '@/components/ui/SetlistAccordion'
 import SongRequestForm from '@/components/epk/SongRequestForm'
 import { readContent } from '@/lib/store'
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,7 +16,8 @@ export const metadata: Metadata = {
 }
 
 export default async function EpkPage() {
-  const { epkContent, siteContent } = await readContent()
+  const [{ epkContent, siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang].epk
 
   return (
     <div className="pt-24 pb-24 min-h-screen bg-brand-bg">
@@ -27,17 +30,17 @@ export default async function EpkPage() {
               <div>
                 <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
                   <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-                  For Bookers &amp; Promoters
+                  {tr.eyebrow}
                 </div>
                 <h1 className="font-display uppercase text-5xl sm:text-7xl text-white leading-[0.9]">
-                  Press <span className="text-brand-red">Kit</span>
+                  {tr.heading} <span className="text-brand-red">{tr.headingAccent}</span>
                 </h1>
               </div>
               <Link
                 href="/booking"
                 className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-7 py-4 hover:bg-brand-red-bright transition-all btn-glow-red flex-shrink-0 self-start"
               >
-                Book Now
+                {tr.bookNow}
               </Link>
             </div>
           </div>
@@ -72,10 +75,10 @@ export default async function EpkPage() {
             <section className="mb-16">
               <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
                 <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-                Setlists
+                {tr.setlistsEyebrow}
               </div>
               <h2 className="font-display uppercase text-3xl sm:text-4xl text-white leading-[0.92] mb-7">
-                Sample <span className="text-brand-red">Repertoire</span>
+                {tr.setlistsHeading} <span className="text-brand-red">{tr.setlistsHeadingAccent}</span>
               </h2>
               <SetlistAccordion setlists={epkContent.setlists} />
             </section>
@@ -87,16 +90,16 @@ export default async function EpkPage() {
           <section className="mb-16">
             <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
               <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-              Song Requests
+              {tr.songRequestsEyebrow}
             </div>
             <h2 className="font-display uppercase text-3xl sm:text-4xl text-white leading-[0.92] mb-3">
-              Request a <span className="text-brand-red">Song</span>
+              {tr.songRequestsHeading} <span className="text-brand-red">{tr.songRequestsHeadingAccent}</span>
             </h2>
             <p className="font-body text-brand-text text-sm leading-relaxed mb-8 max-w-xl">
-              Have a song you&apos;d love to hear? Send your request and the band may consider it for future shows or private events.
+              {tr.songRequestsSub}
             </p>
             <div className="border border-brand-border bg-brand-surface p-7 sm:p-10">
-              <SongRequestForm />
+              <SongRequestForm lang={lang} />
             </div>
           </section>
         </Reveal>
@@ -106,10 +109,10 @@ export default async function EpkPage() {
           <section className="mb-16">
             <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
               <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-              Technical
+              {tr.techEyebrow}
             </div>
             <h2 className="font-display uppercase text-3xl sm:text-4xl text-white leading-[0.92] mb-7">
-              Tech <span className="text-brand-red">Rider</span>
+              {tr.techHeading} <span className="text-brand-red">{tr.techHeadingAccent}</span>
             </h2>
             <div className="border border-brand-border overflow-hidden">
               {epkContent.techSpecs.map((spec, i) => (
@@ -127,7 +130,7 @@ export default async function EpkPage() {
               ))}
             </div>
             <p className="font-body text-xs text-brand-muted/60 mt-4">
-              Full tech rider available on request. We&apos;re flexible and happy to work with your existing setup.
+              {tr.techFootnote}
             </p>
           </section>
         </Reveal>
@@ -140,7 +143,7 @@ export default async function EpkPage() {
             <div className="absolute inset-0 bg-stripe-texture pointer-events-none" />
             <div className="relative z-10">
               <h2 className="font-display uppercase text-4xl sm:text-5xl text-white leading-[0.92] mb-4">
-                Ready to <span className="text-brand-red">Book?</span>
+                {tr.ctaHeading} <span className="text-brand-red">{tr.ctaHeadingAccent}</span>
               </h2>
               <p className="font-body text-brand-text text-sm max-w-md mx-auto mb-9 leading-relaxed">
                 {epkContent.bookerIntro}
@@ -156,7 +159,7 @@ export default async function EpkPage() {
                   href={`mailto:${siteContent.contactEmail}`}
                   className="font-heading text-sm uppercase tracking-widest border border-white/20 text-white/85 px-9 py-4 hover:border-brand-red hover:text-brand-red transition-all text-center"
                 >
-                  Email Us Directly
+                  {tr.emailUs}
                 </a>
               </div>
               <p className="font-body text-xs text-brand-muted/50">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { translations, type Lang } from '@/lib/i18n'
 
 const inputClass =
   'w-full bg-brand-elevated border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/50 focus:shadow-[0_0_0_3px_rgba(224,16,30,0.08)] transition-all placeholder:text-brand-muted/40 rounded-none'
@@ -15,7 +16,8 @@ const emptyForm = {
   notes: '',
 }
 
-export default function SongRequestForm() {
+export default function SongRequestForm({ lang = 'en' }: { lang?: Lang }) {
+  const tr = translations[lang].songRequestForm
   const [form, setForm] = useState(emptyForm)
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -28,9 +30,9 @@ export default function SongRequestForm() {
 
   const validate = () => {
     const next: Record<string, string> = {}
-    if (!form.fullName.trim()) next.fullName = 'Required'
-    if (!form.email.trim()) next.email = 'Required'
-    if (!form.song1.trim()) next.song1 = 'At least one song is required'
+    if (!form.fullName.trim()) next.fullName = tr.errorRequired
+    if (!form.email.trim()) next.email = tr.errorRequired
+    if (!form.song1.trim()) next.song1 = tr.errorSong
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -68,10 +70,10 @@ export default function SongRequestForm() {
         </div>
         <div>
           <p className="font-display uppercase text-2xl text-white leading-none mb-2">
-            Request <span className="text-brand-red">Sent</span>
+            {tr.successHeading} <span className="text-brand-red">{tr.successHeadingAccent}</span>
           </p>
           <p className="font-body text-brand-muted text-sm max-w-xs mx-auto leading-relaxed">
-            The band will review your song request. Thanks for reaching out!
+            {tr.successSub}
           </p>
         </div>
       </div>
@@ -83,20 +85,20 @@ export default function SongRequestForm() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">
-            Full Name <span className="text-brand-red">*</span>
+            {tr.fullName} <span className="text-brand-red">*</span>
           </label>
           <input
             type="text"
             value={form.fullName}
             onChange={(e) => set('fullName', e.target.value)}
             className={`${inputClass} ${errors.fullName ? 'border-brand-red/60' : ''}`}
-            placeholder="Your name"
+            placeholder={tr.yourName}
           />
           {errors.fullName && <span className="font-body text-[11px] text-brand-red">{errors.fullName}</span>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">
-            Email <span className="text-brand-red">*</span>
+            {tr.email} <span className="text-brand-red">*</span>
           </label>
           <input
             type="email"
@@ -111,7 +113,7 @@ export default function SongRequestForm() {
 
       <div className="flex flex-col gap-1.5">
         <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">
-          Event Date <span className="text-brand-muted/40">(optional — if requesting for a specific event)</span>
+          {tr.eventDate} <span className="text-brand-muted/40">{tr.eventDateHint}</span>
         </label>
         <input
           type="date"
@@ -123,14 +125,14 @@ export default function SongRequestForm() {
 
       <div className="flex flex-col gap-3">
         <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">
-          Song Request 1 <span className="text-brand-red">*</span>
+          {tr.song1} <span className="text-brand-red">*</span>
         </label>
         <input
           type="text"
           value={form.song1}
           onChange={(e) => set('song1', e.target.value)}
           className={`${inputClass} ${errors.song1 ? 'border-brand-red/60' : ''}`}
-          placeholder="Song title — Artist"
+          placeholder={tr.song1Placeholder}
         />
         {errors.song1 && <span className="font-body text-[11px] text-brand-red">{errors.song1}</span>}
         <input
@@ -138,25 +140,25 @@ export default function SongRequestForm() {
           value={form.song2}
           onChange={(e) => set('song2', e.target.value)}
           className={inputClass}
-          placeholder="Song Request 2 (optional) — Song title — Artist"
+          placeholder={tr.song2Placeholder}
         />
         <input
           type="text"
           value={form.song3}
           onChange={(e) => set('song3', e.target.value)}
           className={inputClass}
-          placeholder="Song Request 3 (optional) — Song title — Artist"
+          placeholder={tr.song3Placeholder}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">Notes</label>
+        <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">{tr.notes}</label>
         <textarea
           value={form.notes}
           onChange={(e) => set('notes', e.target.value)}
           rows={3}
           className={`${inputClass} resize-none`}
-          placeholder="Any context about the request — event type, special occasion, etc."
+          placeholder={tr.notesPlaceholder}
         />
       </div>
 
@@ -171,10 +173,10 @@ export default function SongRequestForm() {
         disabled={status === 'submitting'}
         className="self-start font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-all btn-glow-red disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {status === 'submitting' ? 'Sending…' : 'Submit Request'}
+        {status === 'submitting' ? tr.submitting : tr.submit}
       </button>
       <p className="font-body text-xs text-brand-muted/50">
-        Requests are welcomed but not guaranteed.
+        {tr.disclaimer}
       </p>
     </form>
   )
