@@ -1,13 +1,16 @@
 import type { Show } from '@/lib/data'
 import { formatDate } from '@/lib/data'
 import Link from 'next/link'
+import { translations, type Lang } from '@/lib/i18n'
 
 interface ShowCardProps {
   show: Show
   variant?: 'default' | 'featured'
+  lang?: Lang
 }
 
-export default function ShowCard({ show, variant = 'default' }: ShowCardProps) {
+export default function ShowCard({ show, variant = 'default', lang = 'en' }: ShowCardProps) {
+  const tr = translations[lang].shows
   const { day, month, weekday } = formatDate(show.date)
   const isFeatured = variant === 'featured' || show.isFeatured
 
@@ -61,11 +64,11 @@ export default function ShowCard({ show, variant = 'default' }: ShowCardProps) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Tickets
+              {tr.tickets}
             </Link>
           ) : (
             <span className="font-heading text-[10px] tracking-widest uppercase text-brand-muted/60 group-hover:text-brand-red transition-colors whitespace-nowrap">
-              Free Entry
+              {tr.freeEntry}
             </span>
           )}
         </div>

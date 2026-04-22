@@ -15,11 +15,16 @@ export const metadata: Metadata = {
 export default async function ShowsPage() {
   const [{ shows, siteContent }, lang] = await Promise.all([readContent(), getLang()])
   const tr = translations[lang].shows
-  const visibleShows = shows
-    .filter((s) => s.visible !== false)
+  const today = new Date().toISOString().slice(0, 10)
+  const visible = shows.filter((s) => s.visible !== false)
+  const upcomingShows = visible
+    .filter((s) => s.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date))
-  const featuredShows = visibleShows.filter((s) => s.isFeatured)
-  const regularShows = visibleShows.filter((s) => !s.isFeatured)
+  const pastShows = visible
+    .filter((s) => s.date < today)
+    .sort((a, b) => b.date.localeCompare(a.date)) // newest past first
+  const featuredShows = upcomingShows.filter((s) => s.isFeatured)
+  const regularShows = upcomingShows.filter((s) => !s.isFeatured)
 
   return (
     <div className="pt-24 pb-24 min-h-screen bg-brand-bg">
@@ -39,7 +44,7 @@ export default async function ShowsPage() {
           </p>
         </div>
 
-        {visibleShows.length > 0 ? (
+        {upcomingShows.length > 0 ? (
           <div className="mb-16">
             {/* Featured shows */}
             {featuredShows.length > 0 && (
@@ -50,13 +55,13 @@ export default async function ShowsPage() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {featuredShows.map((show) => (
-                    <ShowCard key={show.id} show={show} />
+                    <ShowCard key={show.id} show={show} lang={lang} />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* All other shows */}
+            {/* All other upcoming shows */}
             {regularShows.length > 0 && (
               <div>
                 <h2 className="font-heading text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-5 flex items-center gap-3">
@@ -65,7 +70,7 @@ export default async function ShowsPage() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {regularShows.map((show) => (
-                    <ShowCard key={show.id} show={show} />
+                    <ShowCard key={show.id} show={show} lang={lang} />
                   ))}
                 </div>
               </div>
@@ -89,6 +94,21 @@ export default async function ShowsPage() {
                 {tr.followFacebook}
               </a>
             )}
+          </div>
+        )}
+
+        {/* Past shows */}
+        {pastShows.length > 0 && (
+          <div className="mb-16">
+            <h2 className="font-heading text-[11px] uppercase tracking-[0.2em] text-brand-muted/50 mb-5 flex items-center gap-3">
+              <span className="w-6 h-px bg-brand-border/60" />
+              {tr.pastShows}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 opacity-50">
+              {pastShows.map((show) => (
+                <ShowCard key={show.id} show={show} lang={lang} />
+              ))}
+            </div>
           </div>
         )}
 

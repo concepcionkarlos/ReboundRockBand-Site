@@ -13,8 +13,9 @@ interface UpcomingShowsProps {
 export default async function UpcomingShows({ limit = 4, showViewAll = true }: UpcomingShowsProps) {
   const [{ shows }, lang] = await Promise.all([readContent(), getLang()])
   const tr = translations[lang].home.upcomingShows
+  const today = new Date().toISOString().slice(0, 10)
   const upcoming = shows
-    .filter((s) => s.visible !== false)
+    .filter((s) => s.visible !== false && s.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, limit)
 
@@ -41,7 +42,7 @@ export default async function UpcomingShows({ limit = 4, showViewAll = true }: U
         {upcoming.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {upcoming.map((show) => (
-              <ShowCard key={show.id} show={show} />
+              <ShowCard key={show.id} show={show} lang={lang} />
             ))}
           </div>
         ) : (

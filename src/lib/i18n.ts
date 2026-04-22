@@ -53,6 +53,9 @@ export const translations = {
       ctaSub: "We're always looking for great venues and events. Reach out to book Rebound Rock Band at your bar, restaurant, festival, or private event.",
       ctaBooking: 'Contact Us for Booking',
       ctaEpk: 'View Press Kit',
+      pastShows: 'Past Shows',
+      tickets: 'Tickets',
+      freeEntry: 'Free Entry',
     },
     about: {
       eyebrow: 'The Band',
@@ -288,6 +291,9 @@ export const translations = {
       ctaSub: 'Siempre buscamos buenos venues y eventos. Contáctanos para reservar a Rebound Rock Band en tu bar, restaurante, festival o evento privado.',
       ctaBooking: 'Contáctanos para Reservar',
       ctaEpk: 'Ver Kit de Prensa',
+      pastShows: 'Shows Anteriores',
+      tickets: 'Boletos',
+      freeEntry: 'Entrada Gratis',
     },
     about: {
       eyebrow: 'La Banda',
