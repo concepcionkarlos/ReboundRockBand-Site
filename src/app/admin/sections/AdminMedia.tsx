@@ -25,6 +25,8 @@ export default function AdminMedia() {
   const [form, setForm] = useState<FormState>(emptyForm)
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [editingCaptionId, setEditingCaptionId] = useState<string | null>(null)
+  const [captionDraft, setCaptionDraft] = useState('')
 
   useEffect(() => {
     fetch('/api/content')
@@ -83,6 +85,22 @@ export default function AdminMedia() {
   const toggleFeatured = async (id: string) => {
     const updated = items.map((i) => i.id === id ? { ...i, isFeatured: !i.isFeatured } : i)
     setItems(updated)
+    await persist(updated)
+  }
+
+  const move = async (index: number, dir: -1 | 1) => {
+    const next = index + dir
+    if (next < 0 || next >= items.length) return
+    const updated = [...items]
+    ;[updated[index], updated[next]] = [updated[next], updated[index]]
+    setItems(updated)
+    await persist(updated)
+  }
+
+  const saveCaption = async (id: string) => {
+    const updated = items.map((i) => i.id === id ? { ...i, caption: captionDraft } : i)
+    setItems(updated)
+    setEditingCaptionId(null)
     await persist(updated)
   }
 
@@ -201,9 +219,20 @@ export default function AdminMedia() {
 
       {/* Media list */}
       <div className="flex flex-col gap-1.5">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <div key={item.id} className={`relative flex items-center gap-0 border border-white/6 bg-[#0d0d1e] hover:border-white/12 transition-all overflow-hidden group ${!item.visible ? 'opacity-40' : ''}`}>
             <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-brand-red origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
+
+            {/* Reorder */}
+            <div className="flex flex-col border-r border-white/6 flex-shrink-0">
+              <button type="button" onClick={() => move(index, -1)} disabled={index === 0} className="p-1.5 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Move up">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+              </button>
+              <button type="button" onClick={() => move(index, 1)} disabled={index === items.length - 1} className="p-1.5 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Move down">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+            </div>
+
             <div className="w-12 h-12 bg-white/4 border-r border-white/6 flex-shrink-0 flex items-center justify-center">
               {item.type === 'video' ? (
                 <svg className="w-5 h-5 text-brand-red/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -226,8 +255,33 @@ export default function AdminMedia() {
                 {item.isFeatured && <span className="font-heading text-[9px] uppercase tracking-widest text-brand-red border border-brand-red/40 bg-brand-red/10 px-1">★ Featured</span>}
                 {!item.visible && <span className="font-heading text-[9px] uppercase tracking-widest text-white/20 border border-white/10 px-1">Hidden</span>}
               </div>
-              <div className="font-body text-sm text-white truncate">{item.caption || item.url}</div>
-              <div className="font-body text-xs text-white/25 truncate">{item.url}</div>
+              {editingCaptionId === item.id ? (
+                <div className="flex items-center gap-2 mt-0.5" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="text"
+                    value={captionDraft}
+                    onChange={(e) => setCaptionDraft(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveCaption(item.id); if (e.key === 'Escape') setEditingCaptionId(null) }}
+                    autoFocus
+                    className="flex-1 bg-[#111121] border border-brand-red/40 text-white font-body text-sm px-2.5 py-1 focus:outline-none min-w-0"
+                    placeholder="Caption…"
+                  />
+                  <button type="button" onClick={() => saveCaption(item.id)} className="font-heading text-[9px] text-green-400 hover:text-green-300 transition-colors flex-shrink-0">✓</button>
+                  <button type="button" onClick={() => setEditingCaptionId(null)} className="font-heading text-[9px] text-white/30 hover:text-white transition-colors flex-shrink-0">✕</button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setEditingCaptionId(item.id); setCaptionDraft(item.caption ?? '') }}
+                  className="text-left w-full group/cap"
+                  title="Click to edit caption"
+                >
+                  <span className="font-body text-sm text-white group-hover/cap:text-brand-red/80 transition-colors truncate block">
+                    {item.caption || <span className="text-white/20 italic">No caption — click to add</span>}
+                  </span>
+                  <span className="font-body text-xs text-white/25 truncate block">{item.url}</span>
+                </button>
+              )}
             </div>
             <div className="flex gap-1.5 flex-shrink-0 pr-3">
               <button type="button" onClick={() => toggleFeatured(item.id)} className={`font-heading text-[9px] uppercase tracking-widest px-2 py-1 border transition-colors ${item.isFeatured ? 'border-brand-red/40 text-brand-red/70 hover:border-brand-red hover:text-brand-red' : 'border-white/15 text-white/40 hover:border-white/30 hover:text-white'}`}>

@@ -339,6 +339,31 @@ export default function AdminShows() {
   const openAdd = () => { setEditing(null); setForm(emptyShow); setIsAdding(true); setShowFinancials(false) }
   const cancel = () => { setEditing(null); setIsAdding(false); setShowFinancials(false) }
 
+  const duplicateShow = (show: Show) => {
+    setEditing(null)
+    setForm({
+      date: '',
+      venue: show.venue,
+      city: show.city,
+      time: show.time,
+      ticketUrl: show.ticketUrl ?? '',
+      isFeatured: false,
+      visible: show.visible ?? true,
+      showStatus: 'Confirmed',
+      guarantee: show.guarantee,
+      payout: undefined,
+      travelBudget: show.travelBudget,
+      loadInTime: show.loadInTime ?? '',
+      soundCheckTime: show.soundCheckTime ?? '',
+      setLength: show.setLength ?? '',
+      contactPerson: show.contactPerson ?? '',
+      contactEmail: show.contactEmail ?? '',
+      showNotes: show.showNotes ?? '',
+    })
+    setShowFinancials(false)
+    setIsAdding(true)
+  }
+
   const save = async () => {
     if (!form.date || !form.venue || !form.city || !form.time) return
     const updated = editing
@@ -1005,6 +1030,7 @@ export default function AdminShows() {
                       {hidden ? 'Hidden' : 'Visible'}
                     </button>
                     <button type="button" onClick={() => openEdit(show)} className="font-heading text-[10px] uppercase tracking-widest border border-white/10 text-white/35 px-3 py-1.5 hover:border-white/30 hover:text-white transition-all">Edit</button>
+                    <button type="button" onClick={() => duplicateShow(show)} title="Duplicate show" className="font-heading text-[10px] uppercase tracking-widest border border-white/10 text-white/30 px-3 py-1.5 hover:border-white/30 hover:text-white transition-all">Dupe</button>
                     <button
                       title="Copy social post"
                       onClick={() => copyShowPost(show)}

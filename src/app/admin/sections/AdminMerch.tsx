@@ -146,6 +146,15 @@ export default function AdminMerch() {
     await persist(updated)
   }
 
+  const moveItem = async (index: number, dir: -1 | 1) => {
+    const next = index + dir
+    if (next < 0 || next >= items.length) return
+    const updated = [...items]
+    ;[updated[index], updated[next]] = [updated[next], updated[index]]
+    setItems(updated)
+    await persist(updated)
+  }
+
   const Toggle = ({ checked, onToggle, label }: { checked: boolean; onToggle: () => void; label: string }) => (
     <button
       onClick={onToggle}
@@ -430,7 +439,7 @@ export default function AdminMerch() {
 
       {/* Items list */}
       <div className="flex flex-col gap-1.5">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <div
             key={item.id}
             className={`relative flex items-center gap-0 border border-white/6 bg-[#0d0d1e] hover:border-white/12 transition-all overflow-hidden group ${
@@ -439,6 +448,16 @@ export default function AdminMerch() {
           >
             {/* Animated left accent */}
             <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-brand-red origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
+
+            {/* Reorder */}
+            <div className="flex flex-col border-r border-white/6 flex-shrink-0">
+              <button type="button" onClick={() => moveItem(index, -1)} disabled={index === 0} className="p-1.5 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Move up">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+              </button>
+              <button type="button" onClick={() => moveItem(index, 1)} disabled={index === items.length - 1} className="p-1.5 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Move down">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+            </div>
 
             {/* Image thumb */}
             <div className="relative w-14 h-14 bg-white/4 border-r border-white/6 flex-shrink-0 flex items-center justify-center overflow-hidden">
