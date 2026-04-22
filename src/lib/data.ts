@@ -1,3 +1,5 @@
+export type ShowStatus = 'Confirmed' | 'Pending' | 'Hold' | 'Cancelled'
+
 export interface Show {
   id: string
   date: string        // ISO: "2026-04-18"
@@ -7,6 +9,25 @@ export interface Show {
   ticketUrl?: string
   isFeatured?: boolean
   visible?: boolean
+  // Financials
+  guarantee?: number        // agreed fee
+  payout?: number           // actual amount paid out
+  travelBudget?: number     // estimated travel/lodging cost
+  // Logistics
+  loadInTime?: string       // e.g. "5:00 PM"
+  soundCheckTime?: string   // e.g. "6:30 PM"
+  setLength?: string        // e.g. "2 × 45 min"
+  showStatus?: ShowStatus
+  contactPerson?: string
+  contactEmail?: string
+  showNotes?: string
+  // Post-gig log
+  attendance?: number
+  gigRating?: number        // 1–5
+  gigHighlight?: string
+  merchSoldAtShow?: number  // $ sold at the show
+  // Pre-show advance checklist
+  advanceChecklist?: string[] // completed check IDs
 }
 
 export interface MerchItem {
@@ -22,6 +43,7 @@ export interface MerchItem {
   description?: string      // short product description
   specs?: { label: string; value: string }[]   // fabric, fit, print method, etc.
   atShows?: boolean         // sold at live shows
+  stockQuantity?: number    // units on hand (undefined = not tracked)
 }
 
 export interface BandMember {
@@ -48,6 +70,11 @@ export interface SiteContent {
   facebook: string
   instagram?: string
   youtube?: string
+  // SEO
+  metaDescription?: string         // <meta name="description">
+  ogTitle?: string                 // Open Graph title override
+  ogDescription?: string           // Open Graph description override
+  metaKeywords?: string            // comma-separated keywords
 }
 
 export interface MediaItem {
@@ -66,6 +93,7 @@ export interface EpkContent {
   repertoire: { era: string; artists: string }[]   // era WITHOUT trailing 's'
   techSpecs: { label: string; value: string }[]
   setlists?: { title: string; songs: string[] }[]
+  pressQuotes?: string[]  // press mentions / highlights shown in EPK
 }
 
 export type BookingStatus =
@@ -104,6 +132,16 @@ export interface BookingRequest {
 }
 
 export const bookingRequests: BookingRequest[] = []
+
+export type AdminNotePriority = 'normal' | 'high'
+
+export interface AdminNote {
+  id: string
+  text: string
+  done: boolean
+  priority: AdminNotePriority
+  createdAt: string
+}
 
 export type SongRequestStatus = 'New' | 'Review' | 'Consider' | 'Added' | 'Declined'
 
@@ -418,6 +456,11 @@ export type VenueStatus =
   | 'Booked'
   | 'Archived'
 
+export interface VenueActivity {
+  ts: string   // ISO datetime
+  text: string
+}
+
 export interface Venue {
   id: string
   placeId: string           // Google Place ID — used for deduplication
@@ -433,6 +476,7 @@ export interface Venue {
   assignedTo?: string
   followUpDate?: string     // YYYY-MM-DD
   lastContactedAt?: string
+  activityLog?: VenueActivity[]
   createdAt: string
   updatedAt: string
 }

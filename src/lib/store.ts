@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import type { Show, MerchItem, BandMember, SiteContent, MediaItem, EpkContent, BookingRequest, SongRequest } from './data'
+import type { Show, MerchItem, BandMember, SiteContent, MediaItem, EpkContent, BookingRequest, SongRequest, AdminNote } from './data'
 import {
   shows as defaultShows,
   merch as defaultMerch,
@@ -21,6 +21,8 @@ export interface ContentStore {
   epkContent: EpkContent
   bookingRequests: BookingRequest[]
   songRequests: SongRequest[]
+  adminNotes?: AdminNote[]
+  monthlyGoal?: { month: string; bookingTarget: number; revenueTarget: number }
 }
 
 const DATA_PATH = path.join(process.cwd(), 'data', 'content.json')

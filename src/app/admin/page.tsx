@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import AdminShows from './sections/AdminShows'
 import AdminMerch from './sections/AdminMerch'
 import AdminMedia from './sections/AdminMedia'
@@ -12,11 +12,21 @@ import AdminBookings from './sections/AdminBookings'
 import AdminSongRequests from './sections/AdminSongRequests'
 import AdminVenueFinder from './sections/AdminVenueFinder'
 import AdminEmailManagement from './sections/AdminEmailManagement'
+import AdminAnalytics from './sections/AdminAnalytics'
+import AdminNotes from './sections/AdminNotes'
 import AdminLogin from './AdminLogin'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'venues' | 'email'
+type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'venues' | 'email' | 'analytics' | 'notes'
+
+interface SearchItem {
+  id: string
+  type: 'booking' | 'show' | 'song-request' | 'venue'
+  title: string
+  sub: string
+  section: Section
+}
 
 interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number; songRequests: number; venues: number; inbox: number }
 
@@ -130,6 +140,24 @@ const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: Rea
       </svg>
     ),
   },
+  {
+    id: 'analytics' as Section,
+    label: 'Analytics',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'notes' as Section,
+    label: 'Notes',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+      </svg>
+    ),
+  },
 ]
 
 export default function AdminPage() {
@@ -138,6 +166,11 @@ export default function AdminPage() {
   const [active, setActive] = useState<Section>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0, songRequests: 0, venues: 0, inbox: 0 })
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchItems, setSearchItems] = useState<SearchItem[]>([])
+  const [searchIdx, setSearchIdx] = useState(0)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const stored = sessionStorage.getItem('admin_authed')
@@ -152,7 +185,7 @@ export default function AdminPage() {
       fetch('/api/inbound-emails').then((r) => r.json()),
     ])
       .then(([d, v, inbox]) => {
-        const venues: { status: string }[] = v.venues ?? []
+        const venues: { id: string; name: string; address: string; status: string }[] = v.venues ?? []
         const inboundEmails: { read: boolean }[] = inbox.emails ?? []
         setBadges({
           members: d.bandMembers?.length ?? 0,
@@ -165,13 +198,39 @@ export default function AdminPage() {
           venues: venues.filter((vn) => vn.status === 'New' || vn.status === 'Reviewed').length,
           inbox: inboundEmails.filter((e) => !e.read).length,
         })
+        const items: SearchItem[] = [
+          ...(d.bookingRequests ?? []).map((r: { id: string; fullName: string; eventType?: string; city?: string; status: string }) => ({
+            id: r.id, type: 'booking' as const,
+            title: r.fullName,
+            sub: [r.eventType, r.city, r.status].filter(Boolean).join(' · '),
+            section: 'bookings' as Section,
+          })),
+          ...(d.shows ?? []).map((s: { id: string; venue: string; city: string; date: string }) => ({
+            id: s.id, type: 'show' as const,
+            title: s.venue,
+            sub: `${s.city} · ${s.date}`,
+            section: 'shows' as Section,
+          })),
+          ...(d.songRequests ?? []).map((r: { id: string; fullName: string; song1: string; song2?: string }) => ({
+            id: r.id, type: 'song-request' as const,
+            title: r.fullName,
+            sub: [r.song1, r.song2].filter(Boolean).join(', '),
+            section: 'song-requests' as Section,
+          })),
+          ...venues.map((vn) => ({
+            id: vn.id, type: 'venue' as const,
+            title: vn.name,
+            sub: `${vn.address} · ${vn.status}`,
+            section: 'venues' as Section,
+          })),
+        ]
+        setSearchItems(items)
       })
       .catch(() => {})
   }, [active])
 
   const handleLogin = (password: string): boolean => {
     const correct = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
-    console.log('ADMIN_PASSWORD set:', !!correct, '| length:', correct?.length)
     if (!correct || password === correct) {
       sessionStorage.setItem('admin_authed', '1')
       setAuthed(true)
@@ -184,9 +243,36 @@ export default function AdminPage() {
     setAuthed(false)
   }
 
-  const navigate = (section: Section) => {
+  const navigate = useCallback((section: Section) => {
     setActive(section)
     setSidebarOpen(false)
+  }, [])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        searchRef.current?.focus()
+        setSearchOpen(true)
+      }
+      if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery('') }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  const searchResults = searchQuery.trim().length >= 2
+    ? searchItems.filter((item) => {
+        const q = searchQuery.toLowerCase()
+        return item.title.toLowerCase().includes(q) || item.sub.toLowerCase().includes(q)
+      }).slice(0, 8)
+    : []
+
+  const TYPE_META: Record<SearchItem['type'], { label: string; color: string }> = {
+    'booking':      { label: 'Booking',      color: 'text-blue-400 border-blue-400/25' },
+    'show':         { label: 'Show',         color: 'text-brand-red border-brand-red/25' },
+    'song-request': { label: 'Song Req',     color: 'text-purple-400 border-purple-400/25' },
+    'venue':        { label: 'Venue',        color: 'text-yellow-400 border-yellow-400/25' },
   }
 
   if (!authChecked) return null
@@ -204,6 +290,8 @@ export default function AdminPage() {
     content: <AdminContent />,
     venues: <AdminVenueFinder />,
     email: <AdminEmailManagement onNavigate={(s) => navigate(s as Section)} inboxUnread={badges.inbox} />,
+    analytics: <AdminAnalytics />,
+    notes: <AdminNotes />,
   }
 
   const currentNav = navItems.find((n) => n.id === active)
@@ -242,7 +330,7 @@ export default function AdminPage() {
           <div className="mb-1">
             {navItems.map((item, idx) => {
               const prevItem = navItems[idx - 1]
-              const showDivider = item.id === 'email' && prevItem?.id !== 'email'
+              const showDivider = (item.id === 'email' && prevItem?.id !== 'email') || item.id === 'analytics' || item.id === 'notes'
               const isActive = active === item.id
               const badgeCount = item.badgeKey !== undefined ? badges[item.badgeKey] : undefined
               return (
@@ -250,11 +338,12 @@ export default function AdminPage() {
                   {showDivider && (
                     <div className="px-2.5 pt-4 pb-1.5">
                       <span className="font-heading text-[9px] uppercase tracking-[0.18em] text-white/20 block">
-                        Email
+                        {item.id === 'email' ? 'Email' : item.id === 'notes' ? 'Team' : 'Reports'}
                       </span>
                     </div>
                   )}
                   <button
+                    type="button"
                     onClick={() => navigate(item.id)}
                     className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 mb-0.5 text-left transition-all font-heading text-xs uppercase tracking-widest relative group
                       ${isActive
@@ -297,6 +386,7 @@ export default function AdminPage() {
             View Public Site
           </Link>
           <button
+            type="button"
             onClick={handleLogout}
             className="flex items-center gap-2 font-heading text-[10px] uppercase tracking-widest text-white/20 hover:text-red-400/60 transition-colors py-1 text-left"
           >
@@ -319,6 +409,7 @@ export default function AdminPage() {
           {/* Left: hamburger + breadcrumb */}
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden text-white/40 hover:text-white p-1 -ml-1 transition-colors"
               aria-label="Open menu"
@@ -336,17 +427,72 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Right: site link */}
-          <Link
-            href="/"
-            target="_blank"
-            className="hidden sm:flex items-center gap-1.5 font-heading text-[10px] uppercase tracking-widest text-white/25 hover:text-white/50 transition-colors"
-          >
-            reboundrockband.com
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-            </svg>
-          </Link>
+          {/* Right: search + site link */}
+          <div className="flex items-center gap-3">
+            {/* Global search */}
+            <div className="relative hidden sm:block">
+              <div className="flex items-center gap-2 border border-white/10 bg-white/[0.03] px-3 py-1.5 focus-within:border-brand-red/40 transition-colors">
+                <svg className="w-3.5 h-3.5 text-white/25 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); setSearchIdx(0) }}
+                  onFocus={() => setSearchOpen(true)}
+                  onBlur={() => setTimeout(() => setSearchOpen(false), 150)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown') { e.preventDefault(); setSearchIdx((i) => Math.min(i + 1, searchResults.length - 1)) }
+                    if (e.key === 'ArrowUp') { e.preventDefault(); setSearchIdx((i) => Math.max(i - 1, 0)) }
+                    if (e.key === 'Enter' && searchResults[searchIdx]) {
+                      navigate(searchResults[searchIdx].section)
+                      setSearchOpen(false); setSearchQuery('')
+                    }
+                  }}
+                  placeholder="Search… ⌘K"
+                  className="bg-transparent text-white font-body text-xs w-44 focus:outline-none placeholder:text-white/20"
+                  aria-label="Global search"
+                />
+              </div>
+              {searchOpen && searchResults.length > 0 && (
+                <div className="absolute right-0 top-full mt-1 w-80 bg-[#0d0d1e] border border-white/12 shadow-2xl z-50">
+                  {searchResults.map((item, i) => {
+                    const m = TYPE_META[item.type]
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onMouseDown={() => { navigate(item.section); setSearchOpen(false); setSearchQuery('') }}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${i === searchIdx ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]'}`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="font-body text-sm text-white truncate">{item.title}</div>
+                          <div className="font-body text-xs text-white/35 truncate">{item.sub}</div>
+                        </div>
+                        <span className={`font-heading text-[8px] uppercase tracking-widest border px-1.5 py-0.5 flex-shrink-0 ${m.color}`}>{m.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+              {searchOpen && searchQuery.trim().length >= 2 && searchResults.length === 0 && (
+                <div className="absolute right-0 top-full mt-1 w-80 bg-[#0d0d1e] border border-white/12 shadow-2xl z-50 px-4 py-3">
+                  <p className="font-body text-xs text-white/30">No results for &ldquo;{searchQuery}&rdquo;</p>
+                </div>
+              )}
+            </div>
+            <Link
+              href="/"
+              target="_blank"
+              className="hidden lg:flex items-center gap-1.5 font-heading text-[10px] uppercase tracking-widest text-white/25 hover:text-white/50 transition-colors"
+            >
+              reboundrockband.com
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+            </Link>
+          </div>
         </div>
 
         {/* Section content */}
