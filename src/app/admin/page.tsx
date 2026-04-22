@@ -343,7 +343,6 @@ export default function AdminPage() {
                     </div>
                   )}
                   <button
-                    type="button"
                     onClick={() => navigate(item.id)}
                     className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 mb-0.5 text-left transition-all font-heading text-xs uppercase tracking-widest relative group
                       ${isActive
@@ -386,7 +385,6 @@ export default function AdminPage() {
             View Public Site
           </Link>
           <button
-            type="button"
             onClick={handleLogout}
             className="flex items-center gap-2 font-heading text-[10px] uppercase tracking-widest text-white/20 hover:text-red-400/60 transition-colors py-1 text-left"
           >
@@ -409,7 +407,6 @@ export default function AdminPage() {
           {/* Left: hamburger + breadcrumb */}
           <div className="flex items-center gap-3">
             <button
-              type="button"
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden text-white/40 hover:text-white p-1 -ml-1 transition-colors"
               aria-label="Open menu"

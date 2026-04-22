@@ -538,7 +538,6 @@ export default function AdminShows() {
           {/* List / Calendar toggle */}
           <div className="flex border border-white/10">
             <button
-              type="button"
               onClick={() => setDisplayMode('list')}
               title="List view"
               className={`px-3 py-2 transition-colors ${displayMode === 'list' ? 'bg-white/8 text-white' : 'text-white/30 hover:text-white/60'}`}
@@ -548,7 +547,6 @@ export default function AdminShows() {
               </svg>
             </button>
             <button
-              type="button"
               onClick={() => setDisplayMode('calendar')}
               title="Calendar view"
               className={`px-3 py-2 border-l border-white/10 transition-colors ${displayMode === 'calendar' ? 'bg-white/8 text-white' : 'text-white/30 hover:text-white/60'}`}
@@ -559,7 +557,6 @@ export default function AdminShows() {
             </button>
           </div>
           <button
-            type="button"
             onClick={exportShowsCSV}
             disabled={shows.length === 0}
             title="Export all shows as CSV"
@@ -571,7 +568,6 @@ export default function AdminShows() {
             CSV
           </button>
           <button
-            type="button"
             onClick={exportICal}
             disabled={shows.filter(s => s.date >= todayIso).length === 0}
             title="Export upcoming shows as calendar file (.ics)"
@@ -699,7 +695,6 @@ export default function AdminShows() {
             {/* Financials & Logistics accordion */}
             <div className="mb-5 border border-white/8">
               <button
-                type="button"
                 onClick={() => setShowFinancials((v) => !v)}
                 className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/[0.03] transition-colors"
               >
@@ -828,7 +823,6 @@ export default function AdminShows() {
               </button>
               {editing && (
                 <button
-                  type="button"
                   onClick={() => {
                     const current: Show = { ...editing, ...form }
                     const w = window.open('', '_blank')
@@ -1012,7 +1006,6 @@ export default function AdminShows() {
                     </button>
                     <button type="button" onClick={() => openEdit(show)} className="font-heading text-[10px] uppercase tracking-widest border border-white/10 text-white/35 px-3 py-1.5 hover:border-white/30 hover:text-white transition-all">Edit</button>
                     <button
-                      type="button"
                       title="Copy social post"
                       onClick={() => copyShowPost(show)}
                       className={`font-heading text-[10px] uppercase tracking-widest border px-2 py-1.5 transition-all flex items-center gap-1 ${copiedId === show.id ? 'border-green-400/40 text-green-400' : 'border-white/10 text-white/30 hover:border-white/30 hover:text-white'}`}
@@ -1025,7 +1018,6 @@ export default function AdminShows() {
                       )}
                     </button>
                     <button
-                      type="button"
                       title="Print Advance Sheet"
                       onClick={() => {
                         const w = window.open('', '_blank')
@@ -1044,7 +1036,6 @@ export default function AdminShows() {
                     </button>
                     {showTab === 'past' && (
                       <button
-                        type="button"
                         onClick={() => loggingId === show.id ? setLoggingId(null) : openGigLog(show)}
                         className={`font-heading text-[10px] uppercase tracking-widest border px-3 py-1.5 transition-all ${
                           loggingId === show.id
@@ -1063,7 +1054,6 @@ export default function AdminShows() {
                       const allDone = done === total
                       return (
                         <button
-                          type="button"
                           onClick={() => advancingId === show.id ? setAdvancingId(null) : openAdvance(show)}
                           title="Pre-show advance checklist"
                           className={`font-heading text-[10px] uppercase tracking-widest border px-3 py-1.5 transition-all ${
@@ -1153,7 +1143,6 @@ export default function AdminShows() {
                   </div>
                   <div className="flex gap-2.5">
                     <button
-                      type="button"
                       onClick={() => saveGigLog(loggingId)}
                       disabled={saving}
                       className="font-heading text-[10px] uppercase tracking-widest bg-brand-red text-white px-4 py-2 hover:bg-brand-red-bright transition-all disabled:opacity-60"
@@ -1185,7 +1174,6 @@ export default function AdminShows() {
                       return (
                         <label key={check.id} className="flex items-center gap-3 cursor-pointer group">
                           <button
-                            type="button"
                             onClick={() => toggleAdvanceCheck(check.id)}
                             aria-label={check.label}
                             className={`w-5 h-5 border flex items-center justify-center flex-shrink-0 transition-colors ${checked ? 'bg-green-400 border-green-400' : 'border-white/20 group-hover:border-white/40'}`}
@@ -1208,7 +1196,6 @@ export default function AdminShows() {
                   </div>
                   <div className="flex gap-2.5">
                     <button
-                      type="button"
                       onClick={() => saveAdvance(advancingId)}
                       disabled={saving}
                       className="font-heading text-[10px] uppercase tracking-widest bg-blue-500 text-white px-4 py-2 hover:bg-blue-400 transition-all disabled:opacity-60"
