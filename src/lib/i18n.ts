@@ -146,6 +146,51 @@ export const translations = {
       ctaSub: 'Reach out directly and we can work something out.',
       ctaContact: 'Contact Us',
     },
+    home: {
+      bookingCta: {
+        eyebrow: 'Available for Booking',
+        heading: 'Planning an Event?',
+        headingAccent: "We've Got the Stage.",
+        body: "Rebound Rock Band delivers a high-energy live show that gets crowds moving and keeps them on the dance floor. We handle the music — you take the credit for throwing an incredible event.",
+        eventTypes: ['Bars & Nightclubs', 'Private Parties', 'Corporate Events', 'Festivals', 'Wedding Receptions', 'Restaurant Shows', 'Outdoor Events', 'Holiday Parties'],
+        cta: 'Request a Quote',
+        footer: (area: string) => `Fast response · ${area} based · Available year-round`,
+      },
+      upcomingShows: {
+        eyebrow: 'On the Road',
+        title: 'Upcoming Shows',
+        titleHighlight: 'Shows',
+        allShows: 'All Shows →',
+        empty: 'New dates coming soon — check back shortly',
+      },
+      aboutPreview: {
+        eyebrow: 'The Band',
+        meetBand: 'Meet the Band',
+      },
+      bandHighlights: {
+        items: [
+          { title: '5-Piece Live Band', body: 'Vocals, lead guitar, rhythm guitar, bass, and drums. No tracks, no shortcuts — every note is live.' },
+          { title: '50s Through the 90s', body: 'Four decades of the greatest rock hits — songs every crowd knows, loves, and sings along to.' },
+          { title: 'Any Crowd, Any Venue', body: 'Bars, rooftops, festivals, corporate events, private parties, weddings — we bring the energy everywhere.' },
+          { title: 'Professional & Reliable', body: 'PA and lighting available. On time, fully prepared, and committed to making your event unforgettable.' },
+        ],
+      },
+      mediaPreview: {
+        eyebrow: 'Watch & Listen',
+        title: 'Live in Action',
+        titleHighlight: 'in Action',
+        fullGallery: 'Full Gallery',
+        watchShow: 'Watch the Show',
+        socialPitch: 'New photos and live clips added regularly. Follow for updates.',
+        viewGallery: 'View Gallery',
+      },
+      merchPreview: {
+        eyebrow: 'Rep the Band',
+        title: 'Official Merch',
+        titleHighlight: 'Merch',
+        shopAll: 'Shop All',
+      },
+    },
   },
   es: {
     nav: {
@@ -291,6 +336,51 @@ export const translations = {
       ctaHeadingAccent: 'Que Buscas?',
       ctaSub: 'Escríbenos directamente y buscamos una solución.',
       ctaContact: 'Contáctanos',
+    },
+    home: {
+      bookingCta: {
+        eyebrow: 'Disponibles para Contratar',
+        heading: '¿Planeas un Evento?',
+        headingAccent: 'Nosotros lo Animamos.',
+        body: 'Rebound Rock Band ofrece un show en vivo lleno de energía que pone a bailar al público y los mantiene en la pista. Nosotros ponemos la música — tú te llevas el crédito de organizar un evento increíble.',
+        eventTypes: ['Bares y Discotecas', 'Fiestas Privadas', 'Eventos Corporativos', 'Festivales', 'Recepciones de Bodas', 'Shows en Restaurantes', 'Eventos al Aire Libre', 'Fiestas de Fin de Año'],
+        cta: 'Pedir Cotización',
+        footer: (area: string) => `Respuesta rápida · Basados en ${area} · Disponibles todo el año`,
+      },
+      upcomingShows: {
+        eyebrow: 'En Gira',
+        title: 'Próximos Conciertos',
+        titleHighlight: 'Conciertos',
+        allShows: 'Todos los Shows →',
+        empty: 'Nuevas fechas próximamente — vuelve pronto',
+      },
+      aboutPreview: {
+        eyebrow: 'La Banda',
+        meetBand: 'Conoce la Banda',
+      },
+      bandHighlights: {
+        items: [
+          { title: 'Banda en Vivo de 5', body: 'Voz, guitarra líder, guitarra rítmica, bajo y batería. Sin pistas, sin atajos — cada nota es en vivo.' },
+          { title: 'De los 50 a los 90', body: 'Cuatro décadas de los mejores éxitos del rock — canciones que todo el público conoce, ama y canta.' },
+          { title: 'Cualquier Crowd, Cualquier Venue', body: 'Bares, terrazas, festivales, eventos corporativos, fiestas privadas, bodas — ponemos la energía en todos lados.' },
+          { title: 'Profesionales y Confiables', body: 'PA e iluminación disponibles. Puntuales, completamente preparados y comprometidos a hacer tu evento inolvidable.' },
+        ],
+      },
+      mediaPreview: {
+        eyebrow: 'Mira y Escucha',
+        title: 'En Vivo en Acción',
+        titleHighlight: 'Acción',
+        fullGallery: 'Galería Completa',
+        watchShow: 'Ver el Show',
+        socialPitch: 'Nuevas fotos y clips en vivo añadidos regularmente. Síguenos para estar al día.',
+        viewGallery: 'Ver Galería',
+      },
+      merchPreview: {
+        eyebrow: 'Representa la Banda',
+        title: 'Merch Oficial',
+        titleHighlight: 'Oficial',
+        shopAll: 'Ver Todo',
+      },
     },
   },
 } as const

@@ -1,8 +1,11 @@
 import Link from 'next/link'
 import { readContent } from '@/lib/store'
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 
 export default async function AboutPreview() {
-  const { siteContent } = await readContent()
+  const [{ siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang].home.aboutPreview
   return (
     <section className="relative bg-brand-bg py-24 lg:py-32 overflow-hidden border-t border-brand-border">
       {/* Atmospheric red glow */}
@@ -13,7 +16,7 @@ export default async function AboutPreview() {
         {/* Eyebrow */}
         <div className="inline-flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
           <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-          The Band
+          {tr.eyebrow}
           <span className="w-8 h-px bg-gradient-to-l from-transparent to-brand-red/70" />
         </div>
 
@@ -30,7 +33,7 @@ export default async function AboutPreview() {
           href="/about"
           className="inline-flex items-center gap-2.5 font-heading text-sm uppercase tracking-widest border border-white/20 text-white/85 px-8 py-4 hover:border-brand-red hover:text-brand-red transition-all"
         >
-          Meet the Band
+          {tr.meetBand}
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
           </svg>

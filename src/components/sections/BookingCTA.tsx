@@ -1,19 +1,11 @@
 import Link from 'next/link'
 import { readContent } from '@/lib/store'
-
-const eventTypes = [
-  'Bars & Nightclubs',
-  'Private Parties',
-  'Corporate Events',
-  'Festivals',
-  'Wedding Receptions',
-  'Restaurant Shows',
-  'Outdoor Events',
-  'Holiday Parties',
-]
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 
 export default async function BookingCTA() {
-  const { siteContent } = await readContent()
+  const [{ siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang].home.bookingCta
 
   return (
     <section className="relative bg-brand-surface border-y border-brand-border overflow-hidden py-24 lg:py-32">
@@ -38,26 +30,25 @@ export default async function BookingCTA() {
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-7">
             <span className="w-10 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-            Available for Booking
+            {tr.eyebrow}
             <span className="w-10 h-px bg-gradient-to-l from-transparent to-brand-red/70" />
           </div>
 
           {/* Headline */}
           <h2 className="font-display uppercase text-5xl sm:text-6xl lg:text-7xl leading-[0.9] text-white mb-3">
-            Planning an Event?
+            {tr.heading}
           </h2>
           <h2 className="font-display uppercase text-5xl sm:text-6xl lg:text-7xl leading-[0.9] mb-10 text-brand-red text-glow-red">
-            We&apos;ve Got the Stage.
+            {tr.headingAccent}
           </h2>
 
           <p className="font-body text-base sm:text-lg text-brand-text max-w-2xl mx-auto mb-10 leading-relaxed">
-            Rebound Rock Band delivers a high-energy live show that gets crowds moving and keeps them
-            on the dance floor. We handle the music — you take the credit for throwing an incredible event.
+            {tr.body}
           </p>
 
           {/* Event type tags */}
           <div className="flex flex-wrap gap-2.5 justify-center mb-11">
-            {eventTypes.map((type) => (
+            {tr.eventTypes.map((type) => (
               <span
                 key={type}
                 className="font-heading text-xs text-brand-muted/80 border border-brand-border px-4 py-2 tracking-wide uppercase hover:border-brand-red/60 hover:text-white transition-all duration-150 cursor-default"
@@ -73,7 +64,7 @@ export default async function BookingCTA() {
               href="/booking"
               className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-10 py-4 hover:bg-brand-red-bright transition-all btn-glow-red text-center"
             >
-              Request a Quote
+              {tr.cta}
             </Link>
             <Link
               href="/epk"
@@ -86,7 +77,7 @@ export default async function BookingCTA() {
           <div className="flex items-center justify-center gap-4">
             <span className="w-12 h-px bg-gradient-to-r from-transparent to-brand-border" />
             <p className="font-body text-sm text-brand-muted">
-              Fast response · {siteContent.serviceArea} based · Available year-round
+              {tr.footer(siteContent.serviceArea)}
             </p>
             <span className="w-12 h-px bg-gradient-to-l from-transparent to-brand-border" />
           </div>

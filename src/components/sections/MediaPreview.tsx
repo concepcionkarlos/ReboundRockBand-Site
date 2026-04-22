@@ -1,9 +1,12 @@
 import Link from 'next/link'
 import SectionHeader from '@/components/ui/SectionHeader'
 import { readContent } from '@/lib/store'
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 
 export default async function MediaPreview() {
-  const { mediaItems, siteContent } = await readContent()
+  const [{ mediaItems, siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang].home.mediaPreview
   const visible = mediaItems.filter((m) => m.visible !== false)
   const featured = visible.find((m) => m.type === 'video' && m.isFeatured) ?? visible[0]
 
@@ -12,16 +15,16 @@ export default async function MediaPreview() {
       <div className="max-w-7xl mx-auto px-5 lg:px-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-12">
           <SectionHeader
-            eyebrow="Watch & Listen"
-            title="Live in Action"
-            titleHighlight="in Action"
+            eyebrow={tr.eyebrow}
+            title={tr.title}
+            titleHighlight={tr.titleHighlight}
             align="left"
           />
           <Link
             href="/media"
             className="font-heading text-xs uppercase tracking-widest border border-brand-border text-brand-muted hover:border-brand-red hover:text-brand-red transition-all px-4 py-2 self-start sm:self-auto flex-shrink-0 inline-flex items-center gap-1.5"
           >
-            Full Gallery
+            {tr.fullGallery}
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
@@ -49,7 +52,7 @@ export default async function MediaPreview() {
                     {featured.caption || 'Live Performance'}
                   </div>
                   <div className="font-display text-4xl lg:text-6xl text-white uppercase leading-none">
-                    Watch the Show
+                    {tr.watchShow}
                   </div>
                 </div>
               </div>
@@ -71,7 +74,7 @@ export default async function MediaPreview() {
         {/* Social pitch bar */}
         <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 border border-brand-border bg-brand-elevated/60">
           <p className="font-body text-sm text-brand-text">
-            New photos and live clips added regularly. Follow for updates.
+            {tr.socialPitch}
           </p>
           <div className="flex gap-2.5 flex-shrink-0">
             {siteContent.facebook && (
@@ -88,7 +91,7 @@ export default async function MediaPreview() {
               href="/media"
               className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2 hover:bg-brand-red-bright transition-all btn-glow-red"
             >
-              View Gallery
+              {tr.viewGallery}
             </Link>
           </div>
         </div>

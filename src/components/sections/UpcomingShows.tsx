@@ -2,6 +2,8 @@ import { readContent } from '@/lib/store'
 import ShowCard from '@/components/ui/ShowCard'
 import SectionHeader from '@/components/ui/SectionHeader'
 import Link from 'next/link'
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 
 interface UpcomingShowsProps {
   limit?: number
@@ -9,7 +11,8 @@ interface UpcomingShowsProps {
 }
 
 export default async function UpcomingShows({ limit = 4, showViewAll = true }: UpcomingShowsProps) {
-  const { shows } = await readContent()
+  const [{ shows }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang].home.upcomingShows
   const upcoming = shows
     .filter((s) => s.visible !== false)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -20,9 +23,9 @@ export default async function UpcomingShows({ limit = 4, showViewAll = true }: U
       <div className="max-w-7xl mx-auto px-5 lg:px-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-10">
           <SectionHeader
-            eyebrow="On the Road"
-            title="Upcoming Shows"
-            titleHighlight="Shows"
+            eyebrow={tr.eyebrow}
+            title={tr.title}
+            titleHighlight={tr.titleHighlight}
             align="left"
           />
           {showViewAll && (
@@ -30,7 +33,7 @@ export default async function UpcomingShows({ limit = 4, showViewAll = true }: U
               href="/shows"
               className="font-heading text-xs uppercase tracking-widest border border-brand-border text-brand-muted hover:border-brand-red hover:text-brand-red transition-colors px-4 py-2 self-start sm:self-auto flex-shrink-0"
             >
-              All Shows →
+              {tr.allShows}
             </Link>
           )}
         </div>
@@ -44,7 +47,7 @@ export default async function UpcomingShows({ limit = 4, showViewAll = true }: U
         ) : (
           <div className="text-center py-16 border border-brand-border rounded-sm">
             <p className="font-heading text-brand-muted text-xs tracking-widest uppercase">
-              New dates coming soon — check back shortly
+              {tr.empty}
             </p>
           </div>
         )}
