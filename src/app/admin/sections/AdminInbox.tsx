@@ -44,19 +44,33 @@ export default function AdminInbox({ onNavigate }: Props) {
   const [selected, setSelected] = useState<InboundEmail | null>(null)
   const [showHtml, setShowHtml] = useState(false)
 
-  useEffect(() => {
+  const loadEmails = () => {
+    setLoading(true)
     fetch('/api/inbound-emails')
       .then((r) => r.json())
       .then((d) => setEmails(d.emails ?? []))
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { loadEmails() }, [])
 
   const markRead = async (email: InboundEmail) => {
     if (email.read) return
     await fetch(`/api/inbound-emails/${email.id}`, { method: 'PATCH' }).catch(() => {})
     setEmails((prev) => prev.map((e) => e.id === email.id ? { ...e, read: true } : e))
     setSelected((prev) => prev?.id === email.id ? { ...prev, read: true } : prev)
+  }
+
+  const markAllRead = async () => {
+    await fetch('/api/inbound-emails', { method: 'PATCH' }).catch(() => {})
+    setEmails((prev) => prev.map((e) => ({ ...e, read: true })))
+  }
+
+  const deleteEmail = async (email: InboundEmail) => {
+    await fetch(`/api/inbound-emails/${email.id}`, { method: 'DELETE' }).catch(() => {})
+    setEmails((prev) => prev.filter((e) => e.id !== email.id))
+    if (selected?.id === email.id) setSelected(null)
   }
 
   const openEmail = (email: InboundEmail) => {
@@ -101,14 +115,28 @@ export default function AdminInbox({ onNavigate }: Props) {
           <h1 className="font-display uppercase text-4xl text-white leading-none">Inbox</h1>
           <p className="font-body text-sm text-white/40 mt-1.5">Incoming emails from clients, fans, and venues</p>
         </div>
-        {unreadCount > 0 && (
-          <div className="flex items-center gap-2 border border-blue-400/30 bg-blue-400/8 px-4 py-2">
-            <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-            <span className="font-heading text-xs uppercase tracking-widest text-blue-400">
-              {unreadCount} unread
-            </span>
-          </div>
-        )}
+          <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={markAllRead}
+              className="font-heading text-[10px] uppercase tracking-widest border border-blue-400/30 bg-blue-400/8 text-blue-400 px-3 py-2 hover:bg-blue-400/15 transition-colors flex items-center gap-2"
+            >
+              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              {unreadCount} unread — Mark all read
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={loadEmails}
+            aria-label="Refresh inbox"
+            className="border border-white/10 text-white/30 hover:text-white hover:border-white/25 transition-colors p-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Filter tabs */}
@@ -116,6 +144,7 @@ export default function AdminInbox({ onNavigate }: Props) {
         {filterItems.map((f) => (
           <button
             key={f.id}
+            type="button"
             onClick={() => { setFilter(f.id); setSelected(null) }}
             className={`font-heading text-xs uppercase tracking-widest px-4 py-2 border transition-all flex items-center gap-2 ${
               filter === f.id
@@ -158,6 +187,7 @@ export default function AdminInbox({ onNavigate }: Props) {
               return (
                 <button
                   key={email.id}
+                  type="button"
                   onClick={() => isSelected ? setSelected(null) : openEmail(email)}
                   className={`w-full text-left px-5 py-5 transition-all ${
                     isSelected
@@ -206,7 +236,12 @@ export default function AdminInbox({ onNavigate }: Props) {
                     </span>
                     {email.entityType && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); onNavigate(SECTION_MAP[email.entityType!]) }}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (email.entityId) sessionStorage.setItem('openEntityId', JSON.stringify({ type: email.entityType, id: email.entityId }))
+                          onNavigate(SECTION_MAP[email.entityType!])
+                        }}
                         className="font-heading text-[10px] uppercase tracking-widest text-white/30 hover:text-brand-red transition-colors"
                       >
                         View detail →
@@ -231,14 +266,28 @@ export default function AdminInbox({ onNavigate }: Props) {
                     </h2>
                     <p className="font-body text-sm text-white/40">{fmtDate(selected.receivedAt)}</p>
                   </div>
-                  <button
-                    onClick={() => setSelected(null)}
-                    className="text-white/30 hover:text-white transition-colors flex-shrink-0 mt-1"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => deleteEmail(selected)}
+                      aria-label="Delete email"
+                      className="text-white/20 hover:text-red-400 transition-colors p-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelected(null)}
+                      aria-label="Close email"
+                      className="text-white/30 hover:text-white transition-colors p-1"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Sender card */}
@@ -258,7 +307,11 @@ export default function AdminInbox({ onNavigate }: Props) {
                         {ENTITY_STYLES[selected.entityType].label}
                       </span>
                       <button
-                        onClick={() => onNavigate(SECTION_MAP[selected.entityType!])}
+                        type="button"
+                        onClick={() => {
+                          if (selected.entityId) sessionStorage.setItem('openEntityId', JSON.stringify({ type: selected.entityType, id: selected.entityId }))
+                          onNavigate(SECTION_MAP[selected.entityType!])
+                        }}
                         className="font-heading text-[10px] uppercase tracking-widest text-white/30 hover:text-brand-red transition-colors"
                       >
                         Go to detail →
@@ -273,12 +326,14 @@ export default function AdminInbox({ onNavigate }: Props) {
                 {selected.bodyHtml && selected.bodyText && (
                   <div className="flex gap-2 px-7 pt-5">
                     <button
+                      type="button"
                       onClick={() => setShowHtml(true)}
                       className={`font-heading text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors ${showHtml ? 'border-white/20 text-white' : 'border-white/8 text-white/30 hover:text-white/60'}`}
                     >
                       HTML View
                     </button>
                     <button
+                      type="button"
                       onClick={() => setShowHtml(false)}
                       className={`font-heading text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors ${!showHtml ? 'border-white/20 text-white' : 'border-white/8 text-white/30 hover:text-white/60'}`}
                     >

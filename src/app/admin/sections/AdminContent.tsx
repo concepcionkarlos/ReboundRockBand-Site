@@ -13,7 +13,7 @@ export default function AdminContent() {
   const [content, setContent] = useState<SiteContent>(initialContent)
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'hero' | 'about' | 'contact'>('hero')
+  const [activeTab, setActiveTab] = useState<'hero' | 'about' | 'contact' | 'seo'>('hero')
 
   useEffect(() => {
     fetch('/api/content')
@@ -52,6 +52,7 @@ export default function AdminContent() {
     { id: 'hero' as const, label: 'Hero Text' },
     { id: 'about' as const, label: 'About' },
     { id: 'contact' as const, label: 'Contact & Socials' },
+    { id: 'seo' as const, label: 'SEO' },
   ]
 
   return (
@@ -171,6 +172,84 @@ export default function AdminContent() {
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
             Add Paragraph
           </button>
+        </div>
+      )}
+
+      {/* ── SEO Tab ── */}
+      {activeTab === 'seo' && (
+        <div className="flex flex-col gap-6">
+          <div className="border border-white/6 bg-[#0d0d1e] px-5 py-4">
+            <p className="font-body text-xs text-white/30 leading-relaxed">
+              These values populate the <code className="font-mono text-white/50 text-[11px]">&lt;meta&gt;</code> tags and Open Graph preview that search engines and social platforms use. Leaving a field blank keeps the built-in default.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Meta Description</label>
+            <textarea
+              rows={3}
+              value={content.metaDescription ?? ''}
+              onChange={(e) => setContent({ ...content, metaDescription: e.target.value })}
+              className={textareaClass}
+              placeholder="South Florida's live 5-piece classic rock cover band. Greatest hits from the 1950s–1990s. Available for bars, private events, festivals, and corporate shows."
+            />
+            <p className="font-body text-xs text-white/20">Shown below the page title in Google search results. Aim for 140–160 characters.</p>
+            {(content.metaDescription ?? '').length > 0 && (
+              <p className={`font-body text-[11px] ${(content.metaDescription ?? '').length > 160 ? 'text-orange-400' : 'text-white/25'}`}>
+                {(content.metaDescription ?? '').length} characters{(content.metaDescription ?? '').length > 160 ? ' — over 160, may be truncated' : ''}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">OG Title (Social Share)</label>
+            <input
+              type="text"
+              value={content.ogTitle ?? ''}
+              onChange={(e) => setContent({ ...content, ogTitle: e.target.value })}
+              className={inputClass}
+              placeholder="Rebound Rock Band — Classic Rock Cover Band"
+            />
+            <p className="font-body text-xs text-white/20">Title shown when the site is shared on Facebook, iMessage, Slack, etc.</p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">OG Description (Social Share)</label>
+            <textarea
+              rows={2}
+              value={content.ogDescription ?? ''}
+              onChange={(e) => setContent({ ...content, ogDescription: e.target.value })}
+              className={textareaClass}
+              placeholder="South Florida's live 5-piece classic rock cover band. Book us for your next event."
+            />
+            <p className="font-body text-xs text-white/20">Description shown in link previews on social media.</p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Keywords (comma-separated)</label>
+            <textarea
+              rows={2}
+              value={content.metaKeywords ?? ''}
+              onChange={(e) => setContent({ ...content, metaKeywords: e.target.value })}
+              className={textareaClass}
+              placeholder="rock cover band, south florida band, live band for hire, classic rock band miami"
+            />
+            <p className="font-body text-xs text-white/20">Not a major ranking factor, but useful for context.</p>
+          </div>
+
+          {/* Live preview */}
+          <div className="border border-white/6 bg-[#0d0d1e] px-5 py-4 flex flex-col gap-3">
+            <p className="font-heading text-[9px] uppercase tracking-widest text-white/20 mb-1">Google Preview</p>
+            <div className="font-body text-[13px] text-blue-400 truncate">
+              reboundrockband.com
+            </div>
+            <div className="font-body text-base text-blue-300 leading-tight truncate">
+              {content.ogTitle || 'Rebound Rock Band — Classic Rock Cover Band | South Florida'}
+            </div>
+            <div className="font-body text-sm text-white/40 leading-relaxed line-clamp-2">
+              {content.metaDescription || 'Rebound Rock Band is South Florida\'s live 5-piece classic rock cover band. Greatest hits from the 1950s through the 1990s.'}
+            </div>
+          </div>
         </div>
       )}
 

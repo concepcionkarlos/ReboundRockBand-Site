@@ -561,3 +561,15 @@ export async function markInboundEmailRead(id: string): Promise<void> {
   )
   useKV ? await writeKV({ inboundEmails }) : writeLocal({ inboundEmails })
 }
+
+export async function markAllInboundEmailsRead(): Promise<void> {
+  const store = await readVenueStore()
+  const inboundEmails = (store.inboundEmails ?? []).map((e) => ({ ...e, read: true }))
+  useKV ? await writeKV({ inboundEmails }) : writeLocal({ inboundEmails })
+}
+
+export async function deleteInboundEmail(id: string): Promise<void> {
+  const store = await readVenueStore()
+  const inboundEmails = (store.inboundEmails ?? []).filter((e) => e.id !== id)
+  useKV ? await writeKV({ inboundEmails }) : writeLocal({ inboundEmails })
+}

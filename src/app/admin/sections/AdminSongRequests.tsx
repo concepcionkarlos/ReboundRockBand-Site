@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { SongRequest, SongRequestStatus, EmailTemplate, BookingEmailLog, InboundEmail } from '@/lib/data'
+import type { SongRequest, SongRequestStatus, EmailTemplate, BookingEmailLog, InboundEmail, EpkContent } from '@/lib/data'
 import { renderTemplate } from '@/lib/templateUtils'
 
 const ALL_STATUSES: SongRequestStatus[] = ['New', 'Review', 'Consider', 'Added', 'Declined']
+type SongView = 'list' | 'popularity' | 'stats'
 
 const statusColors: Record<SongRequestStatus, string> = {
   'New': 'border-blue-400/40 text-blue-400',
@@ -34,6 +35,13 @@ export default function AdminSongRequests() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Setlist quick-add state
+  const [setlists, setSetlists] = useState<NonNullable<EpkContent['setlists']>>([])
+  const [addingSong, setAddingSong] = useState<string | null>(null) // song title being added
+  const [addToSetlistIdx, setAddToSetlistIdx] = useState(0)
+  const [addingToSetlist, setAddingToSetlist] = useState(false)
+  const [addSetlistResult, setAddSetlistResult] = useState<string | null>(null)
+
   // Email reply state
   const [templates, setTemplates] = useState<EmailTemplate[]>([])
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
@@ -53,6 +61,7 @@ export default function AdminSongRequests() {
     ])
       .then(([d, td]) => {
         if (d.songRequests) setRequests(d.songRequests)
+        if (d.epkContent?.setlists) setSetlists(d.epkContent.setlists)
         if (td.templates) {
           setTemplates(
             (td.templates as EmailTemplate[]).filter((t) => t.slug === 'song-request-reply')
@@ -87,6 +96,44 @@ export default function AdminSongRequests() {
     setEditableBody('')
     setShowPreview(false)
     setEmailLogs([])
+    setAddingSong(null)
+    setAddSetlistResult(null)
+  }
+
+  const handleAddToSetlist = async (song: string) => {
+    if (setlists.length === 0) return
+    const target = setlists[addToSetlistIdx]
+    if (!target) return
+    if (target.songs.includes(song)) {
+      setAddSetlistResult(`"${song}" is already in ${target.title}.`)
+      setAddingSong(null)
+      return
+    }
+    setAddingToSetlist(true)
+    const updatedSetlists = setlists.map((s, i) =>
+      i === addToSetlistIdx ? { ...s, songs: [...s.songs, song] } : s
+    )
+    try {
+      const res = await fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'epkContent', data: { setlists: updatedSetlists } }),
+      })
+      if (res.ok) {
+        setSetlists(updatedSetlists)
+        setAddSetlistResult(`Added "${song}" to ${target.title}.`)
+        if (selected && editStatus !== 'Added') {
+          setEditStatus('Consider')
+        }
+      } else {
+        setAddSetlistResult('Save failed — try again.')
+      }
+    } catch {
+      setAddSetlistResult('Network error.')
+    } finally {
+      setAddingToSetlist(false)
+      setAddingSong(null)
+    }
   }
 
   const closeDetail = () => setSelected(null)
@@ -194,11 +241,50 @@ export default function AdminSongRequests() {
     URL.revokeObjectURL(url)
   }
 
+  const [songView, setSongView] = useState<SongView>('list')
+
   const sorted = [...requests].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const filtered = filterStatus === 'All' ? sorted : sorted.filter((r) => r.status === filterStatus)
 
   const countNew = requests.filter((r) => r.status === 'New').length
   const countAdded = requests.filter((r) => r.status === 'Added').length
+
+  const popularityMap = requests.reduce((acc, req) => {
+    ;[req.song1, req.song2, req.song3].filter(Boolean).forEach((song) => {
+      acc[song!] = (acc[song!] || 0) + 1
+    })
+    return acc
+  }, {} as Record<string, number>)
+  const popularity = Object.entries(popularityMap)
+    .sort((a, b) => b[1] - a[1])
+    .map(([song, count]) => ({ song, count }))
+  const maxCount = popularity[0]?.count ?? 1
+
+  // Stats computations
+  const monthlyTrend = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date()
+    d.setDate(1)
+    d.setMonth(d.getMonth() - (5 - i))
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const label = d.toLocaleDateString('en-US', { month: 'short' })
+    const count = requests.filter((r) => r.createdAt.startsWith(key)).length
+    return { key, label, count }
+  })
+  const trendMax = Math.max(...monthlyTrend.map((m) => m.count), 1)
+
+  const statusFunnel = ALL_STATUSES.map((s) => ({
+    status: s,
+    count: requests.filter((r) => r.status === s).length,
+  })).filter((s) => s.count > 0)
+  const statusMax = Math.max(...statusFunnel.map((s) => s.count), 1)
+
+  const requesterMap: Record<string, number> = {}
+  for (const r of requests) requesterMap[r.fullName] = (requesterMap[r.fullName] ?? 0) + 1
+  const topRequesters = Object.entries(requesterMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, count]) => ({ name, count }))
+  const requesterMax = topRequesters[0]?.count ?? 1
 
   if (loading) {
     return <div className="font-body text-sm text-white/30 py-12 text-center">Loading…</div>
@@ -212,12 +298,31 @@ export default function AdminSongRequests() {
           <h2 className="font-display uppercase text-2xl text-white">Song Requests</h2>
           <p className="font-body text-xs text-white/40 mt-0.5">{requests.length} total request{requests.length !== 1 ? 's' : ''}</p>
         </div>
-        <button
-          onClick={exportCSV}
-          className="self-start font-heading text-[11px] uppercase tracking-widest border border-white/15 text-white/60 px-4 py-2.5 hover:border-white/30 hover:text-white transition-all"
-        >
-          Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex border border-white/10">
+            {([
+              { id: 'list', label: 'List' },
+              { id: 'popularity', label: 'Popularity' },
+              { id: 'stats', label: 'Stats' },
+            ] as const).map((v, i) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setSongView(v.id)}
+                className={`font-heading text-[10px] uppercase tracking-widest px-4 py-2 transition-colors ${i > 0 ? 'border-l border-white/10' : ''} ${songView === v.id ? 'bg-brand-red/15 text-white' : 'text-white/35 hover:text-white/60'}`}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={exportCSV}
+            className="font-heading text-[11px] uppercase tracking-widest border border-white/15 text-white/60 px-4 py-2.5 hover:border-white/30 hover:text-white transition-all"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -236,36 +341,144 @@ export default function AdminSongRequests() {
         </div>
       </div>
 
-      {/* Filter */}
-      <div className="flex items-center gap-3">
-        <span className="font-heading text-[10px] uppercase tracking-widest text-white/40">Filter:</span>
-        <div className="flex flex-wrap gap-2">
-          {(['All', ...ALL_STATUSES] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setFilterStatus(s)}
-              className={`font-heading text-[10px] uppercase tracking-widest px-3 py-1.5 border transition-all ${
-                filterStatus === s
-                  ? 'border-brand-red text-brand-red'
-                  : 'border-white/10 text-white/40 hover:border-white/25 hover:text-white/60'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+      {/* Stats view */}
+      {songView === 'stats' && (
+        <div className="flex flex-col gap-5">
+          {/* Monthly trend */}
+          <div className="border border-white/8 bg-[#0d0d1e] p-5">
+            <h3 className="font-heading text-[10px] uppercase tracking-widest text-white/50 mb-4">Requests — Last 6 Months</h3>
+            <div className="flex items-end gap-2 h-24">
+              {monthlyTrend.map((m) => (
+                <div key={m.key} className="flex-1 flex flex-col items-center gap-1.5">
+                  <span className="font-heading text-[9px] text-white/30">{m.count > 0 ? m.count : ''}</span>
+                  <div className="w-full flex flex-col justify-end" style={{ height: '60px' }}>
+                    <div
+                      className="w-full bg-brand-red transition-all"
+                      style={{ height: m.count > 0 ? `${Math.round((m.count / trendMax) * 60)}px` : '2px', opacity: m.count > 0 ? 1 : 0.15 }}
+                    />
+                  </div>
+                  <span className="font-heading text-[9px] uppercase tracking-widest text-white/25">{m.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Status funnel + Top requesters */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="border border-white/8 bg-[#0d0d1e] p-5">
+              <h3 className="font-heading text-[10px] uppercase tracking-widest text-white/50 mb-4">Status Breakdown</h3>
+              <div className="flex flex-col gap-2.5">
+                {statusFunnel.length === 0 ? (
+                  <p className="font-body text-sm text-white/25">No data yet.</p>
+                ) : statusFunnel.map((s) => (
+                  <div key={s.status} className="flex items-center gap-3">
+                    <span className={`font-heading text-[9px] uppercase tracking-widest border px-1.5 py-0.5 w-24 text-center flex-shrink-0 ${statusColors[s.status as SongRequestStatus]}`}>{s.status}</span>
+                    <div className="flex-1 h-1.5 bg-white/5">
+                      <div
+                        className="h-full bg-brand-red transition-all"
+                        style={{ width: `${(s.count / statusMax) * 100}%` }}
+                      />
+                    </div>
+                    <span className="font-body text-xs text-white/30 w-5 text-right tabular-nums flex-shrink-0">{s.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border border-white/8 bg-[#0d0d1e] p-5">
+              <h3 className="font-heading text-[10px] uppercase tracking-widest text-white/50 mb-4">Top Requesters</h3>
+              <div className="flex flex-col gap-2.5">
+                {topRequesters.length === 0 ? (
+                  <p className="font-body text-sm text-white/25">No data yet.</p>
+                ) : topRequesters.map(({ name, count }, i) => (
+                  <div key={name} className="flex items-center gap-3">
+                    <span className="font-heading text-[9px] text-white/20 w-4 flex-shrink-0">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-body text-xs text-white/70 truncate">{name}</span>
+                        <span className="font-heading text-[9px] text-brand-red flex-shrink-0 ml-2">{count}</span>
+                      </div>
+                      <div className="h-1 bg-white/5">
+                        <div
+                          className="h-full bg-brand-red/60 transition-all"
+                          style={{ width: `${(count / requesterMax) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Filter — only show in list view */}
+      {songView === 'list' && (
+        <div className="flex items-center gap-3">
+          <span className="font-heading text-[10px] uppercase tracking-widest text-white/40">Filter:</span>
+          <div className="flex flex-wrap gap-2">
+            {(['All', ...ALL_STATUSES] as const).map((s) => (
+              <button
+                type="button"
+                key={s}
+                onClick={() => setFilterStatus(s)}
+                className={`font-heading text-[10px] uppercase tracking-widest px-3 py-1.5 border transition-all ${
+                  filterStatus === s
+                    ? 'border-brand-red text-brand-red'
+                    : 'border-white/10 text-white/40 hover:border-white/25 hover:text-white/60'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Popularity view */}
+      {songView === 'popularity' && (
+        <div className="border border-white/8 overflow-hidden">
+          {popularity.length === 0 ? (
+            <div className="p-10 text-center">
+              <p className="font-body text-sm text-white/30">No song requests yet.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/6">
+              {popularity.map(({ song, count }, i) => (
+                <div key={song} className="flex items-center gap-4 px-5 py-3">
+                  <span className="font-heading text-[10px] text-white/25 w-5 text-right flex-shrink-0">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <span className="font-body text-sm text-white truncate">{song}</span>
+                      <span className="font-display text-base text-brand-red flex-shrink-0">{count}</span>
+                    </div>
+                    <div className="h-1 bg-white/6 w-full">
+                      <div
+                        className="h-full bg-brand-red transition-all"
+                        style={{ width: `${Math.round((count / maxCount) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* List */}
-      {filtered.length === 0 ? (
+      {songView === 'list' && filtered.length === 0 && (
         <div className="border border-white/8 bg-brand-surface p-10 text-center">
           <p className="font-body text-sm text-white/30">No song requests yet.</p>
         </div>
-      ) : (
+      )}
+      {songView === 'list' && filtered.length > 0 && (
         <div className="border border-white/8 overflow-hidden">
           {filtered.map((req, i) => (
             <div key={req.id}>
               <button
+                type="button"
                 onClick={() => selected?.id === req.id ? closeDetail() : openDetail(req)}
                 className={`w-full text-left flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-5 py-4 hover:bg-brand-surface transition-colors ${
                   i < filtered.length - 1 ? 'border-b border-white/6' : ''
@@ -297,6 +510,7 @@ export default function AdminSongRequests() {
                   <div className="flex border-b border-white/8">
                     {(['crm', 'reply'] as const).map((tab) => (
                       <button
+                        type="button"
                         key={tab}
                         onClick={() => {
                           setDetailTab(tab)
@@ -354,6 +568,63 @@ export default function AdminSongRequests() {
                         </div>
                       </div>
 
+                      {/* Add to Setlist */}
+                      {setlists.length > 0 && (
+                        <div>
+                          <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-2">Add to Setlist</div>
+                          <div className="space-y-1.5">
+                            {[selected.song1, selected.song2, selected.song3].filter(Boolean).map((song) => {
+                              const alreadyIn = setlists.some(s => s.songs.includes(song!))
+                              return (
+                                <div key={song} className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-body text-xs text-white/60 flex-1 min-w-0 truncate">{song}</span>
+                                  {alreadyIn ? (
+                                    <span className="font-heading text-[9px] uppercase tracking-widest border border-green-400/25 text-green-400/60 px-2 py-0.5 flex-shrink-0">In Setlist</span>
+                                  ) : addingSong === song ? (
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                      <select
+                                        value={addToSetlistIdx}
+                                        onChange={(e) => setAddToSetlistIdx(Number(e.target.value))}
+                                        className="bg-[#111121] border border-white/15 text-white font-body text-xs px-2 py-1 focus:outline-none"
+                                        aria-label="Select setlist"
+                                      >
+                                        {setlists.map((s, i) => <option key={i} value={i}>{s.title}</option>)}
+                                      </select>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAddToSetlist(song!)}
+                                        disabled={addingToSetlist}
+                                        className="font-heading text-[9px] uppercase tracking-widest bg-brand-red text-white px-2.5 py-1 hover:bg-brand-red-bright transition-all disabled:opacity-50"
+                                      >
+                                        {addingToSetlist ? '…' : 'Add'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setAddingSong(null)}
+                                        className="font-heading text-[9px] text-white/30 hover:text-white transition-colors"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => { setAddingSong(song!); setAddSetlistResult(null) }}
+                                      className="font-heading text-[9px] uppercase tracking-widest border border-white/10 text-white/35 px-2 py-0.5 hover:border-brand-red/40 hover:text-brand-red transition-all flex-shrink-0"
+                                    >
+                                      + Add
+                                    </button>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                          {addSetlistResult && (
+                            <p className="font-body text-xs text-green-400/80 mt-2">{addSetlistResult}</p>
+                          )}
+                        </div>
+                      )}
+
                       {selected.notes && (
                         <div>
                           <div className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1">Notes from Requester</div>
@@ -364,11 +635,13 @@ export default function AdminSongRequests() {
                       {/* Editable fields */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/8">
                         <div>
-                          <label className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1.5 block">Status</label>
+                          <label htmlFor="sr-status" className="font-heading text-[10px] uppercase tracking-widest text-white/35 mb-1.5 block">Status</label>
                           <select
+                            id="sr-status"
                             value={editStatus}
                             onChange={(e) => setEditStatus(e.target.value as SongRequestStatus)}
                             className={inputClass}
+                            aria-label="Song request status"
                           >
                             {ALL_STATUSES.map((s) => (
                               <option key={s} value={s}>{s}</option>
@@ -391,6 +664,7 @@ export default function AdminSongRequests() {
                       {/* Actions */}
                       <div className="flex items-center gap-3 pt-2">
                         <button
+                          type="button"
                           onClick={handleSave}
                           disabled={saving}
                           className="font-heading text-[11px] uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-50"
@@ -398,6 +672,7 @@ export default function AdminSongRequests() {
                           {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save Changes'}
                         </button>
                         <button
+                          type="button"
                           onClick={() => { setDetailTab('reply'); loadEmailLogs(selected.id) }}
                           className="font-heading text-[11px] uppercase tracking-widest border border-brand-red/30 text-brand-red/70 px-5 py-2.5 hover:bg-brand-red/10 hover:border-brand-red transition-all flex items-center gap-2"
                         >
@@ -407,6 +682,7 @@ export default function AdminSongRequests() {
                           Reply by Email
                         </button>
                         <button
+                          type="button"
                           onClick={closeDetail}
                           className="font-heading text-[11px] uppercase tracking-widest border border-white/10 text-white/40 px-5 py-2.5 hover:border-white/25 hover:text-white/60 transition-all"
                         >
@@ -419,18 +695,20 @@ export default function AdminSongRequests() {
                   {detailTab === 'reply' && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                      {/* ── Redactar ── */}
+                      {/* ── Compose ── */}
                       <div className="flex flex-col gap-5">
                         <p className="font-heading text-sm uppercase tracking-widest text-white/50 border-b border-white/8 pb-3">
-                          Responder a {selected.fullName}
+                          Reply to {selected.fullName}
                         </p>
 
                         <div className="flex flex-col gap-2">
-                          <label className="font-heading text-xs uppercase tracking-widest text-white/45">Plantilla</label>
+                          <label htmlFor="sr-template" className="font-heading text-xs uppercase tracking-widest text-white/45">Template</label>
                           <select
+                            id="sr-template"
                             value={selectedTemplateId}
                             onChange={(e) => { setSelectedTemplateId(e.target.value); setShowPreview(false) }}
                             className={inputClass}
+                            aria-label="Email template"
                           >
                             <option value="">— Select a template —</option>
                             {templates.map((t) => (
@@ -443,14 +721,14 @@ export default function AdminSongRequests() {
                         </div>
 
                         <div className="flex flex-col gap-2">
-                          <label className="font-heading text-xs uppercase tracking-widest text-white/45">To</label>
-                          <input type="email" value={toEmail} onChange={(e) => setToEmail(e.target.value)} className={inputClass} />
+                          <label htmlFor="sr-to" className="font-heading text-xs uppercase tracking-widest text-white/45">To</label>
+                          <input id="sr-to" type="email" value={toEmail} onChange={(e) => setToEmail(e.target.value)} className={inputClass} placeholder="recipient@email.com" />
                         </div>
 
                         {editableSubject !== '' && (
                           <div className="flex flex-col gap-2">
-                            <label className="font-heading text-xs uppercase tracking-widest text-white/45">Subject</label>
-                            <input type="text" value={editableSubject} onChange={(e) => setEditableSubject(e.target.value)} className={inputClass} />
+                            <label htmlFor="sr-subject" className="font-heading text-xs uppercase tracking-widest text-white/45">Subject</label>
+                            <input id="sr-subject" type="text" value={editableSubject} onChange={(e) => setEditableSubject(e.target.value)} className={inputClass} placeholder="Email subject" />
                           </div>
                         )}
 
@@ -474,6 +752,8 @@ export default function AdminSongRequests() {
                                 onChange={(e) => setEditableBody(e.target.value)}
                                 className={`${inputClass} h-36 resize-y font-mono text-xs`}
                                 spellCheck={false}
+                                aria-label="Email body"
+                                placeholder="Email body HTML…"
                               />
                             )}
                           </div>
@@ -535,9 +815,9 @@ export default function AdminSongRequests() {
                                     <svg className="w-3.5 h-3.5 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                                     </svg>
-                                    <span className="font-heading text-xs uppercase tracking-widest text-white/40">Enviado a {log.toEmail}</span>
+                                    <span className="font-heading text-xs uppercase tracking-widest text-white/40">Sent to {log.toEmail}</span>
                                     <span className={`ml-auto font-heading text-[10px] uppercase tracking-widest border px-2 py-0.5 ${log.status === 'sent' ? 'text-green-400 border-green-400/25' : 'text-red-400 border-red-400/25'}`}>
-                                      {log.status === 'sent' ? 'Enviado' : 'Error'}
+                                      {log.status === 'sent' ? 'Sent' : 'Error'}
                                     </span>
                                   </div>
                                   <p className="font-body text-sm text-white/80 mb-1">{log.subject}</p>
@@ -555,7 +835,7 @@ export default function AdminSongRequests() {
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                                     </svg>
                                     {!email.read && <div className="w-2 h-2 rounded-full bg-blue-400" />}
-                                    <span className="font-heading text-xs uppercase tracking-widest text-blue-400/70">Respuesta recibida</span>
+                                    <span className="font-heading text-xs uppercase tracking-widest text-blue-400/70">Reply received</span>
                                   </div>
                                   <p className="font-body text-base text-white font-medium mb-0.5">
                                     {email.fromName || email.fromEmail}

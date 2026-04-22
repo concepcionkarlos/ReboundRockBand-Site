@@ -1,11 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { Show, BookingRequest } from '@/lib/data'
+import type { Show, BookingRequest, MerchItem, SongRequest, InboundEmail } from '@/lib/data'
 import Link from 'next/link'
 
 interface Props {
   onNavigate: (section: string) => void
+}
+
+interface ActivityItem {
+  id: string
+  kind: 'booking' | 'song-request' | 'inbox'
+  label: string
+  sub: string
+  date: string
+  section: string
 }
 
 interface LiveData {
@@ -13,6 +22,8 @@ interface LiveData {
   shows: Show[]
   inboxUnread: number
   venueCount: number
+  lowStockItems: MerchItem[]
+  activity: ActivityItem[]
 }
 
 function fmtCurrency(n: number) {
@@ -29,6 +40,18 @@ const PIPELINE_STAGES = [
   'New', 'Contacted', 'Quote Sent', 'Negotiating', 'Confirmed', 'Advance Sent', 'Paid',
 ] as const
 
+const STAGE_PROBABILITY: Record<string, number> = {
+  'New':          0.05,
+  'Contacted':    0.10,
+  'Quote Sent':   0.25,
+  'Follow-up':    0.20,
+  'Negotiating':  0.50,
+  'Confirmed':    0.90,
+  'Advance Sent': 0.95,
+  'Paid':         1.00,
+  'Completed':    1.00,
+}
+
 const STAGE_COLOR: Record<string, string> = {
   'New':          'bg-blue-400',
   'Contacted':    'bg-yellow-400',
@@ -39,10 +62,16 @@ const STAGE_COLOR: Record<string, string> = {
   'Paid':         'bg-emerald-400',
 }
 
+interface MonthlyGoal { month: string; bookingTarget: number; revenueTarget: number }
+
 export default function AdminDashboard({ onNavigate }: Props) {
   const [live, setLive] = useState<LiveData>({
-    bookingRequests: [], shows: [], inboxUnread: 0, venueCount: 0,
+    bookingRequests: [], shows: [], inboxUnread: 0, venueCount: 0, lowStockItems: [], activity: [],
   })
+  const [goal, setGoal] = useState<MonthlyGoal | null>(null)
+  const [editingGoal, setEditingGoal] = useState(false)
+  const [goalDraft, setGoalDraft] = useState({ bookingTarget: '', revenueTarget: '' })
+  const [savingGoal, setSavingGoal] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -50,16 +79,58 @@ export default function AdminDashboard({ onNavigate }: Props) {
       fetch('/api/inbound-emails').then((r) => r.json()),
       fetch('/api/venues').then((r) => r.json()),
     ])
-      .then(([d, inbox, v]) => setLive({
-        bookingRequests: d.bookingRequests ?? [],
-        shows: (d.shows ?? []).filter((s: Show) => s.visible !== false),
-        inboxUnread: (inbox.emails ?? []).filter((e: { read: boolean }) => !e.read).length,
-        venueCount: (v.venues ?? []).length,
-      }))
+      .then(([d, inbox, v]) => {
+        const bookings: BookingRequest[] = d.bookingRequests ?? []
+        const songReqs: SongRequest[] = d.songRequests ?? []
+        const inboundEmails: InboundEmail[] = inbox.emails ?? []
+
+        const activity: ActivityItem[] = [
+          ...bookings.map((b) => ({
+            id: b.id,
+            kind: 'booking' as const,
+            label: b.fullName,
+            sub: `${b.eventType || 'Booking'} · ${b.status}`,
+            date: b.createdAt,
+            section: 'bookings',
+          })),
+          ...songReqs.map((r) => ({
+            id: r.id,
+            kind: 'song-request' as const,
+            label: r.fullName,
+            sub: r.song1 + (r.song2 ? `, ${r.song2}` : ''),
+            date: r.createdAt,
+            section: 'song-requests',
+          })),
+          ...inboundEmails.map((e) => ({
+            id: e.id,
+            kind: 'inbox' as const,
+            label: e.fromName || e.fromEmail,
+            sub: e.subject,
+            date: e.receivedAt,
+            section: 'email',
+          })),
+        ]
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .slice(0, 10)
+
+        setLive({
+          bookingRequests: bookings,
+          shows: (d.shows ?? []).filter((s: Show) => s.visible !== false),
+          inboxUnread: inboundEmails.filter((e) => !e.read).length,
+          venueCount: (v.venues ?? []).length,
+          lowStockItems: (d.merch ?? []).filter((m: MerchItem) => m.stockQuantity !== undefined && m.stockQuantity <= 2),
+          activity,
+        })
+        const savedGoal: MonthlyGoal | undefined = d.monthlyGoal
+        const currentMonth = new Date().toISOString().slice(0, 7)
+        if (savedGoal && savedGoal.month === currentMonth) {
+          setGoal(savedGoal)
+        }
+      })
       .catch(() => {})
   }, [])
 
-  const { bookingRequests, shows, inboxUnread, venueCount } = live
+  const { bookingRequests, shows, inboxUnread, venueCount, lowStockItems, activity } = live
 
   const today = new Date()
   const thisMonth = today.toISOString().slice(0, 7)
@@ -92,6 +163,48 @@ export default function AdminDashboard({ onNavigate }: Props) {
     count: bookingRequests.filter((r) => r.status === stage).length,
   }))
   const maxStageCount = Math.max(...stageCounts.map((s) => s.count), 1)
+
+  const saveGoal = async () => {
+    const bt = parseInt(goalDraft.bookingTarget) || 0
+    const rt = parseFloat(goalDraft.revenueTarget) || 0
+    if (bt === 0 && rt === 0) return
+    const currentMonth = today.toISOString().slice(0, 7)
+    const newGoal: MonthlyGoal = { month: currentMonth, bookingTarget: bt, revenueTarget: rt }
+    setSavingGoal(true)
+    try {
+      await fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'monthlyGoal', data: newGoal }),
+      })
+      setGoal(newGoal)
+      setEditingGoal(false)
+    } finally {
+      setSavingGoal(false)
+    }
+  }
+
+  const goalActualBookings = bookingRequests.filter(
+    (r) => ['Confirmed', 'Advance Sent', 'Paid', 'Completed'].includes(r.status) && r.updatedAt?.startsWith(thisMonth)
+  ).length
+  const goalActualRevenue = bookingRequests
+    .filter((r) => ['Confirmed', 'Advance Sent', 'Paid', 'Completed'].includes(r.status) && r.updatedAt?.startsWith(thisMonth) && r.quoteAmount)
+    .reduce((s, r) => s + (r.quoteAmount ?? 0), 0)
+
+  const forecast = Array.from({ length: 3 }, (_, i) => {
+    const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
+    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+    const deals = bookingRequests.filter(
+      (r) => r.eventDate?.startsWith(monthKey) && r.quoteAmount && !['Lost', 'Archived'].includes(r.status)
+    )
+    const weighted = deals.reduce(
+      (sum, r) => sum + (r.quoteAmount ?? 0) * (STAGE_PROBABILITY[r.status] ?? 0.05),
+      0
+    )
+    return { monthKey, label, weighted: Math.round(weighted), count: deals.length, isCurrent: i === 0 }
+  })
+  const forecastMax = Math.max(...forecast.map((f) => f.weighted), 1)
 
   const kpis = [
     {
@@ -259,10 +372,39 @@ export default function AdminDashboard({ onNavigate }: Props) {
                   {new Date(nextShow.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })}
                 </span>
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="font-heading text-sm text-white uppercase truncate">{nextShow.venue}</p>
                 <p className="font-body text-xs text-white/40 mt-0.5">{nextShow.city}</p>
                 <p className="font-body text-xs text-white/30 mt-0.5">{nextShow.time}</p>
+                {(() => {
+                  const diff = Math.ceil((new Date(nextShow.date + 'T00:00:00').getTime() - new Date(today.toISOString().slice(0, 10) + 'T00:00:00').getTime()) / 86400000)
+                  return diff === 0 ? (
+                    <span className="inline-block mt-1.5 font-heading text-[10px] uppercase tracking-widest text-brand-red border border-brand-red/40 px-2 py-0.5">Today!</span>
+                  ) : diff === 1 ? (
+                    <span className="inline-block mt-1.5 font-heading text-[10px] uppercase tracking-widest text-orange-400/80">Tomorrow</span>
+                  ) : (
+                    <span className="font-body text-[11px] text-white/25 mt-0.5 block">in {diff} days</span>
+                  )
+                })()}
+                {(nextShow.guarantee || nextShow.loadInTime) && (
+                  <div className="flex items-center gap-3 mt-2 pt-2 border-t border-white/6">
+                    {nextShow.guarantee && (
+                      <span className="font-heading text-[10px] uppercase tracking-widest text-green-400/70">
+                        {fmtCurrency(nextShow.guarantee)}
+                      </span>
+                    )}
+                    {nextShow.loadInTime && (
+                      <span className="font-body text-[11px] text-white/30">
+                        Load-in {nextShow.loadInTime}
+                      </span>
+                    )}
+                    {nextShow.soundCheckTime && (
+                      <span className="font-body text-[11px] text-white/30">
+                        SC {nextShow.soundCheckTime}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -294,6 +436,38 @@ export default function AdminDashboard({ onNavigate }: Props) {
           )}
         </div>
       </div>
+
+      {/* Merch low-stock alert */}
+      {lowStockItems.length > 0 && (
+        <div className="mb-6 border border-yellow-400/25 bg-yellow-400/5 px-5 py-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
+            <span className="font-heading text-xs uppercase tracking-widest text-yellow-400">
+              {lowStockItems.filter((m) => m.stockQuantity === 0).length > 0
+                ? `${lowStockItems.filter((m) => m.stockQuantity === 0).length} item${lowStockItems.filter((m) => m.stockQuantity === 0).length > 1 ? 's' : ''} out of stock`
+                : `${lowStockItems.length} item${lowStockItems.length > 1 ? 's' : ''} low stock`}
+            </span>
+            <div className="flex-1" />
+            <button
+              type="button"
+              onClick={() => onNavigate('merch')}
+              className="font-heading text-[10px] uppercase tracking-widest border border-yellow-400/30 text-yellow-400/70 px-3 py-1.5 hover:bg-yellow-400/10 transition-all"
+            >
+              View Merch
+            </button>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {lowStockItems.map((item) => (
+              <div key={item.id} className="flex items-center gap-3">
+                <span className={`font-heading text-[9px] uppercase tracking-widest border px-1.5 py-0.5 flex-shrink-0 ${item.stockQuantity === 0 ? 'border-red-400/30 text-red-400' : 'border-yellow-400/30 text-yellow-400'}`}>
+                  {item.stockQuantity === 0 ? 'Out' : `${item.stockQuantity} left`}
+                </span>
+                <span className="font-body text-sm text-white/60 truncate">{item.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="mb-8">
@@ -337,6 +511,201 @@ export default function AdminDashboard({ onNavigate }: Props) {
           <div className="font-heading text-[10px] uppercase tracking-widest text-white/40">Unread Emails</div>
         </div>
       </div>
+
+      {/* Monthly Goals */}
+      <div className="mt-6 mb-6 border border-white/8 bg-[#0d0d1e] p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-heading text-xs uppercase tracking-widest text-white">Monthly Goals</h2>
+            <p className="font-body text-[11px] text-white/25 mt-0.5">
+              {today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setEditingGoal((v) => !v)
+              if (goal) setGoalDraft({ bookingTarget: String(goal.bookingTarget || ''), revenueTarget: String(goal.revenueTarget || '') })
+              else setGoalDraft({ bookingTarget: '', revenueTarget: '' })
+            }}
+            className="font-heading text-[10px] uppercase tracking-widest border border-white/10 text-white/30 px-3 py-1.5 hover:border-white/25 hover:text-white/60 transition-all flex items-center gap-1.5"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+            </svg>
+            {goal ? 'Edit' : 'Set Goals'}
+          </button>
+        </div>
+
+        {editingGoal ? (
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/30">Bookings Target</label>
+                <input
+                  type="number" min={0}
+                  value={goalDraft.bookingTarget}
+                  onChange={(e) => setGoalDraft({ ...goalDraft, bookingTarget: e.target.value })}
+                  className="w-full bg-[#111121] border border-white/8 text-white font-body text-sm px-3 py-2 focus:outline-none focus:border-brand-red/50 transition-all placeholder:text-white/20"
+                  placeholder="e.g. 4"
+                  aria-label="Monthly booking target"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/30">Revenue Target ($)</label>
+                <input
+                  type="number" min={0} step={500}
+                  value={goalDraft.revenueTarget}
+                  onChange={(e) => setGoalDraft({ ...goalDraft, revenueTarget: e.target.value })}
+                  className="w-full bg-[#111121] border border-white/8 text-white font-body text-sm px-3 py-2 focus:outline-none focus:border-brand-red/50 transition-all placeholder:text-white/20"
+                  placeholder="e.g. 5000"
+                  aria-label="Monthly revenue target"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={saveGoal} disabled={savingGoal || (!goalDraft.bookingTarget && !goalDraft.revenueTarget)} className="font-heading text-[10px] uppercase tracking-widest bg-brand-red text-white px-4 py-2 hover:bg-brand-red-bright transition-all disabled:opacity-50">
+                {savingGoal ? 'Saving…' : 'Save'}
+              </button>
+              <button type="button" onClick={() => setEditingGoal(false)} className="font-heading text-[10px] uppercase tracking-widest border border-white/10 text-white/40 px-4 py-2 hover:text-white transition-all">Cancel</button>
+            </div>
+          </div>
+        ) : goal ? (
+          <div className="flex flex-col gap-4">
+            {goal.bookingTarget > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-heading text-[10px] uppercase tracking-widest text-white/40">Bookings Confirmed</span>
+                  <span className="font-heading text-[10px] uppercase tracking-widest text-white/50 tabular-nums">
+                    {goalActualBookings} / {goal.bookingTarget}
+                    {goalActualBookings >= goal.bookingTarget && <span className="text-green-400 ml-1.5">✓</span>}
+                  </span>
+                </div>
+                <div className="h-2 bg-white/5 overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-700 ${goalActualBookings >= goal.bookingTarget ? 'bg-green-400' : 'bg-brand-red'}`}
+                    style={{ width: `${Math.min((goalActualBookings / goal.bookingTarget) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {goal.revenueTarget > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-heading text-[10px] uppercase tracking-widest text-white/40">Revenue Confirmed</span>
+                  <span className="font-heading text-[10px] uppercase tracking-widest text-white/50 tabular-nums">
+                    {fmtCurrency(goalActualRevenue)} / {fmtCurrency(goal.revenueTarget)}
+                    {goalActualRevenue >= goal.revenueTarget && <span className="text-green-400 ml-1.5">✓</span>}
+                  </span>
+                </div>
+                <div className="h-2 bg-white/5 overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-700 ${goalActualRevenue >= goal.revenueTarget ? 'bg-green-400' : 'bg-brand-red'}`}
+                    style={{ width: `${Math.min((goalActualRevenue / goal.revenueTarget) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="font-body text-sm text-white/20 text-center py-4">No goals set for this month — click "Set Goals" to get started.</p>
+        )}
+      </div>
+
+      {/* Revenue Forecast */}
+      <div className="mb-6 border border-white/8 bg-[#0d0d1e] p-5">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="font-heading text-xs uppercase tracking-widest text-white">Revenue Forecast</h2>
+            <p className="font-body text-[11px] text-white/25 mt-0.5">Stage-weighted · 3-month outlook</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate('bookings')}
+            className="font-heading text-[10px] uppercase tracking-widest text-white/25 hover:text-white/60 transition-colors"
+          >
+            Open CRM →
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          {forecast.map((f) => (
+            <div
+              key={f.monthKey}
+              className={`border px-4 py-3.5 flex flex-col gap-1 ${f.isCurrent ? 'border-brand-red/25 bg-brand-red/[0.04]' : 'border-white/6'}`}
+            >
+              <span className={`font-heading text-[9px] uppercase tracking-widest ${f.isCurrent ? 'text-brand-red' : 'text-white/30'}`}>
+                {f.label}{f.isCurrent ? ' · Now' : ''}
+              </span>
+              <span className={`font-display text-2xl leading-none ${f.weighted > 0 ? (f.isCurrent ? 'text-brand-red' : 'text-white') : 'text-white/20'}`}>
+                {f.weighted > 0 ? fmtCurrency(f.weighted) : '—'}
+              </span>
+              <span className="font-body text-[11px] text-white/25">
+                {f.count > 0 ? `${f.count} deal${f.count !== 1 ? 's' : ''}` : 'No deals'}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-col gap-2">
+          {forecast.map((f) => (
+            <div key={f.monthKey} className="flex items-center gap-3">
+              <span className="font-heading text-[9px] uppercase tracking-widest text-white/25 w-14 flex-shrink-0">{f.label}</span>
+              <div className="flex-1 h-1.5 bg-white/5 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-700 ${f.isCurrent ? 'bg-brand-red' : 'bg-white/20'}`}
+                  style={{ width: f.weighted > 0 ? `${(f.weighted / forecastMax) * 100}%` : '0%' }}
+                />
+              </div>
+              <span className="font-body text-[11px] text-white/30 w-14 text-right tabular-nums flex-shrink-0">
+                {f.weighted > 0 ? fmtCurrency(f.weighted) : '—'}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="font-body text-[10px] text-white/15 mt-4 leading-relaxed">
+          Weighted by stage probability: Confirmed 90% · Negotiating 50% · Quote Sent 25% · Contacted 10%
+        </p>
+      </div>
+
+      {/* Recent Activity */}
+      {activity.length > 0 && (
+        <div className="mt-6">
+          <h2 className="font-heading text-[10px] uppercase tracking-widest text-white/25 mb-3">Recent Activity</h2>
+          <div className="border border-white/8 bg-[#0d0d1e] divide-y divide-white/[0.04]">
+            {activity.map((item) => {
+              const kindMeta = {
+                'booking':      { dot: 'bg-blue-400',   label: 'Booking',      icon: <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /> },
+                'song-request': { dot: 'bg-purple-400', label: 'Song Request', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" /> },
+                'inbox':        { dot: 'bg-green-400',  label: 'Inbox',        icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /> },
+              }[item.kind]
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onNavigate(item.section)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors group"
+                >
+                  <div className="flex-shrink-0 w-7 h-7 border border-white/8 flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/50 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      {kindMeta.icon}
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-body text-sm text-white/80 truncate">{item.label}</span>
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${kindMeta.dot}`} />
+                      <span className="font-heading text-[9px] uppercase tracking-widest text-white/25 flex-shrink-0">{kindMeta.label}</span>
+                    </div>
+                    <p className="font-body text-xs text-white/35 truncate">{item.sub}</p>
+                  </div>
+                  <span className="font-body text-xs text-white/20 flex-shrink-0 tabular-nums">
+                    {fmtDate(item.date)}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
     </div>
   )
