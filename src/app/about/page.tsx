@@ -3,6 +3,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Reveal from '@/components/ui/Reveal'
 import { readContent } from '@/lib/store'
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +14,8 @@ export const metadata: Metadata = {
 }
 
 export default async function AboutPage() {
-  const { bandMembers, siteContent } = await readContent()
+  const [{ bandMembers, siteContent }, lang] = await Promise.all([readContent(), getLang()])
+  const tr = translations[lang].about
   const visibleMembers = bandMembers.filter((m) => m.visible !== false)
 
   return (
@@ -27,7 +30,7 @@ export default async function AboutPage() {
           <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-10">
             <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-7">
               <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-              The Band
+              {tr.eyebrow}
             </div>
             <h1
               className="font-display uppercase leading-[0.92] text-white max-w-5xl"
@@ -71,7 +74,7 @@ export default async function AboutPage() {
           <div className="max-w-3xl">
             <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-6">
               <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-              Our Story
+              {tr.storyEyebrow}
             </div>
             <div className="space-y-6 font-body text-brand-text leading-relaxed text-base lg:text-lg">
               {siteContent.aboutText.map((p, i) => (
@@ -89,14 +92,14 @@ export default async function AboutPage() {
             <div>
               <div className="flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-5">
                 <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-                The Members
+                {tr.membersEyebrow}
               </div>
               <h2 className="font-display uppercase text-4xl sm:text-5xl lg:text-6xl text-white leading-[0.92]">
-                Meet the <span className="text-brand-red">Band</span>
+                {tr.meetHeading} <span className="text-brand-red">{tr.meetHeadingAccent}</span>
               </h2>
             </div>
             <p className="font-body text-sm text-brand-text max-w-xs leading-relaxed">
-              {visibleMembers.length} musicians, one sound. No backing tracks, no shortcuts.
+              {tr.membersSub(visibleMembers.length)}
             </p>
           </div>
         </Reveal>
@@ -145,10 +148,10 @@ export default async function AboutPage() {
           <div className="relative border-t border-brand-border pt-16 text-center">
             <div className="absolute top-0 inset-x-0 h-px divider-red" />
             <h2 className="font-display uppercase text-4xl sm:text-5xl text-white leading-[0.92] mb-5">
-              Ready to <span className="text-brand-red">Book?</span>
+              {tr.ctaHeading} <span className="text-brand-red">{tr.ctaHeadingAccent}</span>
             </h2>
             <p className="font-body text-brand-text max-w-md mx-auto mb-9 leading-relaxed">
-              Get in touch to check availability and pricing for your event.
+              {tr.ctaSub}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
