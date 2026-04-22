@@ -109,7 +109,7 @@ export default function AdminBandMembers() {
           )}
           {saving && <div className="font-heading text-[10px] text-white/30 uppercase tracking-widest">Saving…</div>}
           {!isAdding && !editing && (
-            <button onClick={openAdd} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-4 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red flex items-center gap-2">
+            <button type="button" onClick={openAdd} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-4 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red flex items-center gap-2">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
               Add Member
             </button>
@@ -122,7 +122,7 @@ export default function AdminBandMembers() {
         <div className="mb-8 border border-brand-red/25 bg-brand-red/[0.04] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
           <div className="flex items-center justify-between gap-3 px-6 py-3.5 border-b border-brand-red/15">
             <h2 className="font-heading text-xs uppercase tracking-widest text-brand-red">{editing ? 'Edit Member' : 'New Member'}</h2>
-            <button onClick={cancel} className="text-white/30 hover:text-white transition-colors">
+            <button type="button" onClick={cancel} className="text-white/30 hover:text-white transition-colors">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
@@ -158,10 +158,10 @@ export default function AdminBandMembers() {
               <span className="font-heading text-xs uppercase tracking-widest text-white/50">Visible on site</span>
             </label>
             <div className="flex gap-2.5">
-              <button onClick={save} disabled={saving} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60">
+              <button type="button" onClick={save} disabled={saving} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60">
                 {editing ? 'Save Changes' : 'Add Member'}
               </button>
-              <button onClick={cancel} className="font-heading text-xs uppercase tracking-widest border border-white/15 text-white/40 px-5 py-2.5 hover:border-white/30 hover:text-white transition-all">Cancel</button>
+              <button type="button" onClick={cancel} className="font-heading text-xs uppercase tracking-widest border border-white/15 text-white/40 px-5 py-2.5 hover:border-white/30 hover:text-white transition-all">Cancel</button>
             </div>
           </div>
         </div>
@@ -192,19 +192,19 @@ export default function AdminBandMembers() {
               {member.bio && <div className="font-body text-xs text-white/30 mt-0.5 truncate max-w-xs">{member.bio}</div>}
             </div>
             <div className="flex flex-col gap-0.5 flex-shrink-0 px-2">
-              <button onClick={() => moveUp(index)} disabled={index === 0} className="p-1 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Move up">
+              <button type="button" onClick={() => moveUp(index)} disabled={index === 0} className="p-1 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Move up">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
               </button>
-              <button onClick={() => moveDown(index)} disabled={index === members.length - 1} className="p-1 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Move down">
+              <button type="button" onClick={() => moveDown(index)} disabled={index === members.length - 1} className="p-1 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Move down">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
               </button>
             </div>
             <div className="flex gap-1.5 flex-shrink-0 pr-3">
-              <button onClick={() => toggleVisible(member.id)} className={`font-heading text-[9px] uppercase tracking-widest px-2 py-1 border transition-colors ${member.visible !== false ? 'border-white/15 text-white/40 hover:border-white/30 hover:text-white' : 'border-white/8 text-white/20 hover:border-white/20'}`}>
+              <button type="button" onClick={() => toggleVisible(member.id)} className={`font-heading text-[9px] uppercase tracking-widest px-2 py-1 border transition-colors ${member.visible !== false ? 'border-white/15 text-white/40 hover:border-white/30 hover:text-white' : 'border-white/8 text-white/20 hover:border-white/20'}`}>
                 {member.visible !== false ? 'Hide' : 'Show'}
               </button>
-              <button onClick={() => openEdit(member)} className="font-heading text-[10px] uppercase tracking-widest border border-white/10 text-white/35 px-3 py-1.5 hover:border-white/30 hover:text-white transition-all">Edit</button>
-              <button onClick={() => remove(member.id)} className="font-heading text-[10px] uppercase tracking-widest border border-red-900/30 text-red-500/40 px-3 py-1.5 hover:border-red-500/60 hover:text-red-400 transition-all">Remove</button>
+              <button type="button" onClick={() => openEdit(member)} className="font-heading text-[10px] uppercase tracking-widest border border-white/10 text-white/35 px-3 py-1.5 hover:border-white/30 hover:text-white transition-all">Edit</button>
+              <button type="button" onClick={() => remove(member.id)} className="font-heading text-[10px] uppercase tracking-widest border border-red-900/30 text-red-500/40 px-3 py-1.5 hover:border-red-500/60 hover:text-red-400 transition-all">Remove</button>
             </div>
           </div>
         ))}

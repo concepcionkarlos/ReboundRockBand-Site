@@ -390,14 +390,12 @@ export default function AdminBookings({ onNavigate }: Props) {
             {/* View toggle */}
             <div className="flex border border-white/10">
               <button
-                type="button"
                 onClick={() => setView('pipeline')}
                 className={`px-3 py-2 font-heading text-[10px] uppercase tracking-widest transition-colors ${view === 'pipeline' ? 'bg-white/8 text-white' : 'text-white/30 hover:text-white/60'}`}
               >
                 Pipeline
               </button>
               <button
-                type="button"
                 onClick={() => setView('list')}
                 className={`px-3 py-2 font-heading text-[10px] uppercase tracking-widest transition-colors border-l border-white/10 ${view === 'list' ? 'bg-white/8 text-white' : 'text-white/30 hover:text-white/60'}`}
               >
@@ -405,7 +403,6 @@ export default function AdminBookings({ onNavigate }: Props) {
               </button>
             </div>
             <button
-              type="button"
               onClick={exportCSV}
               disabled={requests.length === 0}
               className="font-heading text-[10px] uppercase tracking-widest border border-white/10 text-white/30 px-3 py-2 hover:border-brand-red/40 hover:text-brand-red transition-all disabled:opacity-30 hidden sm:block"
@@ -413,7 +410,6 @@ export default function AdminBookings({ onNavigate }: Props) {
               Export CSV
             </button>
             <button
-              type="button"
               onClick={() => { setAddingManual((v) => !v); setManualForm(emptyManual) }}
               className={`font-heading text-[10px] uppercase tracking-widest px-3 py-2 transition-all flex items-center gap-1.5 ${addingManual ? 'bg-white/8 text-white border border-white/20' : 'bg-brand-red text-white hover:bg-brand-red-bright'}`}
             >
@@ -476,7 +472,6 @@ export default function AdminBookings({ onNavigate }: Props) {
               <textarea value={manualForm.message} onChange={(e) => setManualForm({ ...manualForm, message: e.target.value })} className={`${inputClass} h-16 resize-none`} placeholder="Initial inquiry details…" />
             </div>
             <button
-              type="button"
               onClick={createManualBooking}
               disabled={!manualForm.fullName || !manualForm.email || manualSaving}
               className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-50"
@@ -505,7 +500,6 @@ export default function AdminBookings({ onNavigate }: Props) {
         {!loading && followUpQueue.length > 0 && (
           <div className="mb-5 border border-orange-400/30 bg-orange-400/[0.04]">
             <button
-              type="button"
               onClick={() => setQueueExpanded((v) => !v)}
               className="w-full flex items-center gap-3 px-5 py-3 hover:bg-orange-400/5 transition-colors text-left"
             >
@@ -539,7 +533,6 @@ export default function AdminBookings({ onNavigate }: Props) {
                       <div className="flex gap-1.5 flex-shrink-0">
                         {r.status === 'New' && (
                           <button
-                            type="button"
                             onClick={() => quickContacted(r.id)}
                             className="font-heading text-[9px] uppercase tracking-widest border border-yellow-400/30 text-yellow-400/70 px-2.5 py-1 hover:bg-yellow-400/10 transition-all"
                           >
@@ -547,21 +540,18 @@ export default function AdminBookings({ onNavigate }: Props) {
                           </button>
                         )}
                         <button
-                          type="button"
                           onClick={() => snoozeFollowUp(r.id, 3)}
                           className="font-heading text-[9px] uppercase tracking-widest border border-white/10 text-white/30 px-2.5 py-1 hover:border-white/25 hover:text-white/60 transition-all"
                         >
                           +3d
                         </button>
                         <button
-                          type="button"
                           onClick={() => snoozeFollowUp(r.id, 7)}
                           className="font-heading text-[9px] uppercase tracking-widest border border-white/10 text-white/30 px-2.5 py-1 hover:border-white/25 hover:text-white/60 transition-all"
                         >
                           +7d
                         </button>
                         <button
-                          type="button"
                           onClick={() => openDrawer(r)}
                           className="font-heading text-[9px] uppercase tracking-widest border border-orange-400/25 text-orange-400/60 px-2.5 py-1 hover:bg-orange-400/10 transition-all"
                         >
@@ -1319,7 +1309,6 @@ function BookingDrawer({
           </span>
           {nextStage && (
             <button
-              type="button"
               onClick={onAdvance}
               disabled={saving}
               className="font-heading text-[10px] uppercase tracking-widest border border-white/12 text-white/35 px-2.5 py-1 hover:border-brand-red/40 hover:text-brand-red transition-all disabled:opacity-50"
@@ -1328,7 +1317,6 @@ function BookingDrawer({
             </button>
           )}
           <button
-            type="button"
             onClick={onDuplicate}
             disabled={saving}
             title="Duplicate this lead with status reset to New"
@@ -1512,7 +1500,6 @@ function BookingDrawer({
 
               <div className="flex flex-wrap gap-2 pt-1">
                 <button
-                  type="button"
                   onClick={onSave}
                   disabled={saving}
                   className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red disabled:opacity-60"
@@ -1521,7 +1508,6 @@ function BookingDrawer({
                 </button>
                 {(booking.status === 'Confirmed' || booking.status === 'Advance Sent' || booking.status === 'Paid') && (
                   <button
-                    type="button"
                     onClick={onConvertToShow}
                     className="font-heading text-xs uppercase tracking-widest border border-green-400/30 text-green-400/80 px-5 py-2.5 hover:border-green-400 hover:text-green-400 transition-all"
                   >
@@ -1576,7 +1562,6 @@ function BookingDrawer({
             )}
 
             <button
-              type="button"
               onClick={() => {
                 const w = window.open('', '_blank')
                 if (!w) return
@@ -1650,7 +1635,6 @@ function BookingDrawer({
             )}
 
             <button
-              type="button"
               onClick={() => {
                 const w = window.open('', '_blank')
                 if (!w) return
@@ -1719,7 +1703,6 @@ function BookingDrawer({
             )}
 
             <button
-              type="button"
               onClick={() => {
                 const w = window.open('', '_blank')
                 if (!w) return
@@ -1788,7 +1771,6 @@ function BookingDrawer({
               )}
 
               <button
-                type="button"
                 onClick={onSendEmail}
                 disabled={!selectedTemplateId || !toEmail || !editableSubject || sending}
                 className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-50 self-start"

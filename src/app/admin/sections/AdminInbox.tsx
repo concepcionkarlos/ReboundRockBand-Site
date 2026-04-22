@@ -118,7 +118,6 @@ export default function AdminInbox({ onNavigate }: Props) {
           <div className="flex items-center gap-2">
           {unreadCount > 0 && (
             <button
-              type="button"
               onClick={markAllRead}
               className="font-heading text-[10px] uppercase tracking-widest border border-blue-400/30 bg-blue-400/8 text-blue-400 px-3 py-2 hover:bg-blue-400/15 transition-colors flex items-center gap-2"
             >
@@ -127,7 +126,6 @@ export default function AdminInbox({ onNavigate }: Props) {
             </button>
           )}
           <button
-            type="button"
             onClick={loadEmails}
             aria-label="Refresh inbox"
             className="border border-white/10 text-white/30 hover:text-white hover:border-white/25 transition-colors p-2"
@@ -236,7 +234,6 @@ export default function AdminInbox({ onNavigate }: Props) {
                     </span>
                     {email.entityType && (
                       <button
-                        type="button"
                         onClick={(e) => {
                           e.stopPropagation()
                           if (email.entityId) sessionStorage.setItem('openEntityId', JSON.stringify({ type: email.entityType, id: email.entityId }))
@@ -268,7 +265,6 @@ export default function AdminInbox({ onNavigate }: Props) {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0 mt-1">
                     <button
-                      type="button"
                       onClick={() => deleteEmail(selected)}
                       aria-label="Delete email"
                       className="text-white/20 hover:text-red-400 transition-colors p-1"
@@ -278,7 +274,6 @@ export default function AdminInbox({ onNavigate }: Props) {
                       </svg>
                     </button>
                     <button
-                      type="button"
                       onClick={() => setSelected(null)}
                       aria-label="Close email"
                       className="text-white/30 hover:text-white transition-colors p-1"
@@ -307,7 +302,6 @@ export default function AdminInbox({ onNavigate }: Props) {
                         {ENTITY_STYLES[selected.entityType].label}
                       </span>
                       <button
-                        type="button"
                         onClick={() => {
                           if (selected.entityId) sessionStorage.setItem('openEntityId', JSON.stringify({ type: selected.entityType, id: selected.entityId }))
                           onNavigate(SECTION_MAP[selected.entityType!])
@@ -326,14 +320,12 @@ export default function AdminInbox({ onNavigate }: Props) {
                 {selected.bodyHtml && selected.bodyText && (
                   <div className="flex gap-2 px-7 pt-5">
                     <button
-                      type="button"
                       onClick={() => setShowHtml(true)}
                       className={`font-heading text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors ${showHtml ? 'border-white/20 text-white' : 'border-white/8 text-white/30 hover:text-white/60'}`}
                     >
                       HTML View
                     </button>
                     <button
-                      type="button"
                       onClick={() => setShowHtml(false)}
                       className={`font-heading text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors ${!showHtml ? 'border-white/20 text-white' : 'border-white/8 text-white/30 hover:text-white/60'}`}
                     >

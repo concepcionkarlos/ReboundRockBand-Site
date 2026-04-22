@@ -148,7 +148,6 @@ export default function AdminMerch() {
 
   const Toggle = ({ checked, onToggle, label }: { checked: boolean; onToggle: () => void; label: string }) => (
     <button
-      type="button"
       onClick={onToggle}
       className={`font-heading text-[9px] uppercase tracking-widest px-2 py-1 border transition-colors ${
         checked
@@ -193,7 +192,6 @@ export default function AdminMerch() {
             ))}
           </div>
           <button
-            type="button"
             onClick={openAdd}
             className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-4 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red flex items-center gap-2"
           >
@@ -245,7 +243,6 @@ export default function AdminMerch() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
-                          type="button"
                           onClick={() => adjustStock(item.id, -1)}
                           disabled={qty === 0}
                           aria-label="Decrease stock"
@@ -255,13 +252,11 @@ export default function AdminMerch() {
                           {qty}
                         </div>
                         <button
-                          type="button"
                           onClick={() => adjustStock(item.id, 1)}
                           aria-label="Increase stock"
                           className="w-7 h-7 border border-white/10 text-white/40 hover:border-white/30 hover:text-white transition-all flex items-center justify-center font-body text-base"
                         >+</button>
                         <button
-                          type="button"
                           onClick={() => adjustStock(item.id, 10)}
                           aria-label="Restock +10"
                           className="font-heading text-[9px] uppercase tracking-widest border border-white/10 text-white/25 px-2.5 py-1.5 hover:border-white/30 hover:text-white/60 transition-all"
@@ -282,7 +277,6 @@ export default function AdminMerch() {
                     <div key={item.id} className="flex items-center gap-4 px-5 py-3 opacity-50 hover:opacity-80 transition-opacity">
                       <span className="font-body text-sm text-white/60 flex-1 truncate">{item.name}</span>
                       <button
-                        type="button"
                         onClick={() => enableTracking(item.id)}
                         className="font-heading text-[9px] uppercase tracking-widest border border-white/10 text-white/30 px-3 py-1.5 hover:border-brand-red/40 hover:text-brand-red transition-all flex-shrink-0"
                       >
@@ -490,7 +484,6 @@ export default function AdminMerch() {
                     </div>
                   ) : (
                     <button
-                      type="button"
                       title="Click to edit stock"
                       onClick={(e) => { e.stopPropagation(); setEditingStockId(item.id); setStockDraft(String(item.stockQuantity ?? '')) }}
                       className={`font-heading text-[9px] uppercase tracking-widest border px-1.5 py-0.5 transition-colors hover:border-white/30 ${item.stockQuantity === 0 ? 'text-red-400/60 border-red-400/20 hover:text-red-400' : 'text-white/35 border-white/10 hover:text-white/60'}`}

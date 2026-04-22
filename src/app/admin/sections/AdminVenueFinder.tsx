@@ -407,7 +407,6 @@ export default function AdminVenueFinder() {
             <div className="font-heading text-[9px] uppercase tracking-widest text-white/30">Response Rate</div>
           </div>
           <button
-            type="button"
             onClick={exportVenuesCSV}
             disabled={venues.length === 0}
             className="font-heading text-[10px] uppercase tracking-widest border border-white/10 text-white/30 px-3 py-2 hover:border-brand-red/40 hover:text-brand-red transition-all disabled:opacity-30 self-end"
@@ -531,7 +530,6 @@ export default function AdminVenueFinder() {
               {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
             </p>
             <button
-              type="button"
               onClick={() => setSearchResults([])}
               aria-label="Clear search results"
               className="text-white/25 hover:text-white transition-colors"
@@ -562,7 +560,6 @@ export default function AdminVenueFinder() {
                     </div>
                   </div>
                   <button
-                    type="button"
                     onClick={() => !alreadySaved && handleSaveVenue(place)}
                     disabled={alreadySaved || savingPlaceId === place.placeId}
                     className={`font-heading text-[10px] uppercase tracking-widest px-3 py-1.5 flex-shrink-0 transition-all ${
@@ -608,7 +605,6 @@ export default function AdminVenueFinder() {
                 {selectedIds.size} selected
               </span>
               <button
-                type="button"
                 onClick={() => { setShowBulkPanel((v) => !v); setBulkResults([]) }}
                 className="font-heading text-[10px] uppercase tracking-widest bg-purple-400/20 text-purple-300 border border-purple-400/30 px-3 py-1.5 hover:bg-purple-400/30 transition-all"
               >
@@ -626,7 +622,6 @@ export default function AdminVenueFinder() {
                   {VENUE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
                 <button
-                  type="button"
                   onClick={handleBulkStatusUpdate}
                   disabled={!bulkStatus || bulkStatusUpdating}
                   className="font-heading text-[10px] uppercase tracking-widest border border-purple-400/30 text-purple-300 px-3 py-1.5 hover:bg-purple-400/20 transition-all disabled:opacity-40"
@@ -685,7 +680,6 @@ export default function AdminVenueFinder() {
                 </div>
               )}
               <button
-                type="button"
                 onClick={handleBulkSend}
                 disabled={!bulkTemplateId || bulkSending || venues.filter((v) => selectedIds.has(v.id) && v.contactEmail).length === 0}
                 className="font-heading text-xs uppercase tracking-widest bg-purple-500 text-white px-5 py-2.5 hover:bg-purple-400 transition-all disabled:opacity-50 self-start"
@@ -699,7 +693,6 @@ export default function AdminVenueFinder() {
           {venueFollowUpQueue.length > 0 && (
             <div className="mb-3 border border-purple-400/30 bg-purple-400/[0.03]">
               <button
-                type="button"
                 onClick={() => setVenueQueueExpanded((v) => !v)}
                 className="w-full flex items-center gap-3 px-5 py-3 hover:bg-purple-400/5 transition-colors text-left"
               >
@@ -774,7 +767,6 @@ export default function AdminVenueFinder() {
               <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-brand-red origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
               {/* Checkbox */}
               <button
-                type="button"
                 onClick={() => toggleSelect(venue.id)}
                 aria-label={selectedIds.has(venue.id) ? 'Deselect venue' : 'Select venue'}
                 className={`flex-shrink-0 w-8 h-full flex items-center justify-center self-stretch transition-colors ${
@@ -792,7 +784,6 @@ export default function AdminVenueFinder() {
                 </div>
               </button>
               <button
-                type="button"
                 onClick={() => selectVenue(venue)}
                 className="flex-1 min-w-0 text-left flex items-center gap-0"
               >
@@ -949,7 +940,6 @@ export default function AdminVenueFinder() {
 
                 <div className="flex gap-2.5 pt-1">
                   <button
-                    type="button"
                     onClick={handleCrmSave}
                     disabled={saving}
                     className="font-heading text-[10px] uppercase tracking-widest bg-brand-red text-white px-4 py-2 hover:bg-brand-red-bright transition-all disabled:opacity-60 flex items-center gap-2"
@@ -957,7 +947,6 @@ export default function AdminVenueFinder() {
                     {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save Changes'}
                   </button>
                   <button
-                    type="button"
                     onClick={handleDeleteVenue}
                     className="font-heading text-[10px] uppercase tracking-widest border border-red-900/30 text-red-500/40 px-4 py-2 hover:border-red-500/60 hover:text-red-400 transition-all"
                   >
@@ -978,7 +967,6 @@ export default function AdminVenueFinder() {
                       placeholder="Left voicemail · booked follow-up for Thursday…"
                     />
                     <button
-                      type="button"
                       onClick={addActivityEntry}
                       disabled={savingActivity || !activityDraft.trim()}
                       className="font-heading text-[10px] uppercase tracking-widest border border-white/12 text-white/50 px-3 py-2 hover:border-brand-red/40 hover:text-white transition-all disabled:opacity-40 flex-shrink-0"
@@ -1089,7 +1077,6 @@ export default function AdminVenueFinder() {
                   )}
 
                   <button
-                    type="button"
                     onClick={handleSendEmail}
                     disabled={!selectedTemplateId || !toEmail || sending}
                     className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60"

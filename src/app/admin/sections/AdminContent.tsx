@@ -73,7 +73,7 @@ export default function AdminContent() {
             </div>
           )}
           {saving && <div className="font-heading text-[10px] text-white/30 uppercase tracking-widest">Saving…</div>}
-          <button onClick={saveContent} disabled={saving} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-4 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red disabled:opacity-60">
+          <button type="button" onClick={saveContent} disabled={saving} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-4 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red disabled:opacity-60">
             Save Changes
           </button>
         </div>
@@ -82,7 +82,7 @@ export default function AdminContent() {
       {/* Tabs */}
       <div className="flex gap-0 mb-8 border-b border-white/8">
         {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+          <button type="button" key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={`font-heading text-xs uppercase tracking-widest px-5 py-3 border-b-2 transition-colors -mb-px ${
               activeTab === tab.id ? 'border-brand-red text-white' : 'border-transparent text-white/30 hover:text-white/60'
             }`}
@@ -160,7 +160,7 @@ export default function AdminContent() {
               <div className="flex items-center justify-between">
                 <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Paragraph {i + 1}</label>
                 {content.aboutText.length > 1 && (
-                  <button onClick={() => removeAboutParagraph(i)} className="font-heading text-[9px] uppercase tracking-widest text-red-500/40 hover:text-red-400 transition-colors">
+                  <button type="button" onClick={() => removeAboutParagraph(i)} className="font-heading text-[9px] uppercase tracking-widest text-red-500/40 hover:text-red-400 transition-colors">
                     Remove
                   </button>
                 )}
@@ -168,7 +168,7 @@ export default function AdminContent() {
               <textarea rows={4} value={para} onChange={(e) => updateAboutText(i, e.target.value)} className={textareaClass} />
             </div>
           ))}
-          <button onClick={addAboutParagraph} className="self-start font-heading text-xs uppercase tracking-widest border border-white/12 text-white/40 px-4 py-2 hover:border-white/25 hover:text-white transition-all flex items-center gap-2">
+          <button type="button" onClick={addAboutParagraph} className="self-start font-heading text-xs uppercase tracking-widest border border-white/12 text-white/40 px-4 py-2 hover:border-white/25 hover:text-white transition-all flex items-center gap-2">
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
             Add Paragraph
           </button>
