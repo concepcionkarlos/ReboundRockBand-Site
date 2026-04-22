@@ -184,7 +184,7 @@ export default function AdminEmailTemplates() {
               {/* Preview */}
               <div className="flex flex-col gap-1.5">
                 <p className="font-heading text-[9px] uppercase tracking-widest text-white/25">
-                  Vista previa del correo
+                  Email Preview
                 </p>
                 <iframe
                   srcDoc={form.bodyHtml.replace(/\{\{(\w+)\}\}/g, (_: string, k: string) => `[${k}]`)}

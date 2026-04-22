@@ -63,6 +63,11 @@ interface Props {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+const emptyManual = {
+  fullName: '', email: '', phone: '', venueOrCompany: '', city: '',
+  eventDate: '', eventType: '', budgetRange: '', guestCount: '', message: '', source: 'phone',
+}
+
 export default function AdminBookings({ onNavigate }: Props) {
   const [requests, setRequests] = useState<BookingRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -73,6 +78,11 @@ export default function AdminBookings({ onNavigate }: Props) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [queueExpanded, setQueueExpanded] = useState(false)
+
+  // Manual booking creation
+  const [addingManual, setAddingManual] = useState(false)
+  const [manualForm, setManualForm] = useState(emptyManual)
+  const [manualSaving, setManualSaving] = useState(false)
 
   // Email compose state
   const [templates, setTemplates] = useState<EmailTemplate[]>([])
@@ -193,6 +203,35 @@ export default function AdminBookings({ onNavigate }: Props) {
         : r
     )
     await persist(updated)
+  }
+
+  const createManualBooking = async () => {
+    if (!manualForm.fullName || !manualForm.email) return
+    setManualSaving(true)
+    const now = new Date().toISOString()
+    const booking: BookingRequest = {
+      id: `manual-${Date.now()}`,
+      fullName: manualForm.fullName,
+      email: manualForm.email,
+      phone: manualForm.phone,
+      venueOrCompany: manualForm.venueOrCompany,
+      city: manualForm.city,
+      eventDate: manualForm.eventDate,
+      eventType: manualForm.eventType,
+      budgetRange: manualForm.budgetRange,
+      guestCount: manualForm.guestCount,
+      message: manualForm.message,
+      source: manualForm.source,
+      status: 'New',
+      createdAt: now,
+      updatedAt: now,
+    }
+    const updated = [booking, ...requests]
+    await persist(updated)
+    setManualForm(emptyManual)
+    setAddingManual(false)
+    setManualSaving(false)
+    openDrawer(booking)
   }
 
   const openDrawer = (r: BookingRequest, tab: 'details' | 'email' | 'quote' | 'invoice' = 'details') => {
@@ -373,8 +412,79 @@ export default function AdminBookings({ onNavigate }: Props) {
             >
               Export CSV
             </button>
+            <button
+              type="button"
+              onClick={() => { setAddingManual((v) => !v); setManualForm(emptyManual) }}
+              className={`font-heading text-[10px] uppercase tracking-widest px-3 py-2 transition-all flex items-center gap-1.5 ${addingManual ? 'bg-white/8 text-white border border-white/20' : 'bg-brand-red text-white hover:bg-brand-red-bright'}`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d={addingManual ? 'M6 18L18 6M6 6l12 12' : 'M12 4.5v15m7.5-7.5h-15'} />
+              </svg>
+              {addingManual ? 'Cancel' : 'Add Booking'}
+            </button>
           </div>
         </div>
+
+        {/* ── Manual booking form ── */}
+        {addingManual && (
+          <div className="mb-6 border border-brand-red/25 bg-brand-red/[0.03] p-5">
+            <p className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-4">New Booking — Manual Entry</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+              <div className="flex flex-col gap-1">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">Name *</label>
+                <input type="text" value={manualForm.fullName} onChange={(e) => setManualForm({ ...manualForm, fullName: e.target.value })} className={inputClass} placeholder="John Smith" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">Email *</label>
+                <input type="email" value={manualForm.email} onChange={(e) => setManualForm({ ...manualForm, email: e.target.value })} className={inputClass} placeholder="john@example.com" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">Phone</label>
+                <input type="tel" value={manualForm.phone} onChange={(e) => setManualForm({ ...manualForm, phone: e.target.value })} className={inputClass} placeholder="(305) 555-0100" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">Venue / Company</label>
+                <input type="text" value={manualForm.venueOrCompany} onChange={(e) => setManualForm({ ...manualForm, venueOrCompany: e.target.value })} className={inputClass} placeholder="The Blue Room" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">City</label>
+                <input type="text" value={manualForm.city} onChange={(e) => setManualForm({ ...manualForm, city: e.target.value })} className={inputClass} placeholder="Miami, FL" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">Event Date</label>
+                <input type="date" value={manualForm.eventDate} onChange={(e) => setManualForm({ ...manualForm, eventDate: e.target.value })} className={inputClass} aria-label="Event date" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">Event Type</label>
+                <input type="text" value={manualForm.eventType} onChange={(e) => setManualForm({ ...manualForm, eventType: e.target.value })} className={inputClass} placeholder="Corporate party, Wedding…" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">Budget Range</label>
+                <input type="text" value={manualForm.budgetRange} onChange={(e) => setManualForm({ ...manualForm, budgetRange: e.target.value })} className={inputClass} placeholder="$2,000–$3,000" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">Source</label>
+                <select value={manualForm.source} onChange={(e) => setManualForm({ ...manualForm, source: e.target.value })} className={inputClass} aria-label="Lead source">
+                  {[['phone','Phone Call'],['email','Direct Email'],['referral','Referral'],['repeat','Repeat Client'],['google','Google'],['facebook','Facebook / IG'],['other','Other']].map(([v,l]) => (
+                    <option key={v} value={v}>{l}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 mb-4">
+              <label className="font-heading text-[9px] uppercase tracking-widest text-white/35">Notes</label>
+              <textarea value={manualForm.message} onChange={(e) => setManualForm({ ...manualForm, message: e.target.value })} className={`${inputClass} h-16 resize-none`} placeholder="Initial inquiry details…" />
+            </div>
+            <button
+              type="button"
+              onClick={createManualBooking}
+              disabled={!manualForm.fullName || !manualForm.email || manualSaving}
+              className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-50"
+            >
+              {manualSaving ? 'Creating…' : 'Create Booking'}
+            </button>
+          </div>
+        )}
 
         {/* Mini stats */}
         <div className="grid grid-cols-4 gap-2 mb-6">

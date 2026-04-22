@@ -293,7 +293,7 @@ export default function AdminInbox({ onNavigate }: Props) {
                 {/* Sender card */}
                 <div className="bg-white/[0.04] border border-white/8 px-5 py-4 flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 mb-1">De</p>
+                    <p className="font-heading text-[10px] uppercase tracking-widest text-white/30 mb-1">From</p>
                     <p className="font-body text-base text-white font-medium">
                       {selected.fromName || selected.fromEmail}
                     </p>
