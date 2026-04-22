@@ -4,34 +4,6 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { translations, type Lang } from '@/lib/i18n'
 
-const eventTypes = [
-  'Bar / Nightclub',
-  'Private Party',
-  'Corporate Event',
-  'Festival / Outdoor',
-  'Wedding Reception',
-  'Restaurant Show',
-  'Holiday Party',
-  'Other',
-]
-
-const budgetRanges = [
-  'Under $500',
-  '$500–$1,000',
-  '$1,000–$2,500',
-  '$2,500–$5,000',
-  '$5,000+',
-  'Not sure yet',
-]
-
-const guestCounts = [
-  'Under 50',
-  '50–100',
-  '100–250',
-  '250–500',
-  '500+',
-  'Private (not applicable)',
-]
 
 const inputClass =
   'w-full bg-brand-elevated border border-brand-border text-white font-body text-sm px-4 py-3 focus:outline-none focus:border-brand-red/50 focus:shadow-[0_0_0_3px_rgba(224,16,30,0.08)] transition-all placeholder:text-brand-muted/40 rounded-none'
@@ -173,6 +145,7 @@ export default function BookingForm({ contactEmail, lang = 'en' }: Props) {
           </label>
           <input
             type="date"
+            aria-label={tr.eventDate}
             value={form.eventDate}
             onChange={(e) => set('eventDate', e.target.value)}
             className={`${inputClass} ${errors.eventDate ? 'border-brand-red/60' : ''}`}
@@ -209,12 +182,13 @@ export default function BookingForm({ contactEmail, lang = 'en' }: Props) {
           {tr.eventType} <span className="text-brand-red">*</span>
         </label>
         <select
+          aria-label={tr.eventType}
           value={form.eventType}
           onChange={(e) => set('eventType', e.target.value)}
           className={`${inputClass} ${errors.eventType ? 'border-brand-red/60' : ''}`}
         >
           <option value="">{tr.eventTypePlaceholder}</option>
-          {eventTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+          {tr.eventTypes.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
         {errors.eventType && <span className="font-body text-[11px] text-brand-red">{errors.eventType}</span>}
       </div>
@@ -223,23 +197,25 @@ export default function BookingForm({ contactEmail, lang = 'en' }: Props) {
         <div className="flex flex-col gap-1.5">
           <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">{tr.budget}</label>
           <select
+            aria-label={tr.budget}
             value={form.budgetRange}
             onChange={(e) => set('budgetRange', e.target.value)}
             className={inputClass}
           >
             <option value="">{tr.budgetPlaceholder}</option>
-            {budgetRanges.map((b) => <option key={b} value={b}>{b}</option>)}
+            {tr.budgetRanges.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="font-heading text-[11px] uppercase tracking-widest text-brand-muted">{tr.guests}</label>
           <select
+            aria-label={tr.guests}
             value={form.guestCount}
             onChange={(e) => set('guestCount', e.target.value)}
             className={inputClass}
           >
             <option value="">{tr.guestsPlaceholder}</option>
-            {guestCounts.map((g) => <option key={g} value={g}>{g}</option>)}
+            {tr.guestCounts.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
         </div>
       </div>
