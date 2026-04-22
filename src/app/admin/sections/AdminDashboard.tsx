@@ -24,6 +24,7 @@ interface LiveData {
   venueCount: number
   lowStockItems: MerchItem[]
   activity: ActivityItem[]
+  newSongRequests: number
 }
 
 function fmtCurrency(n: number) {
@@ -66,7 +67,7 @@ interface MonthlyGoal { month: string; bookingTarget: number; revenueTarget: num
 
 export default function AdminDashboard({ onNavigate }: Props) {
   const [live, setLive] = useState<LiveData>({
-    bookingRequests: [], shows: [], inboxUnread: 0, venueCount: 0, lowStockItems: [], activity: [],
+    bookingRequests: [], shows: [], inboxUnread: 0, venueCount: 0, lowStockItems: [], activity: [], newSongRequests: 0,
   })
   const [goal, setGoal] = useState<MonthlyGoal | null>(null)
   const [editingGoal, setEditingGoal] = useState(false)
@@ -120,6 +121,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
           venueCount: (v.venues ?? []).length,
           lowStockItems: (d.merch ?? []).filter((m: MerchItem) => m.stockQuantity !== undefined && m.stockQuantity <= 2),
           activity,
+          newSongRequests: songReqs.filter((r) => r.status === 'New').length,
         })
         const savedGoal: MonthlyGoal | undefined = d.monthlyGoal
         const currentMonth = new Date().toISOString().slice(0, 7)
@@ -130,7 +132,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
       .catch(() => {})
   }, [])
 
-  const { bookingRequests, shows, inboxUnread, venueCount, lowStockItems, activity } = live
+  const { bookingRequests, shows, inboxUnread, venueCount, lowStockItems, activity, newSongRequests } = live
 
   const today = new Date()
   const thisMonth = today.toISOString().slice(0, 7)
@@ -492,8 +494,8 @@ export default function AdminDashboard({ onNavigate }: Props) {
         </div>
       </div>
 
-      {/* Bottom row: Venues + Recent bookings */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Bottom row: Venues + Shows + Song Requests + Emails */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="border border-white/8 bg-[#0d0d1e] p-5 text-center">
           <div className="font-display text-3xl text-white mb-1">{venueCount}</div>
           <div className="font-heading text-[10px] uppercase tracking-widest text-white/40">Venues Tracked</div>
@@ -502,6 +504,14 @@ export default function AdminDashboard({ onNavigate }: Props) {
           <div className="font-display text-3xl text-white mb-1">{shows.length}</div>
           <div className="font-heading text-[10px] uppercase tracking-widest text-white/40">Upcoming Shows</div>
         </div>
+        <button
+          type="button"
+          onClick={() => onNavigate('song-requests')}
+          className="border border-white/8 bg-[#0d0d1e] p-5 text-center hover:border-purple-400/30 transition-colors group"
+        >
+          <div className={`font-display text-3xl mb-1 ${newSongRequests > 0 ? 'text-purple-400' : 'text-white'}`}>{newSongRequests}</div>
+          <div className="font-heading text-[10px] uppercase tracking-widest text-white/40 group-hover:text-white/60 transition-colors">New Song Requests</div>
+        </button>
         <div className="border border-white/8 bg-[#0d0d1e] p-5 text-center">
           <div className={`font-display text-3xl mb-1 ${inboxUnread > 0 ? 'text-blue-400' : 'text-white'}`}>{inboxUnread}</div>
           <div className="font-heading text-[10px] uppercase tracking-widest text-white/40">Unread Emails</div>
