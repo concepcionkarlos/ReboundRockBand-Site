@@ -56,6 +56,7 @@ export const translations = {
       pastShows: 'Past Shows',
       tickets: 'Tickets',
       freeEntry: 'Free Entry',
+      featured: 'Featured',
     },
     about: {
       eyebrow: 'The Band',
@@ -307,6 +308,7 @@ export const translations = {
       pastShows: 'Shows Anteriores',
       tickets: 'Boletos',
       freeEntry: 'Entrada Gratis',
+      featured: 'Destacado',
     },
     about: {
       eyebrow: 'La Banda',

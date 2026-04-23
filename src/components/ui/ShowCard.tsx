@@ -47,7 +47,7 @@ export default function ShowCard({ show, variant = 'default', lang = 'en' }: Sho
             <div className="font-heading text-sm text-white tracking-wide leading-snug">{show.venue}</div>
             {isFeatured && (
               <span className="font-heading text-[9px] uppercase tracking-widest text-brand-red border border-brand-red/40 px-1.5 py-0.5 flex-shrink-0 leading-none">
-                Featured
+                {tr.featured}
               </span>
             )}
           </div>
