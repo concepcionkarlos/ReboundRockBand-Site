@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import SectionHeader from '@/components/ui/SectionHeader'
 import { readContent } from '@/lib/store'
@@ -31,42 +32,54 @@ export default async function MediaPreview() {
           </Link>
         </div>
 
-        {/* Featured video */}
-        {featured && featured.type === 'video' && (
+        {/* Featured media (video or photo fallback) */}
+        {featured && (
           <Link href="/media" className="block group">
             <div className="relative w-full aspect-video bg-brand-elevated border border-brand-border overflow-hidden">
-              <video
-                src={featured.url}
-                className="w-full h-full object-cover opacity-75 group-hover:opacity-95 transition-opacity duration-500"
-                muted
-                loop
-                playsInline
-                autoPlay
-                poster={featured.poster}
-              />
+              {featured.type === 'video' ? (
+                <video
+                  src={featured.url}
+                  className="w-full h-full object-cover opacity-75 group-hover:opacity-95 transition-opacity duration-500"
+                  muted
+                  loop
+                  playsInline
+                  autoPlay
+                  poster={featured.poster}
+                />
+              ) : (
+                <Image
+                  src={featured.url}
+                  alt={featured.caption}
+                  fill
+                  className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
+                  sizes="(max-width: 1024px) 100vw, 80vw"
+                />
+              )}
               {/* Overlay */}
               <div className="absolute inset-0 flex items-end p-7 lg:p-10 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none">
                 <div>
                   <div className="font-heading text-[10px] text-brand-red uppercase tracking-widest mb-2 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse-slow" />
-                    {featured.caption || 'Live Performance'}
+                    {featured.caption || tr.eyebrow}
                   </div>
                   <div className="font-display text-4xl lg:text-6xl text-white uppercase leading-none">
                     {tr.watchShow}
                   </div>
                 </div>
               </div>
-              {/* Top-left corner bracket */}
+              {/* Corner brackets */}
               <div className="absolute top-4 left-4 w-7 h-7 border-l-2 border-t-2 border-brand-red/60 pointer-events-none" />
               <div className="absolute bottom-4 right-4 w-7 h-7 border-r-2 border-b-2 border-brand-red/60 pointer-events-none" />
-              {/* Hover play indicator */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                <div className="w-20 h-20 rounded-full border-2 border-white/40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                  <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
+              {/* Hover play indicator — only for videos */}
+              {featured.type === 'video' && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <div className="w-20 h-20 rounded-full border-2 border-white/40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </Link>
         )}
