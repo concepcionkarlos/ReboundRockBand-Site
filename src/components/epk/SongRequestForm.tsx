@@ -49,13 +49,13 @@ export default function SongRequestForm({ lang = 'en' }: { lang?: Lang }) {
       })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        setErrorMsg(data.error ?? 'Something went wrong. Please try again.')
+        setErrorMsg(data.error ?? tr.errorGeneric)
         setStatus('error')
       } else {
         setStatus('success')
       }
     } catch {
-      setErrorMsg('Network error. Please try again.')
+      setErrorMsg(tr.errorNetwork)
       setStatus('error')
     }
   }
@@ -105,7 +105,7 @@ export default function SongRequestForm({ lang = 'en' }: { lang?: Lang }) {
             value={form.email}
             onChange={(e) => set('email', e.target.value)}
             className={`${inputClass} ${errors.email ? 'border-brand-red/60' : ''}`}
-            placeholder="your@email.com"
+            placeholder={tr.emailPlaceholder}
           />
           {errors.email && <span className="font-body text-[11px] text-brand-red">{errors.email}</span>}
         </div>

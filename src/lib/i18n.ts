@@ -254,6 +254,9 @@ export const translations = {
       successSub: 'The band will review your song request. Thanks for reaching out!',
       errorRequired: 'Required',
       errorSong: 'At least one song is required',
+      errorGeneric: 'Something went wrong. Please try again.',
+      errorNetwork: 'Network error. Please try again.',
+      emailPlaceholder: 'your@email.com',
     },
   },
   es: {
@@ -509,6 +512,9 @@ export const translations = {
       successSub: 'La banda revisará tu petición. ¡Gracias por escribirnos!',
       errorRequired: 'Requerido',
       errorSong: 'Se requiere al menos una canción',
+      errorGeneric: 'Algo salió mal. Por favor intenta de nuevo.',
+      errorNetwork: 'Error de red. Por favor intenta de nuevo.',
+      emailPlaceholder: 'tu@correo.com',
     },
   },
 } as const
