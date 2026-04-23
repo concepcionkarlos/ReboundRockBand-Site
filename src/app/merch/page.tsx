@@ -63,8 +63,8 @@ export default async function MerchPage() {
               </div>
               {/* Free shipping callout */}
               <div className="flex-shrink-0 border border-brand-border bg-brand-surface px-5 py-4 text-center sm:text-right">
-                <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-1">Free Shipping</div>
-                <div className="font-body text-xs text-brand-text">On orders over $75</div>
+                <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-1">{tr.freeShipping}</div>
+                <div className="font-body text-xs text-brand-text">{tr.freeShippingCallout}</div>
               </div>
             </div>
           </div>
@@ -186,7 +186,7 @@ export default async function MerchPage() {
                       )
                     ) : (
                       <div className="text-center font-heading text-sm uppercase tracking-widest text-brand-muted border border-brand-border px-4 py-4 mt-auto cursor-not-allowed">
-                        Sold Out
+                        {tr.soldOut}
                       </div>
                     )}
                   </div>
@@ -198,22 +198,41 @@ export default async function MerchPage() {
 
         {/* Bottom info */}
         <Reveal delay={2}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <div className="border border-brand-border bg-brand-surface p-6 text-center">
-              <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-2">Free Shipping</div>
+              <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-2">{tr.freeShipping}</div>
               <p className="font-body text-sm text-brand-text leading-relaxed">
-                Free shipping on all orders over $75 in the US.
+                {tr.freeShippingBody}
               </p>
             </div>
             <div className="border border-brand-border bg-brand-surface p-6 text-center">
-              <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-2">Bulk & Custom</div>
+              <div className="font-heading text-[10px] uppercase tracking-widest text-brand-red mb-2">{tr.bulkCustom}</div>
               <p className="font-body text-sm text-brand-text leading-relaxed">
-                Email{' '}
-                <a href={`mailto:${siteContent.contactEmail}`} className="text-brand-red hover:underline">
-                  {siteContent.contactEmail}
-                </a>{' '}
-                for bulk orders or event packages.
+                {tr.bulkCustomBody(siteContent.contactEmail)}
               </p>
+            </div>
+          </div>
+        </Reveal>
+
+        {/* CTA */}
+        <Reveal>
+          <div className="relative border border-brand-border bg-brand-surface p-12 text-center overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-px divider-red" />
+            <div className="absolute bottom-0 inset-x-0 h-px divider-red" />
+            <div className="absolute inset-0 bg-stripe-texture pointer-events-none" />
+            <div className="relative z-10">
+              <h2 className="font-display uppercase text-4xl sm:text-5xl text-white leading-[0.92] mb-4">
+                {tr.ctaHeading} <span className="text-brand-red">{tr.ctaHeadingAccent}</span>
+              </h2>
+              <p className="font-body text-brand-text text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                {tr.ctaSub}
+              </p>
+              <a
+                href={`mailto:${siteContent.contactEmail}`}
+                className="inline-block font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-9 py-4 hover:bg-brand-red-bright transition-all btn-glow-red"
+              >
+                {tr.ctaContact}
+              </a>
             </div>
           </div>
         </Reveal>
