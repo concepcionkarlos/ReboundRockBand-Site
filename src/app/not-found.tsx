@@ -1,6 +1,11 @@
 import Link from 'next/link'
+import { getLang } from '@/lib/getLang'
+import { translations } from '@/lib/i18n'
 
-export default function NotFound() {
+export default async function NotFound() {
+  const lang = await getLang()
+  const tr = translations[lang].notFound
+
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center px-5 relative overflow-hidden">
       {/* Background glow */}
@@ -11,7 +16,7 @@ export default function NotFound() {
         {/* Eyebrow */}
         <div className="inline-flex items-center gap-3 font-heading text-brand-red text-[11px] tracking-[0.22em] uppercase mb-8">
           <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
-          Page Not Found
+          {tr.eyebrow}
           <span className="w-8 h-px bg-gradient-to-l from-transparent to-brand-red/70" />
         </div>
 
@@ -24,10 +29,10 @@ export default function NotFound() {
         </h1>
 
         <p className="font-display uppercase text-2xl sm:text-3xl text-white/70 leading-tight mb-3">
-          This page left the stage.
+          {tr.tagline}
         </p>
         <p className="font-body text-brand-text text-sm leading-relaxed mb-10 max-w-sm mx-auto">
-          Looks like this page packed up and went home. Head back and find what you need.
+          {tr.body}
         </p>
 
         {/* Nav links */}
@@ -36,25 +41,19 @@ export default function NotFound() {
             href="/"
             className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-8 py-4 hover:bg-brand-red-bright transition-all btn-glow-red"
           >
-            Back Home
+            {tr.backHome}
           </Link>
           <Link
             href="/booking"
             className="font-heading text-sm uppercase tracking-widest border border-white/20 text-white/80 px-8 py-4 hover:border-brand-red hover:text-brand-red transition-all"
           >
-            Book the Band
+            {tr.bookBand}
           </Link>
         </div>
 
         {/* Quick links */}
         <div className="flex flex-wrap gap-x-6 gap-y-2 justify-center">
-          {[
-            { href: '/shows', label: 'Shows' },
-            { href: '/about', label: 'About' },
-            { href: '/media', label: 'Media' },
-            { href: '/merch', label: 'Merch' },
-            { href: '/epk', label: 'Press Kit' },
-          ].map(({ href, label }) => (
+          {tr.links.map(({ href, label }) => (
             <Link
               key={href}
               href={href}

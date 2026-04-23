@@ -258,6 +258,20 @@ export const translations = {
       errorNetwork: 'Network error. Please try again.',
       emailPlaceholder: 'your@email.com',
     },
+    notFound: {
+      eyebrow: 'Page Not Found',
+      tagline: 'This page left the stage.',
+      body: 'Looks like this page packed up and went home. Head back and find what you need.',
+      backHome: 'Back Home',
+      bookBand: 'Book the Band',
+      links: [
+        { href: '/shows', label: 'Shows' },
+        { href: '/about', label: 'About' },
+        { href: '/media', label: 'Media' },
+        { href: '/merch', label: 'Merch' },
+        { href: '/epk', label: 'Press Kit' },
+      ],
+    },
   },
   es: {
     nav: {
@@ -515,6 +529,20 @@ export const translations = {
       errorGeneric: 'Algo salió mal. Por favor intenta de nuevo.',
       errorNetwork: 'Error de red. Por favor intenta de nuevo.',
       emailPlaceholder: 'tu@correo.com',
+    },
+    notFound: {
+      eyebrow: 'Página No Encontrada',
+      tagline: 'Esta página se fue del escenario.',
+      body: 'Parece que esta página recogió todo y se fue. Vuelve al inicio y encuentra lo que necesitas.',
+      backHome: 'Volver al Inicio',
+      bookBand: 'Reservar la Banda',
+      links: [
+        { href: '/shows', label: 'Conciertos' },
+        { href: '/about', label: 'Nosotros' },
+        { href: '/media', label: 'Media' },
+        { href: '/merch', label: 'Merch' },
+        { href: '/epk', label: 'Press Kit' },
+      ],
     },
   },
 } as const
