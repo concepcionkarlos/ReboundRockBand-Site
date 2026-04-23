@@ -7,9 +7,12 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Shows & Events',
-  description: 'Upcoming Rebound Rock Band shows and live performances across South Florida.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { siteContent } = await readContent()
+  return {
+    title: 'Shows & Events',
+    description: `Upcoming Rebound Rock Band shows and live performances across ${siteContent.serviceArea}.`,
+  }
 }
 
 export default async function ShowsPage() {

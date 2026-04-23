@@ -7,9 +7,12 @@ import BookingForm from '@/components/booking/BookingForm'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Book the Band',
-  description: 'Book Rebound Rock Band for your bar, private event, festival, or corporate show in South Florida.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { siteContent } = await readContent()
+  return {
+    title: 'Book the Band',
+    description: `Book Rebound Rock Band for your bar, private event, festival, or corporate show in ${siteContent.serviceArea}.`,
+  }
 }
 
 export default async function BookingPage() {

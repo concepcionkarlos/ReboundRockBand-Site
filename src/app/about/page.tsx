@@ -8,9 +8,12 @@ import { translations } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'About the Band',
-  description: 'Meet Rebound Rock Band — South Florida\'s 5-piece live classic rock cover band.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { siteContent } = await readContent()
+  return {
+    title: 'About the Band',
+    description: `Meet Rebound Rock Band — ${siteContent.serviceArea}'s 5-piece live classic rock cover band.`,
+  }
 }
 
 export default async function AboutPage() {
