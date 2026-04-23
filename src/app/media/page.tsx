@@ -153,7 +153,7 @@ export default async function MediaPage() {
                 ))}
               </div>
               <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <span className="font-body text-sm text-brand-text">New clips added regularly</span>
+                <span className="font-body text-sm text-brand-text">{tr.socialPitch}</span>
                 <SocialPills siteContent={siteContent} />
               </div>
             </section>
@@ -212,7 +212,10 @@ export default async function MediaPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link href="/booking" className="inline-block font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-9 py-4 hover:bg-brand-red-bright transition-all btn-glow-red">
-                  {siteContent.ctaPrimaryLabel}
+                  {tr.ctaBook}
+                </Link>
+                <Link href="/shows" className="inline-block font-heading text-sm uppercase tracking-widest border border-white/20 text-white/85 px-9 py-4 hover:border-brand-red hover:text-brand-red transition-all">
+                  {tr.ctaShows}
                 </Link>
               </div>
             </div>
