@@ -27,6 +27,7 @@ const inter = Inter({
   display: 'swap',
 })
 
+const BASE_URL = 'https://reboundrockband.com'
 const DEFAULT_DESCRIPTION = "Rebound Rock Band is South Florida's live 5-piece classic rock cover band. Greatest hits from the 1950s through the 1990s. Available for bars, private events, festivals, and corporate shows."
 const DEFAULT_OG_TITLE = 'Rebound Rock Band — Classic Rock Cover Band'
 const DEFAULT_OG_DESC = "South Florida's live 5-piece classic rock cover band. Book us for your next event."
@@ -35,6 +36,7 @@ const DEFAULT_KEYWORDS = ['Rebound Rock Band','rock cover band','south florida b
 export async function generateMetadata(): Promise<Metadata> {
   const { siteContent: sc } = await readContent()
   return {
+    metadataBase: new URL(BASE_URL),
     title: {
       default: 'Rebound Rock Band — Classic Rock Cover Band | South Florida',
       template: '%s | Rebound Rock Band',
@@ -46,6 +48,17 @@ export async function generateMetadata(): Promise<Metadata> {
       description: sc.ogDescription || DEFAULT_OG_DESC,
       type: 'website',
       siteName: 'Rebound Rock Band',
+      images: [{ url: `${BASE_URL}/logo-improved.png`, width: 512, height: 512, alt: 'Rebound Rock Band' }],
+    },
+    twitter: {
+      card: 'summary',
+      title: sc.ogTitle || DEFAULT_OG_TITLE,
+      description: sc.ogDescription || DEFAULT_OG_DESC,
+      images: [`${BASE_URL}/logo-improved.png`],
+    },
+    icons: {
+      icon: '/logo-improved.png',
+      apple: '/logo-improved.png',
     },
   }
 }
