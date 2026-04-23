@@ -272,6 +272,21 @@ export const translations = {
         { href: '/epk', label: 'Press Kit' },
       ],
     },
+    error: {
+      eyebrow: 'Something went wrong',
+      heading: 'Aw,',
+      headingAccent: 'snap.',
+      tagline: 'The show hit a snag.',
+      body: 'Something unexpected went wrong on our end. Try again or head back home.',
+      tryAgain: 'Try Again',
+      backHome: 'Back Home',
+      links: [
+        { href: '/shows', label: 'Shows' },
+        { href: '/about', label: 'About' },
+        { href: '/booking', label: 'Book Us' },
+        { href: '/epk', label: 'Press Kit' },
+      ],
+    },
   },
   es: {
     nav: {
@@ -541,6 +556,21 @@ export const translations = {
         { href: '/about', label: 'Nosotros' },
         { href: '/media', label: 'Media' },
         { href: '/merch', label: 'Merch' },
+        { href: '/epk', label: 'Press Kit' },
+      ],
+    },
+    error: {
+      eyebrow: 'Algo salió mal',
+      heading: 'Vaya,',
+      headingAccent: 'qué fallo.',
+      tagline: 'El show tuvo un problema.',
+      body: 'Algo inesperado falló de nuestra parte. Inténtalo de nuevo o vuelve al inicio.',
+      tryAgain: 'Intentar de Nuevo',
+      backHome: 'Volver al Inicio',
+      links: [
+        { href: '/shows', label: 'Conciertos' },
+        { href: '/about', label: 'Nosotros' },
+        { href: '/booking', label: 'Reservar' },
         { href: '/epk', label: 'Press Kit' },
       ],
     },
