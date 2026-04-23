@@ -122,6 +122,9 @@ export const translations = {
       errorEmail: 'Valid email required',
       errorDate: 'Please select a date',
       errorEventType: 'Please select an event type',
+      errorGeneric: 'Something went wrong. Please try again.',
+      errorNetwork: 'Network error. Please try again.',
+      phonePlaceholder: '(305) 000-0000',
     },
     media: {
       eyebrow: 'Watch & Listen',
@@ -374,6 +377,9 @@ export const translations = {
       errorEmail: 'Correo válido requerido',
       errorDate: 'Selecciona una fecha',
       errorEventType: 'Selecciona un tipo de evento',
+      errorGeneric: 'Algo salió mal. Por favor intenta de nuevo.',
+      errorNetwork: 'Error de red. Por favor intenta de nuevo.',
+      phonePlaceholder: '(305) 000-0000',
     },
     media: {
       eyebrow: 'Mira y Escucha',

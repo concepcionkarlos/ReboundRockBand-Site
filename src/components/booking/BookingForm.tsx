@@ -60,13 +60,13 @@ export default function BookingForm({ contactEmail, lang = 'en' }: Props) {
       })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        setErrorMsg(data.error ?? 'Something went wrong. Please try again.')
+        setErrorMsg(data.error ?? tr.errorGeneric)
         setSubmitStatus('error')
       } else {
         setSubmitStatus('success')
       }
     } catch {
-      setErrorMsg('Network error. Please try again.')
+      setErrorMsg(tr.errorNetwork)
       setSubmitStatus('error')
     }
   }
@@ -136,7 +136,7 @@ export default function BookingForm({ contactEmail, lang = 'en' }: Props) {
             value={form.phone}
             onChange={(e) => set('phone', e.target.value)}
             className={inputClass}
-            placeholder="(305) 000-0000"
+            placeholder={tr.phonePlaceholder}
           />
         </div>
         <div className="flex flex-col gap-1.5">
