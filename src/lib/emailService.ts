@@ -82,6 +82,22 @@ export async function triggerAutoReply(booking: BookingRequest): Promise<void> {
   }
 }
 
+export async function sendAdminNotification(opts: {
+  toEmail: string
+  subject: string
+  bodyHtml: string
+}): Promise<void> {
+  if (DEV_MODE) {
+    console.log(`[admin-notify][DEV] Would send to ${opts.toEmail}: ${opts.subject}`)
+    return
+  }
+  try {
+    const { Resend } = await import('resend')
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    await resend.emails.send({ from: FROM, to: opts.toEmail, subject: opts.subject, html: opts.bodyHtml })
+  } catch { /* non-critical — swallow */ }
+}
+
 export async function sendOutreachEmail(opts: {
   toEmail: string
   subject: string
