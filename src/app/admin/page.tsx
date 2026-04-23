@@ -173,12 +173,15 @@ export default function AdminPage() {
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('admin_authed')
-    if (stored === '1') setAuthed(true)
-    setAuthChecked(true)
+    fetch('/api/admin/login')
+      .then((r) => r.json())
+      .then((d: { ok?: boolean }) => { if (d.ok) setAuthed(true) })
+      .catch(() => {})
+      .finally(() => setAuthChecked(true))
   }, [])
 
   useEffect(() => {
+    if (!authed) return
     Promise.all([
       fetch('/api/content').then((r) => r.json()),
       fetch('/api/venues').then((r) => r.json()),
@@ -229,17 +232,17 @@ export default function AdminPage() {
       .catch(() => {})
   }, [active])
 
-  const handleLogin = (password: string): boolean => {
-    const correct = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
-    if (!correct || password === correct) {
-      sessionStorage.setItem('admin_authed', '1')
-      setAuthed(true)
-      return true
-    }
+  const handleLogin = async (password: string): Promise<boolean> => {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    })
+    if (res.ok) { setAuthed(true); return true }
     return false
   }
   const handleLogout = () => {
-    sessionStorage.removeItem('admin_authed')
+    void fetch('/api/admin/login', { method: 'DELETE' }).catch(() => {})
     setAuthed(false)
   }
 
@@ -343,6 +346,7 @@ export default function AdminPage() {
                     </div>
                   )}
                   <button
+                    type="button"
                     onClick={() => navigate(item.id)}
                     className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 mb-0.5 text-left transition-all font-heading text-xs uppercase tracking-widest relative group
                       ${isActive
@@ -385,6 +389,7 @@ export default function AdminPage() {
             View Public Site
           </Link>
           <button
+            type="button"
             onClick={handleLogout}
             className="flex items-center gap-2 font-heading text-[10px] uppercase tracking-widest text-white/20 hover:text-red-400/60 transition-colors py-1 text-left"
           >
@@ -407,6 +412,7 @@ export default function AdminPage() {
           {/* Left: hamburger + breadcrumb */}
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden text-white/40 hover:text-white p-1 -ml-1 transition-colors"
               aria-label="Open menu"

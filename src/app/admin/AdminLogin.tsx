@@ -4,16 +4,20 @@ import { useState } from 'react'
 import Image from 'next/image'
 
 interface AdminLoginProps {
-  onLogin: (password: string) => boolean
+  onLogin: (password: string) => Promise<boolean>
 }
 
 export default function AdminLogin({ onLogin }: AdminLoginProps) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
   const [shake, setShake] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const attempt = () => {
-    const ok = onLogin(password)
+  const attempt = async () => {
+    if (loading) return
+    setLoading(true)
+    const ok = await onLogin(password)
+    setLoading(false)
     if (!ok) {
       setError(true)
       setShake(true)
@@ -57,7 +61,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
                 type="password"
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setError(false) }}
-                onKeyDown={(e) => e.key === 'Enter' && attempt()}
+                onKeyDown={(e) => e.key === 'Enter' && void attempt()}
                 autoFocus
                 className={`w-full bg-[#0d0d1e] border text-white font-body text-sm px-4 py-3 focus:outline-none transition-all placeholder:text-white/20 rounded-none ${
                   error
@@ -74,10 +78,11 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
             </div>
 
             <button
-              onClick={attempt}
-              className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-6 py-3 hover:bg-brand-red-bright transition-all btn-glow-red"
+              onClick={() => void attempt()}
+              disabled={loading}
+              className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-6 py-3 hover:bg-brand-red-bright transition-all btn-glow-red disabled:opacity-60"
             >
-              Enter Admin
+              {loading ? 'Verifying…' : 'Enter Admin'}
             </button>
           </div>
         </div>

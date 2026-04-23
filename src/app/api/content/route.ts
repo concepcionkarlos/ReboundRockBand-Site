@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readContent, writeContent } from '@/lib/store'
 
-const ALLOWED = ['shows', 'merch', 'bandMembers', 'siteContent', 'mediaItems', 'epkContent', 'bookingRequests', 'songRequests']
+const ALLOWED = ['shows', 'merch', 'bandMembers', 'siteContent', 'mediaItems', 'epkContent', 'bookingRequests', 'songRequests', 'adminNotes', 'monthlyGoal']
 
 export async function GET() {
   const content = await readContent()
