@@ -1,9 +1,9 @@
-// ─── api/places/search/route.ts ────────────────────────────────────────────
-// Endpoint para buscar venues/locales usando Google Places API (New).
-// DESACTIVADO — el Venue Finder no está en uso actualmente.
-// Para reactivarlo: agregar GOOGLE_PLACES_API_KEY en Vercel → Settings → Env vars
-// y cambiar VENUE_FINDER_DISABLED a false más abajo.
-// ──────────────────────────────────────────────────────────────────────────
+// api/places/search/route.ts — Google Places API (New) text search
+//
+// VENUE FINDER IS DISABLED. The route returns an empty result list immediately
+// without ever reaching Google, so no API quota is consumed.
+// To re-enable: set VENUE_FINDER_DISABLED = false and add
+// GOOGLE_PLACES_API_KEY in Vercel project settings.
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { PlaceSearchResult } from '@/lib/data'
@@ -11,26 +11,26 @@ import type { PlaceSearchResult } from '@/lib/data'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Controla si el Venue Finder está habilitado o no.
-// Cambiar a false y configurar GOOGLE_PLACES_API_KEY para reactivar.
+// Master kill-switch — flip to false and add GOOGLE_PLACES_API_KEY to re-enable
 const VENUE_FINDER_DISABLED = true
 
 export async function GET(req: NextRequest) {
-  // Si está desactivado manualmente, devolver respuesta vacía sin llamar a Google
+  // Short-circuit before reading params or hitting Google — zero API cost
   if (VENUE_FINDER_DISABLED) {
     return NextResponse.json({
       results: [] as PlaceSearchResult[],
-      devWarning: 'El Venue Finder está desactivado. Configura GOOGLE_PLACES_API_KEY y pon VENUE_FINDER_DISABLED en false para reactivarlo.',
+      devWarning:
+        'Venue Finder is disabled. Set VENUE_FINDER_DISABLED = false and add GOOGLE_PLACES_API_KEY to re-enable.',
     })
   }
 
-  // Leer los parámetros de búsqueda de la URL
+  // Parse search params from the URL
   const { searchParams } = req.nextUrl
   const keyword = searchParams.get('keyword')?.trim() ?? ''
   const city = searchParams.get('city')?.trim() ?? ''
   const q = searchParams.get('q')?.trim() ?? ''
 
-  // Construir el query de texto — acepta ?q=... o ?keyword=...&city=...
+  // Accept either ?q=... or ?keyword=...&city=...
   const textQuery = q || [keyword, city].filter(Boolean).join(' ')
 
   if (!textQuery) {
@@ -40,23 +40,24 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  // Verificar que la API key de Google está configurada en el entorno
+  // Guard: make sure the key is configured before calling Google
   if (!process.env.GOOGLE_PLACES_API_KEY) {
     return NextResponse.json({
       results: [],
-      devWarning: 'GOOGLE_PLACES_API_KEY no está configurado. Agrégalo en .env.local o en Vercel para habilitar la búsqueda real de venues.',
+      devWarning:
+        'GOOGLE_PLACES_API_KEY is not set. Add it to .env.local or Vercel env vars to enable real venue search.',
     })
   }
 
   try {
-    // Llamar a la Google Places API (New) con búsqueda por texto
+    // Call Google Places API (New) — POST with a JSON body
     const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // La API key va en el header, no en la URL (requisito de Places API v2)
+        // Key goes in the header per Places API v2 spec (not in the URL)
         'X-Goog-Api-Key': process.env.GOOGLE_PLACES_API_KEY,
-        // Solo pedimos los campos que necesitamos (facturación por campo en Google)
+        // Only request the fields we actually use — Google bills per field mask
         'X-Goog-FieldMask': [
           'places.id',
           'places.displayName',
@@ -77,14 +78,11 @@ export async function GET(req: NextRequest) {
 
     if (!res.ok) {
       const err = await res.text()
-      console.error('[places/search] Error de Google API:', err)
-      return NextResponse.json(
-        { error: 'Google Places API error', details: err },
-        { status: 502 }
-      )
+      console.error('[places/search] Google API error:', err)
+      return NextResponse.json({ error: 'Google Places API error', details: err }, { status: 502 })
     }
 
-    // Tipar la respuesta cruda de Google Places
+    // Raw shape returned by the Places API
     const data = (await res.json()) as {
       places?: {
         id: string
@@ -98,7 +96,7 @@ export async function GET(req: NextRequest) {
       }[]
     }
 
-    // Filtrar lugares cerrados permanentemente y mapear al formato interno
+    // Strip permanently closed places and map to our internal type
     const results: PlaceSearchResult[] = (data.places ?? [])
       .filter((p) => p.businessStatus !== 'CLOSED_PERMANENTLY')
       .map((p) => ({

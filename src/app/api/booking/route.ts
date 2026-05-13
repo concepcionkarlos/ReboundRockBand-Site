@@ -1,9 +1,8 @@
-// ─── api/booking/route.ts ──────────────────────────────────────────────────
-// Recibe las reservas enviadas desde el formulario público de booking.
-// Valida los campos requeridos, genera un ID único, guarda en la base de datos,
-// y dispara (fire-and-forget) el auto-reply al cliente y la notificación al admin.
-// Los correos están desactivados en emailService.ts — ver ese archivo para reactivar.
-// ──────────────────────────────────────────────────────────────────────────
+// api/booking/route.ts — Public booking form submission
+//
+// Validates required fields, generates a unique ID, saves to the database,
+// then fire-and-forgets an admin notification and client auto-reply.
+// Email sending is disabled in emailService.ts — see that file to re-enable.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { readContent, writeContent } from '@/lib/store'
@@ -14,14 +13,14 @@ import { triggerAutoReply, sendAdminNotification } from '@/lib/emailService'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Campos que el cliente debe enviar obligatoriamente en el formulario
+// Fields the client must include — all others are optional
 const REQUIRED_FIELDS = ['fullName', 'email', 'eventDate', 'eventType'] as const
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as Record<string, unknown>
 
-    // Verificar que todos los campos requeridos están presentes y no vacíos
+    // Reject early if any required field is missing or blank
     for (const field of REQUIRED_FIELDS) {
       if (!body[field] || String(body[field]).trim() === '') {
         return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 })
@@ -30,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     const now = new Date().toISOString()
 
-    // Construir el objeto de reserva con un ID aleatorio de 8 bytes en hex
+    // Build the booking record with a random 8-byte hex ID
     const newRequest: BookingRequest = {
       id: crypto.randomBytes(8).toString('hex'),
       fullName: String(body.fullName ?? '').trim(),
@@ -49,15 +48,15 @@ export async function POST(req: NextRequest) {
       updatedAt: now,
     }
 
-    // Guardar la nueva reserva en la lista existente dentro de la BD
+    // Append the new booking to the existing list and persist
     const current = await readContent()
     const updated = [...(current.bookingRequests ?? []), newRequest]
     await writeContent({ bookingRequests: updated })
 
-    // Notificar al admin por correo si hay un contactEmail configurado en el sitio
+    // Notify admin if a contact email is configured in site content
     const adminEmail = current.siteContent?.contactEmail
     if (adminEmail) {
-      // Construir tabla HTML con el resumen de la reserva para el correo del admin
+      // Build an HTML summary table for the notification email
       const rows = [
         ['Name', newRequest.fullName],
         ['Email', newRequest.email],
@@ -76,7 +75,7 @@ export async function POST(req: NextRequest) {
         )
         .join('')
 
-      // Fire-and-forget: no bloquea la respuesta si el correo falla
+      // Fire-and-forget — email failure must never block the HTTP response
       void sendAdminNotification({
         toEmail: adminEmail,
         subject: `New Booking Request: ${newRequest.fullName} — ${newRequest.eventDate}`,
@@ -84,12 +83,12 @@ export async function POST(req: NextRequest) {
       }).catch(() => {})
     }
 
-    // Disparar auto-reply al cliente — tampoco bloquea la respuesta HTTP
+    // Trigger the client auto-reply — also fire-and-forget
     void triggerAutoReply(newRequest).catch((e) =>
       console.error('[auto-reply] failed to trigger:', e)
     )
 
-    // Devolver éxito con el ID generado para que el frontend pueda confirmarlo
+    // Return the new booking ID so the frontend can display a confirmation
     return NextResponse.json({ success: true, id: newRequest.id })
   } catch {
     return NextResponse.json({ error: 'Bad request' }, { status: 400 })

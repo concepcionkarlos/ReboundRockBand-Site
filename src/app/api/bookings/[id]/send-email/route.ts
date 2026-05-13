@@ -1,9 +1,8 @@
-// ─── api/bookings/[id]/send-email/route.ts ─────────────────────────────────
-// Permite al admin enviar un correo manual a un cliente con una reserva existente.
-// Usa las plantillas configuradas en el panel de admin (EmailTemplates).
-// El envío real está desactivado en emailService.ts — los logs se guardan igual
-// para mantener historial aunque el correo no se mande realmente.
-// ──────────────────────────────────────────────────────────────────────────
+// api/bookings/[id]/send-email/route.ts — Admin-triggered email to a booking client
+//
+// Loads the selected template, renders it with booking-specific variables,
+// sends via emailService (currently disabled — logs only), and records the
+// result in the email log regardless of send outcome.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getTemplates, addBookingEmailLog } from '@/lib/venueStore'
@@ -19,14 +18,14 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Obtener el ID de la reserva desde la URL dinámica
+    // Get the booking ID from the dynamic route segment
     const { id } = await params
 
     const body = await req.json() as {
       templateId: string
       toEmail: string
-      subject?: string   // override opcional si el admin editó el asunto manualmente
-      bodyHtml?: string  // override opcional si el admin editó el cuerpo manualmente
+      subject?: string   // optional — present when admin manually edited the subject
+      bodyHtml?: string  // optional — present when admin manually edited the body
       vars?: Record<string, string>
     }
 
@@ -34,19 +33,17 @@ export async function POST(
       return NextResponse.json({ error: 'templateId and toEmail are required' }, { status: 400 })
     }
 
-    // Cargar plantillas y configuración del sitio en paralelo
+    // Load templates and site config in parallel to save time
     const [templates, { siteContent }, content] = await Promise.all([
       getTemplates(),
       readContent(),
       readContent(),
     ])
 
-    // Buscar la plantilla elegida por el admin
     const template = templates.find((t) => t.id === body.templateId)
     if (!template) return NextResponse.json({ error: 'Template not found' }, { status: 404 })
 
-    // Variables base que se inyectan en la plantilla
-    // El caller puede sobreescribir cualquiera via body.vars
+    // Base variables injected into every template; caller vars take priority
     const vars: Record<string, string> = {
       bandName: 'Rebound Rock Band',
       replyEmail: siteContent.contactEmail,
@@ -55,13 +52,11 @@ export async function POST(
       ...body.vars,
     }
 
-    // Si el admin editó el correo manualmente, usar ese contenido directamente
-    // Si no, renderizar la plantilla con las variables
+    // If the admin edited the email manually, skip template rendering and use it as-is
     const rendered = (body.subject && body.bodyHtml)
       ? { subject: body.subject, bodyHtml: body.bodyHtml }
       : renderTemplate(template, vars)
 
-    // Intentar enviar — el emailService decide si lo manda de verdad o solo loguea
     let resendEmailId: string | undefined
     let sendStatus: 'sent' | 'failed' = 'sent'
     let errorMessage: string | undefined
@@ -71,7 +66,7 @@ export async function POST(
         toEmail: body.toEmail,
         subject: rendered.subject,
         bodyHtml: rendered.bodyHtml,
-        // reply-to personalizado para rastrear respuestas por booking
+        // Unique reply-to per booking so inbound replies are traceable
         replyTo: `booking+bk-${id}@reboundrockband.com`,
       })
       resendEmailId = result.resendEmailId
@@ -80,7 +75,7 @@ export async function POST(
       errorMessage = err instanceof Error ? err.message : String(err)
     }
 
-    // Guardar el log del correo en la BD independientemente del resultado
+    // Always write the log — even failures are recorded for admin review
     const emailLog = await addBookingEmailLog({
       entityType: 'booking',
       entityId: id,

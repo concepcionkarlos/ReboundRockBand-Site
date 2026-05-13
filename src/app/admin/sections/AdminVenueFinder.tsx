@@ -1,5 +1,11 @@
 'use client'
 
+// Google Places search is disabled — VENUE_FINDER_DISABLED must be set to false
+// in api/places/search/route.ts and GOOGLE_PLACES_API_KEY added to Vercel env vars
+// before the search form will make any real API calls.
+// The CRM section (saved venues, outreach logs, status tracking) still works fully.
+const SEARCH_DISABLED = true
+
 import { useState, useEffect, useCallback } from 'react'
 import type { Venue, VenueStatus, VenueActivity, OutreachLog, EmailTemplate, PlaceSearchResult } from '@/lib/data'
 import { renderTemplate } from '@/lib/templateUtils'
@@ -459,6 +465,18 @@ export default function AdminVenueFinder() {
         </div>
       )}
 
+      {/* Search disabled banner — shown when Google Places is turned off */}
+      {SEARCH_DISABLED && (
+        <div className="mb-4 border border-yellow-400/20 bg-yellow-400/5 px-4 py-3 flex items-start gap-3">
+          <svg className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+          <p className="font-body text-xs text-yellow-400/80">
+            Google Places search is disabled. Set <code className="font-mono bg-yellow-400/10 px-1">SEARCH_DISABLED = false</code> in AdminVenueFinder.tsx and <code className="font-mono bg-yellow-400/10 px-1">VENUE_FINDER_DISABLED = false</code> in api/places/search/route.ts to re-enable.
+          </p>
+        </div>
+      )}
+
       {/* Search */}
       <form onSubmit={handleSearch} className="flex flex-col gap-3 mb-6">
         <div className="flex gap-2">
@@ -484,9 +502,10 @@ export default function AdminVenueFinder() {
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="font-heading text-[9px] uppercase tracking-widest text-white/25 invisible">Go</label>
+            {/* Button disabled at the frontend level when SEARCH_DISABLED is true */}
             <button
               type="submit"
-              disabled={searching || (!searchKeyword.trim() && !searchCity.trim())}
+              disabled={SEARCH_DISABLED || searching || (!searchKeyword.trim() && !searchCity.trim())}
               className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60 flex-shrink-0 h-[42px]"
             >
               {searching ? 'Searching…' : 'Search'}

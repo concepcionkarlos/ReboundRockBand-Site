@@ -1,8 +1,8 @@
-// ─── api/song-requests/[id]/send-email/route.ts ────────────────────────────
-// Permite al admin enviar un correo de respuesta a quien hizo una song request.
-// Funciona igual que el send-email de bookings pero para el flujo de EPK.
-// El envío real está desactivado en emailService.ts — ver ese archivo para reactivar.
-// ──────────────────────────────────────────────────────────────────────────
+// api/song-requests/[id]/send-email/route.ts — Admin-triggered email reply to a song request
+//
+// Same flow as /api/bookings/[id]/send-email but for EPK song requests.
+// Renders the template, sends via emailService (currently disabled — logs only),
+// and records the result in the email log.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getTemplates, addBookingEmailLog } from '@/lib/venueStore'
@@ -18,14 +18,14 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Obtener el ID de la song request desde la URL dinámica
+    // Get the song request ID from the dynamic route segment
     const { id } = await params
 
     const body = await req.json() as {
       templateId: string
       toEmail: string
-      subject?: string   // override si el admin editó el asunto manualmente
-      bodyHtml?: string  // override si el admin editó el cuerpo manualmente
+      subject?: string   // optional — present when admin manually edited the subject
+      bodyHtml?: string  // optional — present when admin manually edited the body
       vars?: Record<string, string>
     }
 
@@ -33,14 +33,13 @@ export async function POST(
       return NextResponse.json({ error: 'templateId and toEmail are required' }, { status: 400 })
     }
 
-    // Cargar plantillas y config del sitio en paralelo
+    // Load templates and site config in parallel
     const [templates, { siteContent }] = await Promise.all([getTemplates(), readContent()])
 
-    // Buscar la plantilla elegida por el admin
     const template = templates.find((t) => t.id === body.templateId)
     if (!template) return NextResponse.json({ error: 'Template not found' }, { status: 404 })
 
-    // Variables base para inyectar en la plantilla
+    // Base variables for the template; caller vars override
     const vars: Record<string, string> = {
       bandName: 'Rebound Rock Band',
       replyEmail: siteContent.contactEmail,
@@ -49,12 +48,11 @@ export async function POST(
       ...body.vars,
     }
 
-    // Si el admin editó el correo manualmente, usar ese contenido directamente
+    // If the admin edited the email manually, skip template rendering
     const rendered = (body.subject && body.bodyHtml)
       ? { subject: body.subject, bodyHtml: body.bodyHtml }
       : renderTemplate(template, vars)
 
-    // Intentar enviar el correo (puede estar desactivado en emailService.ts)
     let resendEmailId: string | undefined
     let sendStatus: 'sent' | 'failed' = 'sent'
     let errorMessage: string | undefined
@@ -64,7 +62,7 @@ export async function POST(
         toEmail: body.toEmail,
         subject: rendered.subject,
         bodyHtml: rendered.bodyHtml,
-        // reply-to con prefijo sr- para identificar respuestas de song requests
+        // Unique reply-to prefix so inbound replies tie back to the song request
         replyTo: `booking+sr-${id}@reboundrockband.com`,
       })
       resendEmailId = result.resendEmailId
@@ -73,7 +71,7 @@ export async function POST(
       errorMessage = err instanceof Error ? err.message : String(err)
     }
 
-    // Guardar el log del correo en la BD independientemente del resultado
+    // Always write the log — failures are recorded for admin review
     const emailLog = await addBookingEmailLog({
       entityType: 'song-request',
       entityId: id,
