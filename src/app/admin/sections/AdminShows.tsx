@@ -240,6 +240,7 @@ export default function AdminShows() {
   const [gigLogDraft, setGigLogDraft] = useState({ attendance: '', gigRating: 0, gigHighlight: '', merchSoldAtShow: '' })
   const [advancingId, setAdvancingId] = useState<string | null>(null)
   const [advanceChecksDraft, setAdvanceChecksDraft] = useState<string[]>([])
+  const [formError, setFormError] = useState<string | null>(null)
 
   const todayIso = new Date().toISOString().split('T')[0]
   const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -336,6 +337,7 @@ export default function AdminShows() {
     })
     setShowFinancials(false)
     setIsAdding(false)
+    setFormError(null)
   }
 
   const toggleVisible = async (id: string) => {
@@ -344,8 +346,8 @@ export default function AdminShows() {
     await persist(updated)
   }
 
-  const openAdd = () => { setEditing(null); setForm(emptyShow); setIsAdding(true); setShowFinancials(false) }
-  const cancel = () => { setEditing(null); setIsAdding(false); setShowFinancials(false) }
+  const openAdd = () => { setEditing(null); setForm(emptyShow); setIsAdding(true); setShowFinancials(false); setFormError(null) }
+  const cancel = () => { setEditing(null); setIsAdding(false); setShowFinancials(false); setFormError(null) }
 
   const duplicateShow = (show: Show) => {
     setEditing(null)
@@ -373,7 +375,13 @@ export default function AdminShows() {
   }
 
   const save = async () => {
-    if (!form.date || !form.venue || !form.city || !form.time) return
+    const missing: string[] = []
+    if (!form.date) missing.push('Date')
+    if (!form.venue) missing.push('Venue')
+    if (!form.city) missing.push('City')
+    if (!form.time) missing.push('Time')
+    if (missing.length > 0) { setFormError(`Required: ${missing.join(', ')}`) ; return }
+    setFormError(null)
     const updated = editing
       ? shows.map((s) => s.id === editing.id ? { ...editing, ...form } : s)
       : [...shows, { id: Date.now().toString(), ...form }]
@@ -848,6 +856,9 @@ export default function AdminShows() {
               )}
             </div>
 
+            {formError && (
+              <p className="font-heading text-[10px] text-red-400 uppercase tracking-widest mb-3">{formError}</p>
+            )}
             <div className="flex flex-wrap gap-2.5">
               <button type="button" onClick={save} disabled={saving} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60">
                 {editing ? 'Save Changes' : 'Add Show'}
