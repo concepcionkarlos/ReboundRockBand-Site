@@ -33,10 +33,9 @@ export async function POST(
       return NextResponse.json({ error: 'templateId and toEmail are required' }, { status: 400 })
     }
 
-    // Load templates and site config in parallel to save time
-    const [templates, { siteContent }, content] = await Promise.all([
+    // Load templates and site config in parallel
+    const [templates, { siteContent }] = await Promise.all([
       getTemplates(),
-      readContent(),
       readContent(),
     ])
 

@@ -13,7 +13,7 @@ async function tokenFor(password: string): Promise<string> {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   if (!pathname.startsWith('/api/') || PUBLIC_API.has(pathname)) {

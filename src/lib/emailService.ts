@@ -1,8 +1,7 @@
 // emailService.ts — All outbound email logic (Resend)
 //
-// EMAIL IS CURRENTLY DISABLED. No messages are sent — all calls log to
-// console only. To re-enable: set EMAIL_DISABLED = false below and add
-// RESEND_API_KEY to Vercel project settings (Settings → Environment Variables).
+// Sending is enabled. Requires RESEND_API_KEY in the environment.
+// If the key is missing, falls back to DEV_MODE (console-only logging).
 
 import type { BookingRequest } from './data'
 import {
@@ -18,7 +17,7 @@ const FROM =
   process.env.RESEND_FROM_EMAIL ?? 'Rebound Rock Band <noreply@reboundrockband.com>'
 
 // Master kill-switch — flip to false (and set RESEND_API_KEY) to re-enable sending
-const EMAIL_DISABLED = true
+const EMAIL_DISABLED = false
 
 // True when either the kill-switch is on or the API key is missing
 const DEV_MODE = EMAIL_DISABLED || !process.env.RESEND_API_KEY
