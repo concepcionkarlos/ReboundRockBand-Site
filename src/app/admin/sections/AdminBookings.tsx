@@ -660,59 +660,69 @@ function PipelineView({
           {PIPELINE_STAGES.map((stage) => {
             const cards = requests.filter((r) => r.status === stage)
             const meta = STAGE_META[stage]
+            const hasCards = cards.length > 0
             return (
-              <div key={stage} className="w-52 flex-shrink-0 flex flex-col gap-2">
-                {/* Column header */}
-                <div className="flex items-center justify-between px-3 py-2 border border-white/6 bg-[#0d0d1e]">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dot}`} />
-                    <span className="font-heading text-[9px] uppercase tracking-widest text-white/50">{meta.label}</span>
-                  </div>
-                  <span className="font-body text-xs text-white/30 tabular-nums">{cards.length}</span>
-                </div>
-
-                {/* Cards */}
-                {cards.length === 0 ? (
-                  <div className="border border-white/4 border-dashed h-16 flex items-center justify-center">
-                    <span className="font-body text-xs text-white/15">Empty</span>
+              <div key={stage} className={`flex-shrink-0 flex flex-col gap-2 ${hasCards ? 'w-52' : 'w-10'}`}>
+                {!hasCards ? (
+                  /* Collapsed empty column */
+                  <div className="flex flex-col items-center border border-dashed border-white/4 bg-[#0d0d1e] px-1.5 py-3 gap-2 min-h-[6rem]">
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dot} opacity-30`} />
+                    <span
+                      className="font-heading text-[8px] uppercase tracking-wider text-white/20 [writing-mode:vertical-rl] rotate-180"
+                    >
+                      {meta.label}
+                    </span>
                   </div>
                 ) : (
-                  cards
-                    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-                    .map((r) => {
-                      const isFollowUp = r.followUpDate && r.followUpDate <= today
-                      return (
-                        <button
-                          key={r.id}
-                          type="button"
-                          onClick={() => onSelect(r)}
-                          className={`w-full text-left border p-3 transition-all group ${
-                            selected?.id === r.id
-                              ? 'border-brand-red/50 bg-brand-red/8'
-                              : 'border-white/6 bg-[#0d0d1e] hover:border-white/15 hover:bg-white/[0.02]'
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <p className="font-heading text-[11px] text-white truncate flex-1">{r.fullName}</p>
-                            {repeatEmails.has(r.email) && (
-                              <span className="font-heading text-[8px] uppercase tracking-widest text-cyan-400 border border-cyan-400/30 px-1 flex-shrink-0">↺</span>
-                            )}
-                          </div>
-                          <p className="font-body text-[10px] text-white/40 truncate mb-2">{r.eventType}</p>
-                          <p className="font-body text-[10px] text-white/30 mb-2">{fmtShort(r.eventDate)}</p>
-                          <div className="flex items-center justify-between gap-1">
-                            {r.quoteAmount ? (
-                              <span className="font-heading text-[9px] text-green-400/70">${r.quoteAmount.toLocaleString()}</span>
-                            ) : (
-                              <span className="font-body text-[9px] text-white/20">{r.budgetRange?.split('–')[0] ?? '—'}</span>
-                            )}
-                            {isFollowUp && (
-                              <span className="font-heading text-[9px] text-orange-400 border border-orange-400/30 px-1">!</span>
-                            )}
-                          </div>
-                        </button>
-                      )
-                    })
+                  <>
+                    {/* Column header */}
+                    <div className="flex items-center justify-between px-3 py-2 border border-white/6 bg-[#0d0d1e]">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dot}`} />
+                        <span className="font-heading text-[9px] uppercase tracking-widest text-white/50">{meta.label}</span>
+                      </div>
+                      <span className="font-body text-xs text-white/30 tabular-nums">{cards.length}</span>
+                    </div>
+
+                    {/* Cards */}
+                    {cards
+                      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+                      .map((r) => {
+                        const isFollowUp = r.followUpDate && r.followUpDate <= today
+                        return (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={() => onSelect(r)}
+                            className={`w-full text-left border p-3 transition-all group ${
+                              selected?.id === r.id
+                                ? 'border-brand-red/50 bg-brand-red/8'
+                                : 'border-white/6 bg-[#0d0d1e] hover:border-white/15 hover:bg-white/[0.02]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <p className="font-heading text-[11px] text-white truncate flex-1">{r.fullName}</p>
+                              {repeatEmails.has(r.email) && (
+                                <span className="font-heading text-[8px] uppercase tracking-widest text-cyan-400 border border-cyan-400/30 px-1 flex-shrink-0">↺</span>
+                              )}
+                            </div>
+                            <p className="font-body text-[10px] text-white/40 truncate mb-2">{r.eventType}</p>
+                            <p className="font-body text-[10px] text-white/30 mb-2">{fmtShort(r.eventDate)}</p>
+                            <div className="flex items-center justify-between gap-1">
+                              {r.quoteAmount ? (
+                                <span className="font-heading text-[9px] text-green-400/70">${r.quoteAmount.toLocaleString()}</span>
+                              ) : (
+                                <span className="font-body text-[9px] text-white/20">{r.budgetRange?.split('–')[0] ?? '—'}</span>
+                              )}
+                              {isFollowUp && (
+                                <span className="font-heading text-[9px] text-orange-400 border border-orange-400/30 px-1">!</span>
+                              )}
+                            </div>
+                          </button>
+                        )
+                      })
+                    }
+                  </>
                 )}
               </div>
             )
