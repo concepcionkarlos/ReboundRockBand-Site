@@ -171,6 +171,11 @@ export default function AdminPage() {
   const [searchItems, setSearchItems] = useState<SearchItem[]>([])
   const [searchIdx, setSearchIdx] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
+  const [venueGate, setVenueGate] = useState(false)
+  const [venueUnlocked, setVenueUnlocked] = useState(false)
+  const [venuePass, setVenuePass] = useState('')
+  const [venuePassError, setVenuePassError] = useState(false)
+  const [venuePassChecking, setVenuePassChecking] = useState(false)
 
   useEffect(() => {
     fetch('/api/admin/login')
@@ -179,6 +184,26 @@ export default function AdminPage() {
       .catch(() => {})
       .finally(() => setAuthChecked(true))
   }, [])
+
+  useEffect(() => {
+    if (sessionStorage.getItem('vf_unlocked') === '1') setVenueUnlocked(true)
+  }, [])
+
+  const submitVenuePass = async () => {
+    setVenuePassChecking(true)
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(venuePass))
+    const hex = Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('')
+    if (hex === '044df317a76e492af6886884313d6ab723946d225b966fad73fc731c23eedcab') {
+      sessionStorage.setItem('vf_unlocked', '1')
+      setVenueUnlocked(true)
+      setVenueGate(false)
+      setActive('venues')
+      setSidebarOpen(false)
+    } else {
+      setVenuePassError(true)
+    }
+    setVenuePassChecking(false)
+  }
 
   useEffect(() => {
     if (!authed) return
@@ -247,9 +272,15 @@ export default function AdminPage() {
   }
 
   const navigate = useCallback((section: Section) => {
+    if (section === 'venues' && !venueUnlocked) {
+      setVenuePass('')
+      setVenuePassError(false)
+      setVenueGate(true)
+      return
+    }
     setActive(section)
     setSidebarOpen(false)
-  }, [])
+  }, [venueUnlocked])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -307,6 +338,51 @@ export default function AdminPage() {
           className="fixed inset-0 bg-black/70 z-20 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
+      )}
+
+      {/* Venue Finder password gate */}
+      {venueGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0d0d1e] border border-white/12 w-full max-w-sm mx-4 shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+              <div className="flex items-center gap-2.5">
+                <svg className="w-4 h-4 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+                <h2 className="font-heading text-xs uppercase tracking-widest text-white">Venue Finder</h2>
+              </div>
+              <button type="button" onClick={() => setVenueGate(false)} aria-label="Cancel" className="text-white/30 hover:text-white transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-5 flex flex-col gap-3">
+              <p className="font-body text-sm text-white/40">Enter the password to access Venue Finder.</p>
+              <input
+                type="password"
+                value={venuePass}
+                onChange={(e) => { setVenuePass(e.target.value); setVenuePassError(false) }}
+                onKeyDown={(e) => { if (e.key === 'Enter' && venuePass) void submitVenuePass() }}
+                autoFocus
+                placeholder="Password"
+                aria-label="Venue Finder password"
+                className="w-full bg-[#111121] border border-white/8 text-white font-body text-sm px-3.5 py-2.5 focus:outline-none focus:border-brand-red/50 focus:shadow-[0_0_0_3px_rgba(224,16,30,0.07)] transition-all placeholder:text-white/20 rounded-none"
+              />
+              {venuePassError && (
+                <p className="font-heading text-[10px] text-red-400 uppercase tracking-widest">Incorrect password</p>
+              )}
+              <button
+                type="button"
+                onClick={() => void submitVenuePass()}
+                disabled={venuePassChecking || !venuePass}
+                className="w-full font-heading text-xs uppercase tracking-widest bg-brand-red text-white py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60"
+              >
+                {venuePassChecking ? 'Checking…' : 'Unlock'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Sidebar ── */}
