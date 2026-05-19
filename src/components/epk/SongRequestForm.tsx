@@ -28,10 +28,13 @@ export default function SongRequestForm({ lang = 'en' }: { lang?: Lang }) {
     if (errors[field]) setErrors((prev) => { const n = { ...prev }; delete n[field]; return n })
   }
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
   const validate = () => {
     const next: Record<string, string> = {}
     if (!form.fullName.trim()) next.fullName = tr.errorRequired
     if (!form.email.trim()) next.email = tr.errorRequired
+    else if (!EMAIL_RE.test(form.email.trim())) next.email = tr.errorEmail
     if (!form.song1.trim()) next.song1 = tr.errorSong
     setErrors(next)
     return Object.keys(next).length === 0

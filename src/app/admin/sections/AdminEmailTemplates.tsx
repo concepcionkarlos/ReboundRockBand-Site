@@ -20,6 +20,7 @@ export default function AdminEmailTemplates() {
   const [form, setForm] = useState({ name: '', subject: '', bodyHtml: '' })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/email-templates')
@@ -43,12 +44,17 @@ export default function AdminEmailTemplates() {
   const handleSave = async () => {
     if (!selected) return
     setSaving(true)
+    setSaveError(null)
     try {
       const res = await fetch(`/api/email-templates/${selected.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
+      if (!res.ok) {
+        setSaveError('Save failed — try again.')
+        return
+      }
       const data = await res.json()
       if (data.template) {
         const updated = templates.map((t) => (t.id === selected.id ? data.template : t))
@@ -57,6 +63,8 @@ export default function AdminEmailTemplates() {
         setSaved(true)
         setTimeout(() => setSaved(false), 2500)
       }
+    } catch {
+      setSaveError('Network error — try again.')
     } finally {
       setSaving(false)
     }
@@ -112,6 +120,9 @@ export default function AdminEmailTemplates() {
                 Editing: <span className="text-white">{selected.name}</span>
               </h2>
               <div className="flex items-center gap-3">
+                {saveError && (
+                  <span className="font-heading text-[10px] text-red-400 uppercase tracking-widest">{saveError}</span>
+                )}
                 {saved && (
                   <span className="font-heading text-[10px] text-green-400 uppercase tracking-widest flex items-center gap-1">
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -139,6 +150,7 @@ export default function AdminEmailTemplates() {
                 </label>
                 <input
                   type="text"
+                  aria-label="Template Name"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className={inputClass}
@@ -163,7 +175,7 @@ export default function AdminEmailTemplates() {
               {vars.length > 0 && (
                 <div className="flex flex-col gap-2">
                   <p className="font-heading text-[9px] uppercase tracking-widest text-white/25">
-                    Variables disponibles
+                    Available variables
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {vars.map((v) => (

@@ -137,6 +137,7 @@ export default function AdminEPK() {
   const [content, setContent] = useState<EpkContent>(initialEpk)
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('intro')
   const [reqCounts, setReqCounts] = useState<Record<string, number>>({})
 
@@ -163,13 +164,20 @@ export default function AdminEPK() {
 
   const persist = useCallback(async (updated: EpkContent) => {
     setSaving(true)
+    setSaveError(null)
     try {
-      await fetch('/api/content', {
+      const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'epkContent', data: updated }),
       })
-      flash()
+      if (res.ok) {
+        flash()
+      } else {
+        setSaveError('Save failed — try again.')
+      }
+    } catch {
+      setSaveError('Network error — try again.')
     } finally {
       setSaving(false)
     }
@@ -257,6 +265,7 @@ export default function AdminEPK() {
             </div>
           )}
           {saving && <div className="font-heading text-[10px] text-white/30 uppercase tracking-widest">Saving…</div>}
+          {saveError && <div className="font-heading text-[10px] text-red-400 uppercase tracking-widest">{saveError}</div>}
           <button
             onClick={() => {
               const w = window.open('', '_blank')

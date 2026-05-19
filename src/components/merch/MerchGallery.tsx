@@ -16,7 +16,6 @@ export default function MerchGallery({ images, name }: Props) {
       <div className="relative aspect-square bg-brand-elevated overflow-hidden border border-brand-border group-hover:border-brand-red/30 transition-colors duration-300">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          key={images[active]}
           src={images[active]}
           alt={name}
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
@@ -30,6 +29,7 @@ export default function MerchGallery({ images, name }: Props) {
           {images.map((src, i) => (
             <button
               key={i}
+              type="button"
               onClick={() => setActive(i)}
               className={`relative w-14 h-14 overflow-hidden border flex-shrink-0 transition-all duration-150 ${
                 active === i

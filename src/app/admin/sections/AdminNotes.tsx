@@ -37,15 +37,19 @@ export default function AdminNotes() {
       .finally(() => setLoading(false))
   }, [])
 
-  const persist = async (updated: AdminNote[]) => {
+  const persist = async (updated: AdminNote[]): Promise<boolean> => {
     setSaving(true)
     try {
-      await fetch('/api/content', {
+      const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'adminNotes', data: updated }),
       })
+      if (!res.ok) return false
       setNotes(updated)
+      return true
+    } catch {
+      return false
     } finally {
       setSaving(false)
     }
@@ -141,6 +145,7 @@ export default function AdminNotes() {
             aria-label="New note text"
           />
           <button
+            type="button"
             onClick={addNote}
             disabled={!draft.trim() || saving}
             className="font-heading text-[10px] uppercase tracking-widest bg-brand-red text-white px-4 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-40 flex-shrink-0"
@@ -188,6 +193,7 @@ export default function AdminNotes() {
         </div>
         {doneCount > 0 && (
           <button
+            type="button"
             onClick={clearDone}
             disabled={saving}
             className="font-heading text-[9px] uppercase tracking-widest text-white/20 hover:text-red-400/60 transition-colors disabled:opacity-40"
@@ -221,6 +227,7 @@ export default function AdminNotes() {
             >
               {/* Checkbox */}
               <button
+                type="button"
                 onClick={() => toggleDone(note.id)}
                 aria-label={note.done ? 'Mark as active' : 'Mark as done'}
                 className={`mt-0.5 w-4 h-4 flex-shrink-0 border transition-all ${
@@ -272,6 +279,7 @@ export default function AdminNotes() {
 
               {/* Delete */}
               <button
+                type="button"
                 onClick={() => deleteNote(note.id)}
                 aria-label="Delete note"
                 className="mt-0.5 flex-shrink-0 text-white/0 group-hover:text-white/20 hover:!text-red-400/60 transition-colors"

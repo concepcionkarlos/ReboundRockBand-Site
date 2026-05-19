@@ -13,6 +13,12 @@ import { triggerAutoReply, sendAdminNotification } from '@/lib/emailService'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 // Fields the client must include — all others are optional
 const REQUIRED_FIELDS = ['fullName', 'email', 'eventDate', 'eventType'] as const
 
@@ -25,6 +31,11 @@ export async function POST(req: NextRequest) {
       if (!body[field] || String(body[field]).trim() === '') {
         return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 })
       }
+    }
+
+    const emailVal = String(body.email ?? '').trim()
+    if (!EMAIL_RE.test(emailVal)) {
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
     }
 
     const now = new Date().toISOString()
@@ -71,7 +82,7 @@ export async function POST(req: NextRequest) {
       ]
         .map(
           ([l, v]) =>
-            `<tr><td style="padding:6px 12px;font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;border-bottom:1px solid #1e1e2e">${l}</td><td style="padding:6px 12px;font-size:14px;color:#fff;border-bottom:1px solid #1e1e2e">${v}</td></tr>`
+            `<tr><td style="padding:6px 12px;font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;border-bottom:1px solid #1e1e2e">${esc(l)}</td><td style="padding:6px 12px;font-size:14px;color:#fff;border-bottom:1px solid #1e1e2e">${esc(v)}</td></tr>`
         )
         .join('')
 

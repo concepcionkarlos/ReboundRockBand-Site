@@ -38,10 +38,13 @@ export default function BookingForm({ contactEmail, lang = 'en' }: Props) {
     if (errors[field]) setErrors((prev) => { const next = { ...prev }; delete next[field]; return next })
   }
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
   const validate = () => {
     const next: Record<string, string> = {}
     if (!form.fullName.trim()) next.fullName = tr.errorRequired
     if (!form.email.trim()) next.email = tr.errorRequired
+    else if (!EMAIL_RE.test(form.email.trim())) next.email = tr.errorEmail
     if (!form.eventDate.trim()) next.eventDate = tr.errorRequired
     if (!form.eventType.trim()) next.eventType = tr.errorRequired
     setErrors(next)

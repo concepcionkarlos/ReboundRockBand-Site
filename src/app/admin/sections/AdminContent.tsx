@@ -13,6 +13,7 @@ export default function AdminContent() {
   const [content, setContent] = useState<SiteContent>(initialContent)
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'hero' | 'about' | 'contact' | 'seo'>('hero')
 
   useEffect(() => {
@@ -26,13 +27,20 @@ export default function AdminContent() {
 
   const persist = useCallback(async (updated: SiteContent) => {
     setSaving(true)
+    setSaveError(null)
     try {
-      await fetch('/api/content', {
+      const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'siteContent', data: updated }),
       })
-      flash()
+      if (res.ok) {
+        flash()
+      } else {
+        setSaveError('Save failed — try again.')
+      }
+    } catch {
+      setSaveError('Network error — try again.')
     } finally {
       setSaving(false)
     }
@@ -73,6 +81,7 @@ export default function AdminContent() {
             </div>
           )}
           {saving && <div className="font-heading text-[10px] text-white/30 uppercase tracking-widest">Saving…</div>}
+          {saveError && <div className="font-heading text-[10px] text-red-400 uppercase tracking-widest">{saveError}</div>}
           <button type="button" onClick={saveContent} disabled={saving} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-4 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red disabled:opacity-60">
             Save Changes
           </button>
@@ -97,23 +106,23 @@ export default function AdminContent() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Main Headline</label>
-            <input type="text" value={content.heroHeadline} onChange={(e) => setContent({ ...content, heroHeadline: e.target.value })} className={inputClass} />
+            <input type="text" aria-label="Main Headline" value={content.heroHeadline} onChange={(e) => setContent({ ...content, heroHeadline: e.target.value })} className={inputClass} />
             <p className="font-body text-xs text-white/20">Shown in red below the band name in the hero section.</p>
           </div>
           <div className="flex flex-col gap-2">
             <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Subheadline / Description</label>
-            <textarea rows={3} value={content.heroSubheadline} onChange={(e) => setContent({ ...content, heroSubheadline: e.target.value })} className={textareaClass} />
+            <textarea rows={3} aria-label="Subheadline / Description" value={content.heroSubheadline} onChange={(e) => setContent({ ...content, heroSubheadline: e.target.value })} className={textareaClass} />
             <p className="font-body text-xs text-white/20">Supporting copy below the headline.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Primary CTA Label</label>
-              <input type="text" value={content.ctaPrimaryLabel} onChange={(e) => setContent({ ...content, ctaPrimaryLabel: e.target.value })} className={inputClass} />
+              <input type="text" aria-label="Primary CTA Label" value={content.ctaPrimaryLabel} onChange={(e) => setContent({ ...content, ctaPrimaryLabel: e.target.value })} className={inputClass} />
               <p className="font-body text-xs text-white/20">Main booking button text.</p>
             </div>
             <div className="flex flex-col gap-2">
               <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Secondary CTA Label</label>
-              <input type="text" value={content.ctaSecondaryLabel} onChange={(e) => setContent({ ...content, ctaSecondaryLabel: e.target.value })} className={inputClass} />
+              <input type="text" aria-label="Secondary CTA Label" value={content.ctaSecondaryLabel} onChange={(e) => setContent({ ...content, ctaSecondaryLabel: e.target.value })} className={inputClass} />
               <p className="font-body text-xs text-white/20">Secondary button (press kit).</p>
             </div>
           </div>
@@ -133,12 +142,12 @@ export default function AdminContent() {
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">About Page Headline</label>
-            <input type="text" value={content.aboutHeadline} onChange={(e) => setContent({ ...content, aboutHeadline: e.target.value })} className={inputClass} placeholder="Who We Are" />
+            <input type="text" aria-label="About Page Headline" value={content.aboutHeadline} onChange={(e) => setContent({ ...content, aboutHeadline: e.target.value })} className={inputClass} placeholder="Who We Are" />
             <p className="font-body text-xs text-white/20">H1 on the About page. Last word renders in red.</p>
           </div>
           <div className="flex flex-col gap-2">
             <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Short Teaser (Home Page)</label>
-            <textarea rows={3} value={content.aboutShort} onChange={(e) => setContent({ ...content, aboutShort: e.target.value })} className={textareaClass} />
+            <textarea rows={3} aria-label="Short Teaser (Home Page)" value={content.aboutShort} onChange={(e) => setContent({ ...content, aboutShort: e.target.value })} className={textareaClass} />
             <p className="font-body text-xs text-white/20">One or two sentences shown on the Home page.</p>
           </div>
           <div className="border-t border-white/6 pt-5">
@@ -165,7 +174,7 @@ export default function AdminContent() {
                   </button>
                 )}
               </div>
-              <textarea rows={4} value={para} onChange={(e) => updateAboutText(i, e.target.value)} className={textareaClass} />
+              <textarea rows={4} aria-label={`Paragraph ${i + 1}`} value={para} onChange={(e) => updateAboutText(i, e.target.value)} className={textareaClass} />
             </div>
           ))}
           <button type="button" onClick={addAboutParagraph} className="self-start font-heading text-xs uppercase tracking-widest border border-white/12 text-white/40 px-4 py-2 hover:border-white/25 hover:text-white transition-all flex items-center gap-2">
@@ -258,16 +267,16 @@ export default function AdminContent() {
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Booking Email</label>
-            <input type="email" value={content.contactEmail} onChange={(e) => setContent({ ...content, contactEmail: e.target.value })} className={inputClass} />
+            <input type="email" aria-label="Booking Email" value={content.contactEmail} onChange={(e) => setContent({ ...content, contactEmail: e.target.value })} className={inputClass} />
           </div>
           <div className="flex flex-col gap-2">
             <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Service Area</label>
-            <input type="text" value={content.serviceArea} onChange={(e) => setContent({ ...content, serviceArea: e.target.value })} className={inputClass} placeholder="South Florida" />
+            <input type="text" aria-label="Service Area" value={content.serviceArea} onChange={(e) => setContent({ ...content, serviceArea: e.target.value })} className={inputClass} placeholder="South Florida" />
             <p className="font-body text-xs text-white/20">Used in EPK, footer, and booking CTA.</p>
           </div>
           <div className="flex flex-col gap-2">
             <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Footer Tagline</label>
-            <textarea rows={2} value={content.footerTagline} onChange={(e) => setContent({ ...content, footerTagline: e.target.value })} className={textareaClass} />
+            <textarea rows={2} aria-label="Footer Tagline" value={content.footerTagline} onChange={(e) => setContent({ ...content, footerTagline: e.target.value })} className={textareaClass} />
             <p className="font-body text-xs text-white/20">Short blurb under the logo in the footer.</p>
           </div>
           <div className="border-t border-white/6 pt-5">
@@ -280,7 +289,7 @@ export default function AdminContent() {
               ].map(({ key, label, placeholder }) => (
                 <div key={key} className="flex flex-col gap-2">
                   <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">{label}</label>
-                  <input type="url" value={content[key] ?? ''} onChange={(e) => setContent({ ...content, [key]: e.target.value })} className={inputClass} placeholder={placeholder} />
+                  <input type="url" aria-label={label} value={content[key] ?? ''} onChange={(e) => setContent({ ...content, [key]: e.target.value })} className={inputClass} placeholder={placeholder} />
                   <p className="font-body text-xs text-white/20">Optional. Leave blank to hide from site.</p>
                 </div>
               ))}

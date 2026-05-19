@@ -73,6 +73,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalDraft, setGoalDraft] = useState({ bookingTarget: '', revenueTarget: '' })
   const [savingGoal, setSavingGoal] = useState(false)
+  const [goalSaveError, setGoalSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -173,14 +174,21 @@ export default function AdminDashboard({ onNavigate }: Props) {
     const currentMonth = today.toISOString().slice(0, 7)
     const newGoal: MonthlyGoal = { month: currentMonth, bookingTarget: bt, revenueTarget: rt }
     setSavingGoal(true)
+    setGoalSaveError(null)
     try {
-      await fetch('/api/content', {
+      const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'monthlyGoal', data: newGoal }),
       })
+      if (!res.ok) {
+        setGoalSaveError('Save failed — try again.')
+        return
+      }
       setGoal(newGoal)
       setEditingGoal(false)
+    } catch {
+      setGoalSaveError('Network error — try again.')
     } finally {
       setSavingGoal(false)
     }
@@ -329,6 +337,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
               <p className="font-body text-xs text-white/30 mt-0.5">{bookingRequests.filter(r => !['Lost','Archived','Completed'].includes(r.status)).length} active leads</p>
             </div>
             <button
+              type="button"
               onClick={() => onNavigate('bookings')}
               className="font-heading text-[10px] uppercase tracking-widest text-brand-red border border-brand-red/30 px-3 py-1.5 hover:bg-brand-red/10 transition-colors"
             >
@@ -356,6 +365,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-heading text-xs uppercase tracking-widest text-white">Next Show</h2>
             <button
+              type="button"
               onClick={() => onNavigate('shows')}
               className="font-heading text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
             >
@@ -411,6 +421,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
             <div className="flex-1 flex flex-col items-center justify-center text-center py-4">
               <p className="font-body text-sm text-white/25">No upcoming shows</p>
               <button
+                type="button"
                 onClick={() => onNavigate('shows')}
                 className="mt-3 font-heading text-[10px] uppercase tracking-widest text-brand-red border border-brand-red/30 px-3 py-1.5 hover:bg-brand-red/10 transition-colors"
               >
@@ -448,6 +459,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
             </span>
             <div className="flex-1" />
             <button
+              type="button"
               onClick={() => onNavigate('merch')}
               className="font-heading text-[10px] uppercase tracking-widest border border-yellow-400/30 text-yellow-400/70 px-3 py-1.5 hover:bg-yellow-400/10 transition-all"
             >
@@ -528,6 +540,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
             </p>
           </div>
           <button
+            type="button"
             onClick={() => {
               setEditingGoal((v) => !v)
               if (goal) setGoalDraft({ bookingTarget: String(goal.bookingTarget || ''), revenueTarget: String(goal.revenueTarget || '') })
@@ -568,6 +581,9 @@ export default function AdminDashboard({ onNavigate }: Props) {
                 />
               </div>
             </div>
+            {goalSaveError && (
+              <p className="font-heading text-[10px] text-red-400 uppercase tracking-widest">{goalSaveError}</p>
+            )}
             <div className="flex gap-2">
               <button type="button" onClick={saveGoal} disabled={savingGoal || (!goalDraft.bookingTarget && !goalDraft.revenueTarget)} className="font-heading text-[10px] uppercase tracking-widest bg-brand-red text-white px-4 py-2 hover:bg-brand-red-bright transition-all disabled:opacity-50">
                 {savingGoal ? 'Saving…' : 'Save'}
@@ -625,6 +641,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
             <p className="font-body text-[11px] text-white/25 mt-0.5">Stage-weighted · 3-month outlook</p>
           </div>
           <button
+            type="button"
             onClick={() => onNavigate('bookings')}
             className="font-heading text-[10px] uppercase tracking-widest text-white/25 hover:text-white/60 transition-colors"
           >

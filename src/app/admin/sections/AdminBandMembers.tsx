@@ -17,6 +17,7 @@ export default function AdminBandMembers() {
   const [isAdding, setIsAdding] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/content')
@@ -29,13 +30,20 @@ export default function AdminBandMembers() {
 
   const persist = useCallback(async (updated: BandMember[]) => {
     setSaving(true)
+    setSaveError(null)
     try {
-      await fetch('/api/content', {
+      const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'bandMembers', data: updated }),
       })
-      flash()
+      if (res.ok) {
+        flash()
+      } else {
+        setSaveError('Save failed — try again.')
+      }
+    } catch {
+      setSaveError('Network error — try again.')
     } finally {
       setSaving(false)
     }
@@ -108,6 +116,7 @@ export default function AdminBandMembers() {
             </div>
           )}
           {saving && <div className="font-heading text-[10px] text-white/30 uppercase tracking-widest">Saving…</div>}
+          {saveError && <div className="font-heading text-[10px] text-red-400 uppercase tracking-widest">{saveError}</div>}
           {!isAdding && !editing && (
             <button type="button" onClick={openAdd} className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-4 py-2.5 hover:bg-brand-red-bright transition-all btn-glow-red flex items-center gap-2">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -122,7 +131,7 @@ export default function AdminBandMembers() {
         <div className="mb-8 border border-brand-red/25 bg-brand-red/[0.04] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
           <div className="flex items-center justify-between gap-3 px-6 py-3.5 border-b border-brand-red/15">
             <h2 className="font-heading text-xs uppercase tracking-widest text-brand-red">{editing ? 'Edit Member' : 'New Member'}</h2>
-            <button type="button" onClick={cancel} className="text-white/30 hover:text-white transition-colors">
+            <button type="button" onClick={cancel} aria-label="Close form" className="text-white/30 hover:text-white transition-colors">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>

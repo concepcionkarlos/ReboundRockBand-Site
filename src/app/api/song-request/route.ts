@@ -7,6 +7,12 @@ import { sendAdminNotification } from '@/lib/emailService'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as Record<string, unknown>
@@ -17,6 +23,10 @@ export async function POST(req: NextRequest) {
 
     if (!fullName || !email || !song1) {
       return NextResponse.json({ error: 'Missing required fields: fullName, email, song1' }, { status: 400 })
+    }
+
+    if (!EMAIL_RE.test(email)) {
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
     }
 
     const now = new Date().toISOString()
@@ -48,7 +58,7 @@ export async function POST(req: NextRequest) {
         ['Songs', songs],
         ...(newRequest.eventDate ? [['Event Date', newRequest.eventDate] as [string, string]] : []),
         ...(newRequest.notes ? [['Notes', newRequest.notes] as [string, string]] : []),
-      ].map(([l, v]) => `<tr><td style="padding:6px 12px;font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;border-bottom:1px solid #1e1e2e">${l}</td><td style="padding:6px 12px;font-size:14px;color:#fff;border-bottom:1px solid #1e1e2e">${v}</td></tr>`).join('')
+      ].map(([l, v]) => `<tr><td style="padding:6px 12px;font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;border-bottom:1px solid #1e1e2e">${esc(l)}</td><td style="padding:6px 12px;font-size:14px;color:#fff;border-bottom:1px solid #1e1e2e">${esc(v)}</td></tr>`).join('')
       void sendAdminNotification({
         toEmail: adminEmail,
         subject: `New Song Request: ${newRequest.fullName} — ${newRequest.song1}`,

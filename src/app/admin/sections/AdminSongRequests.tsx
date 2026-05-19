@@ -34,6 +34,7 @@ export default function AdminSongRequests() {
   const [editNotes, setEditNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   // Setlist quick-add state
   const [setlists, setSetlists] = useState<NonNullable<EpkContent['setlists']>>([])
@@ -74,13 +75,19 @@ export default function AdminSongRequests() {
 
   const flash = () => { setSaved(true); setTimeout(() => setSaved(false), 2500) }
 
-  const persist = useCallback(async (updated: SongRequest[]) => {
-    await fetch('/api/content', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ section: 'songRequests', data: updated }),
-    })
-    setRequests(updated)
+  const persist = useCallback(async (updated: SongRequest[]): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'songRequests', data: updated }),
+      })
+      if (!res.ok) return false
+      setRequests(updated)
+      return true
+    } catch {
+      return false
+    }
   }, [])
 
   const openDetail = (req: SongRequest) => {
@@ -141,16 +148,21 @@ export default function AdminSongRequests() {
   const handleSave = async () => {
     if (!selected) return
     setSaving(true)
+    setSaveError(null)
     const now = new Date().toISOString()
     const updated = requests.map((r) =>
       r.id === selected.id
         ? { ...r, status: editStatus, notes: editNotes || undefined, updatedAt: now }
         : r
     )
-    await persist(updated)
-    setSelected((prev) => prev ? { ...prev, status: editStatus, notes: editNotes || undefined, updatedAt: now } : null)
+    const ok = await persist(updated)
+    if (ok) {
+      setSelected((prev) => prev ? { ...prev, status: editStatus, notes: editNotes || undefined, updatedAt: now } : null)
+      flash()
+    } else {
+      setSaveError('Save failed — try again.')
+    }
     setSaving(false)
-    flash()
   }
 
   const loadEmailLogs = async (songRequestId: string) => {
@@ -316,6 +328,7 @@ export default function AdminSongRequests() {
             ))}
           </div>
           <button
+            type="button"
             onClick={exportCSV}
             className="font-heading text-[11px] uppercase tracking-widest border border-white/15 text-white/60 px-4 py-2.5 hover:border-white/30 hover:text-white transition-all"
           >
@@ -420,6 +433,7 @@ export default function AdminSongRequests() {
             {(['All', ...ALL_STATUSES] as const).map((s) => (
               <button
                 key={s}
+                type="button"
                 onClick={() => setFilterStatus(s)}
                 className={`font-heading text-[10px] uppercase tracking-widest px-3 py-1.5 border transition-all ${
                   filterStatus === s
@@ -476,6 +490,7 @@ export default function AdminSongRequests() {
           {filtered.map((req, i) => (
             <div key={req.id}>
               <button
+                type="button"
                 onClick={() => selected?.id === req.id ? closeDetail() : openDetail(req)}
                 className={`w-full text-left flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-5 py-4 hover:bg-brand-surface transition-colors ${
                   i < filtered.length - 1 ? 'border-b border-white/6' : ''
@@ -508,6 +523,7 @@ export default function AdminSongRequests() {
                     {(['crm', 'reply'] as const).map((tab) => (
                       <button
                         key={tab}
+                        type="button"
                         onClick={() => {
                           setDetailTab(tab)
                           if (tab === 'reply') loadEmailLogs(selected.id)
@@ -587,6 +603,7 @@ export default function AdminSongRequests() {
                                         {setlists.map((s, i) => <option key={i} value={i}>{s.title}</option>)}
                                       </select>
                                       <button
+                                        type="button"
                                         onClick={() => handleAddToSetlist(song!)}
                                         disabled={addingToSetlist}
                                         className="font-heading text-[9px] uppercase tracking-widest bg-brand-red text-white px-2.5 py-1 hover:bg-brand-red-bright transition-all disabled:opacity-50"
@@ -594,6 +611,7 @@ export default function AdminSongRequests() {
                                         {addingToSetlist ? '…' : 'Add'}
                                       </button>
                                       <button
+                                        type="button"
                                         onClick={() => setAddingSong(null)}
                                         className="font-heading text-[9px] text-white/30 hover:text-white transition-colors"
                                       >
@@ -602,6 +620,7 @@ export default function AdminSongRequests() {
                                     </div>
                                   ) : (
                                     <button
+                                      type="button"
                                       onClick={() => { setAddingSong(song!); setAddSetlistResult(null) }}
                                       className="font-heading text-[9px] uppercase tracking-widest border border-white/10 text-white/35 px-2 py-0.5 hover:border-brand-red/40 hover:text-brand-red transition-all flex-shrink-0"
                                     >
@@ -655,8 +674,13 @@ export default function AdminSongRequests() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-3 pt-2">
+                      <div className="flex flex-col gap-2 pt-2">
+                        {saveError && (
+                          <span className="font-heading text-[10px] text-red-400 uppercase tracking-widest">{saveError}</span>
+                        )}
+                        <div className="flex items-center gap-3">
                         <button
+                          type="button"
                           onClick={handleSave}
                           disabled={saving}
                           className="font-heading text-[11px] uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-50"
@@ -664,6 +688,7 @@ export default function AdminSongRequests() {
                           {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save Changes'}
                         </button>
                         <button
+                          type="button"
                           onClick={() => { setDetailTab('reply'); loadEmailLogs(selected.id) }}
                           className="font-heading text-[11px] uppercase tracking-widest border border-brand-red/30 text-brand-red/70 px-5 py-2.5 hover:bg-brand-red/10 hover:border-brand-red transition-all flex items-center gap-2"
                         >
@@ -673,11 +698,13 @@ export default function AdminSongRequests() {
                           Reply by Email
                         </button>
                         <button
+                          type="button"
                           onClick={closeDetail}
                           className="font-heading text-[11px] uppercase tracking-widest border border-white/10 text-white/40 px-5 py-2.5 hover:border-white/25 hover:text-white/60 transition-all"
                         >
                           Close
                         </button>
+                        </div>
                       </div>
                     </>
                   )}
@@ -727,6 +754,7 @@ export default function AdminSongRequests() {
                             <div className="flex items-center justify-between">
                               <label className="font-heading text-xs uppercase tracking-widest text-white/45">Message</label>
                               <button
+                                type="button"
                                 onClick={() => setShowPreview((p) => !p)}
                                 className="font-heading text-xs uppercase tracking-widest text-white/35 hover:text-white border border-white/10 px-3 py-1.5 transition-colors"
                               >
@@ -760,6 +788,7 @@ export default function AdminSongRequests() {
                         )}
 
                         <button
+                          type="button"
                           onClick={handleSendReply}
                           disabled={!selectedTemplateId || !toEmail || !editableSubject || sending}
                           className="font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-6 py-3 hover:bg-brand-red-bright transition-all disabled:opacity-50 flex items-center gap-2 self-start"
