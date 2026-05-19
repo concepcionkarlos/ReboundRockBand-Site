@@ -44,13 +44,8 @@ export default async function Hero() {
               <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse-slow" />
             </div>
 
-            {/* Band name */}
-            <div className="font-display uppercase leading-[0.9] text-white mb-2 text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-tight">
-              Rebound Rock Band
-            </div>
-
             {/* Headline */}
-            <h1 className="font-display uppercase leading-[0.9] mb-7 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight text-brand-red text-glow-red">
+            <h1 className="font-display uppercase leading-[0.9] mb-7 text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-tight text-brand-red text-glow-red">
               {siteContent.heroHeadline}
             </h1>
 

@@ -41,6 +41,123 @@ export default async function MerchPage() {
   const tr = translations[lang].merch
   const visible = merch.filter((m) => m.visible)
 
+  type MerchItem = (typeof visible)[number]
+
+  const getImages = (item: MerchItem) =>
+    item.images && item.images.length > 0
+      ? item.images
+      : item.image
+        ? [item.image]
+        : []
+
+  const renderCard = (item: MerchItem) => {
+    const allImages = getImages(item)
+    return (
+      <>
+        {/* Image section */}
+        {allImages.length > 1 ? (
+          <MerchGallery images={allImages} name={item.name} />
+        ) : allImages.length === 1 ? (
+          <div className="relative aspect-square bg-brand-elevated overflow-hidden border border-brand-border group-hover:border-brand-red/30 transition-colors duration-300">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={allImages[0]}
+              alt={item.name}
+              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+            />
+            {!item.available && (
+              <div className="absolute inset-0 bg-brand-bg/75 flex items-center justify-center">
+                <span className="font-heading text-xs uppercase tracking-widest text-white/70 border border-white/30 px-4 py-2">
+                  {tr.soldOut}
+                </span>
+              </div>
+            )}
+            <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-brand-red origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
+          </div>
+        ) : (
+          <div className="relative aspect-square bg-brand-elevated overflow-hidden border border-brand-border group-hover:border-brand-red/30 transition-colors duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-elevated via-brand-bg to-[#0a0a18] flex flex-col items-center justify-center">
+              <div className="absolute inset-0 bg-grid-texture opacity-20" />
+              <div className="relative flex flex-col items-center gap-3">
+                {categoryIcons[item.category] ?? categoryIcons.other}
+                <span className="font-heading text-[9px] uppercase tracking-widest text-brand-muted/30">{item.category}</span>
+              </div>
+            </div>
+            {!item.available && (
+              <div className="absolute inset-0 bg-brand-bg/75 flex items-center justify-center">
+                <span className="font-heading text-xs uppercase tracking-widest text-white/70 border border-white/30 px-4 py-2">
+                  {tr.soldOut}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Info */}
+        <div className="flex flex-col flex-1 pt-5 gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="font-display text-xl text-white uppercase leading-tight">{item.name}</h2>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="font-heading text-[9px] uppercase tracking-widest border border-brand-border text-brand-muted/70 px-2 py-0.5">
+                  {item.category}
+                </span>
+              </div>
+            </div>
+            <div className="font-display text-2xl text-brand-red leading-none flex-shrink-0 pt-0.5">
+              ${item.price}
+            </div>
+          </div>
+
+          {item.description && (
+            <p className="font-body text-sm text-brand-text leading-relaxed">
+              {item.description}
+            </p>
+          )}
+
+          {item.specs && item.specs.length > 0 && (
+            <div className="border border-brand-border divide-y divide-brand-border">
+              {item.specs.map((spec) => (
+                <div key={spec.label} className="flex gap-4 px-4 py-2.5">
+                  <span className="font-heading text-[10px] uppercase tracking-widest text-brand-muted flex-shrink-0 w-20 self-center">
+                    {spec.label}
+                  </span>
+                  <span className="font-body text-xs text-white/80 self-center">{spec.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {item.category === 'tshirt' && <SizeGuide lang={lang} />}
+
+          {item.available ? (
+            item.externalUrl ? (
+              <a
+                href={item.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-center font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-4 py-4 hover:bg-brand-red-bright transition-all btn-glow-red mt-auto"
+              >
+                {tr.buyNow} — ${item.price}
+              </a>
+            ) : (
+              <a
+                href={`mailto:${siteContent.contactEmail}?subject=Merch Order: ${encodeURIComponent(item.name)}`}
+                className="block text-center font-heading text-sm uppercase tracking-widest border border-brand-red text-brand-red px-4 py-4 hover:bg-brand-red hover:text-white transition-all mt-auto"
+              >
+                {tr.inquire}
+              </a>
+            )
+          ) : (
+            <div className="text-center font-heading text-sm uppercase tracking-widest text-brand-muted border border-brand-border px-4 py-4 mt-auto cursor-not-allowed">
+              {tr.soldOut}
+            </div>
+          )}
+        </div>
+      </>
+    )
+  }
+
   return (
     <div className="pt-24 pb-24 min-h-screen bg-brand-bg">
       <div className="max-w-7xl mx-auto px-5 lg:px-10">
@@ -70,129 +187,33 @@ export default async function MerchPage() {
           </div>
         </Reveal>
 
-        {/* Product grid */}
+        {/* Product layout — featured first + side stack */}
         <Reveal delay={1}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 mb-14">
-            {visible.map((item) => {
-              const allImages = item.images && item.images.length > 0
-                ? item.images
-                : item.image
-                  ? [item.image]
-                  : []
-
-              return (
-                <div key={item.id} className="group flex flex-col">
-
-                  {/* Image section */}
-                  {allImages.length > 1 ? (
-                    <MerchGallery images={allImages} name={item.name} />
-                  ) : allImages.length === 1 ? (
-                    <div className="relative aspect-square bg-brand-elevated overflow-hidden border border-brand-border group-hover:border-brand-red/30 transition-colors duration-300">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={allImages[0]}
-                        alt={item.name}
-                        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-                      />
-                      {!item.available && (
-                        <div className="absolute inset-0 bg-brand-bg/75 flex items-center justify-center">
-                          <span className="font-heading text-xs uppercase tracking-widest text-white/70 border border-white/30 px-4 py-2">
-                            {tr.soldOut}
-                          </span>
-                        </div>
-                      )}
-                      <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-brand-red origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
-                    </div>
-                  ) : (
-                    <div className="relative aspect-square bg-brand-elevated overflow-hidden border border-brand-border group-hover:border-brand-red/30 transition-colors duration-300">
-                      <div className="absolute inset-0 bg-gradient-to-br from-brand-elevated via-brand-bg to-[#0a0a18] flex flex-col items-center justify-center">
-                        <div className="absolute inset-0 bg-grid-texture opacity-20" />
-                        <div className="relative flex flex-col items-center gap-3">
-                          {categoryIcons[item.category] ?? categoryIcons.other}
-                          <span className="font-heading text-[9px] uppercase tracking-widest text-brand-muted/30">{item.category}</span>
-                        </div>
-                      </div>
-                      {!item.available && (
-                        <div className="absolute inset-0 bg-brand-bg/75 flex items-center justify-center">
-                          <span className="font-heading text-xs uppercase tracking-widest text-white/70 border border-white/30 px-4 py-2">
-                            {tr.soldOut}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Info */}
-                  <div className="flex flex-col flex-1 pt-5 gap-4">
-
-                    {/* Name + price row */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h2 className="font-display text-xl text-white uppercase leading-tight">{item.name}</h2>
-                        {/* Badges */}
-                        <div className="flex items-center gap-2 mt-2 flex-wrap">
-                          <span className="font-heading text-[9px] uppercase tracking-widest border border-brand-border text-brand-muted/70 px-2 py-0.5">
-                            {item.category}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="font-display text-2xl text-brand-red leading-none flex-shrink-0 pt-0.5">
-                        ${item.price}
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    {item.description && (
-                      <p className="font-body text-sm text-brand-text leading-relaxed">
-                        {item.description}
-                      </p>
-                    )}
-
-                    {/* Specs */}
-                    {item.specs && item.specs.length > 0 && (
-                      <div className="border border-brand-border divide-y divide-brand-border">
-                        {item.specs.map((spec) => (
-                          <div key={spec.label} className="flex gap-4 px-4 py-2.5">
-                            <span className="font-heading text-[10px] uppercase tracking-widest text-brand-muted flex-shrink-0 w-20 self-center">
-                              {spec.label}
-                            </span>
-                            <span className="font-body text-xs text-white/80 self-center">{spec.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Size guide — only for tshirts */}
-                    {item.category === 'tshirt' && <SizeGuide lang={lang} />}
-
-                    {/* CTA */}
-                    {item.available ? (
-                      item.externalUrl ? (
-                        <a
-                          href={item.externalUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block text-center font-heading text-sm uppercase tracking-widest bg-brand-red text-white px-4 py-4 hover:bg-brand-red-bright transition-all btn-glow-red mt-auto"
-                        >
-                          {tr.buyNow} — ${item.price}
-                        </a>
-                      ) : (
-                        <a
-                          href={`mailto:${siteContent.contactEmail}?subject=Merch Order: ${encodeURIComponent(item.name)}`}
-                          className="block text-center font-heading text-sm uppercase tracking-widest border border-brand-red text-brand-red px-4 py-4 hover:bg-brand-red hover:text-white transition-all mt-auto"
-                        >
-                          {tr.inquire}
-                        </a>
-                      )
-                    ) : (
-                      <div className="text-center font-heading text-sm uppercase tracking-widest text-brand-muted border border-brand-border px-4 py-4 mt-auto cursor-not-allowed">
-                        {tr.soldOut}
-                      </div>
-                    )}
-                  </div>
+          <div className="mb-14">
+            {visible.length >= 2 ? (
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 lg:items-start">
+                {/* Featured product */}
+                <div className="group flex flex-col lg:flex-[2]">
+                  {renderCard(visible[0])}
                 </div>
-              )
-            })}
+                {/* Side products */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-8 lg:gap-8 lg:flex-1">
+                  {visible.slice(1).map((item) => (
+                    <div key={item.id} className="group flex flex-col">
+                      {renderCard(item)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+                {visible.map((item) => (
+                  <div key={item.id} className="group flex flex-col">
+                    {renderCard(item)}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </Reveal>
 
