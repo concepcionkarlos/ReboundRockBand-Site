@@ -157,6 +157,12 @@ export default function AdminBookings({ onNavigate }: Props) {
     await persist(updated)
   }
 
+  const deleteBooking = async (booking: BookingRequest) => {
+    const updated = requests.filter((r) => r.id !== booking.id)
+    setSelected(null)
+    await persist(updated)
+  }
+
   const duplicateBooking = async (booking: BookingRequest) => {
     const now = new Date().toISOString()
     const clone: BookingRequest = {
@@ -606,6 +612,7 @@ export default function AdminBookings({ onNavigate }: Props) {
             onSave={saveDetail}
             onAdvance={() => advanceStage(selected)}
             onDuplicate={() => duplicateBooking(selected)}
+            onDelete={() => deleteBooking(selected)}
             onConvertToShow={() => {
               sessionStorage.setItem('prefillShow', JSON.stringify({
                 date: selected.eventDate, venue: selected.venueOrCompany || selected.fullName, city: selected.city, time: '',
@@ -855,6 +862,7 @@ interface DrawerProps {
   onAdvance: () => void
   onConvertToShow: () => void
   onDuplicate: () => void
+  onDelete: () => void
   repeatBookings: BookingRequest[]
   saving: boolean
   saved: boolean
@@ -1284,12 +1292,13 @@ function buildQuoteHtml(b: BookingRequest): string {
 }
 
 function BookingDrawer({
-  booking, tab, onTabChange, onClose, onUpdate, onSave, onAdvance, onConvertToShow, onDuplicate,
+  booking, tab, onTabChange, onClose, onUpdate, onSave, onAdvance, onConvertToShow, onDuplicate, onDelete,
   repeatBookings, saving, saved, templates, selectedTemplateId, onTemplateChange, toEmail, onToEmailChange,
   editableSubject, onSubjectChange, editableBody, onBodyChange, showPreview, onTogglePreview,
   sending, sendResult, onSendEmail, emailLogs, inboundEmails, loadingLogs,
 }: DrawerProps) {
   const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const meta = STAGE_META[booking.status]
   const nextStage = NEXT_STAGE[booking.status]
   const thread = [
@@ -1338,6 +1347,36 @@ function BookingDrawer({
             </svg>
             Duplicate
           </button>
+
+          {confirmDelete ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={onDelete}
+                disabled={saving}
+                className="font-heading text-[10px] uppercase tracking-widest border border-red-500/60 text-red-400 px-2.5 py-1 hover:bg-red-500/10 transition-all disabled:opacity-40"
+              >
+                Confirm delete
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="font-heading text-[10px] uppercase tracking-widest text-white/25 hover:text-white/60 transition-colors px-1"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              disabled={saving}
+              title="Delete this booking"
+              className="font-heading text-[10px] uppercase tracking-widest border border-white/8 text-white/20 px-2.5 py-1 hover:border-red-500/40 hover:text-red-400/70 transition-all disabled:opacity-40"
+            >
+              Delete
+            </button>
+          )}
           {saved && (
             <span className="font-heading text-[10px] text-green-400 uppercase tracking-widest flex items-center gap-1">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
