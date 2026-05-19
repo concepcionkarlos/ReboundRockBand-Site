@@ -1,10 +1,6 @@
 'use client'
 
-// Google Places search is disabled — VENUE_FINDER_DISABLED must be set to false
-// in api/places/search/route.ts and GOOGLE_PLACES_API_KEY added to Vercel env vars
-// before the search form will make any real API calls.
-// The CRM section (saved venues, outreach logs, status tracking) still works fully.
-const SEARCH_DISABLED = true
+const SEARCH_DISABLED = false
 
 import { useState, useEffect, useCallback } from 'react'
 import type { Venue, VenueStatus, VenueActivity, OutreachLog, EmailTemplate, PlaceSearchResult } from '@/lib/data'

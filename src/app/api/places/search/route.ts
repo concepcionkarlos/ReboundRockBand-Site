@@ -12,7 +12,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 // Master kill-switch — flip to false and add GOOGLE_PLACES_API_KEY to re-enable
-const VENUE_FINDER_DISABLED = true
+const VENUE_FINDER_DISABLED = false
 
 export async function GET(req: NextRequest) {
   // Short-circuit before reading params or hitting Google — zero API cost
