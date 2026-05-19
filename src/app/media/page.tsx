@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import Reveal from '@/components/ui/Reveal'
+import VideoCard from '@/components/media/VideoCard'
 import { readContent } from '@/lib/store'
 import { getLang } from '@/lib/getLang'
 import { translations } from '@/lib/i18n'
@@ -48,22 +49,21 @@ function VideoEmbed({ item, sizes }: { item: MediaItem; sizes: string }) {
 }
 
 function MediaCard({ item }: { item: MediaItem }) {
+  if (item.type === 'video') {
+    return <VideoCard url={item.url} caption={item.caption} />
+  }
   return (
     <div className="group relative aspect-video overflow-hidden bg-brand-elevated border border-brand-border hover:border-brand-red/40 transition-all duration-300">
-      {item.type === 'video' ? (
-        <VideoEmbed item={item} sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
-      ) : (
-        <Image
-          src={item.url}
-          alt={item.caption}
-          fill
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        />
-      )}
+      <Image
+        src={item.url}
+        alt={item.caption}
+        fill
+        className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+      />
       {item.caption && (
         <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-brand-bg via-brand-bg/60 to-transparent pointer-events-none">
-          <div className="font-heading text-[10px] text-brand-red uppercase tracking-widest mb-0.5">{item.type}</div>
+          <div className="font-heading text-[10px] text-brand-red uppercase tracking-widest mb-0.5">photo</div>
           <div className="font-body text-sm text-white truncate">{item.caption}</div>
         </div>
       )}
@@ -109,6 +109,12 @@ export default async function MediaPage() {
   const rest = visible.filter((m) => !m.isFeatured)
   const isEmpty = visible.length === 0
 
+  const galleryColsClass =
+    rest.length <= 1 ? 'grid-cols-1 sm:grid-cols-2' :
+    rest.length === 2 ? 'grid-cols-2' :
+    rest.length === 3 ? 'grid-cols-2 md:grid-cols-3' :
+    'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+
   return (
     <div className="pt-24 pb-24 min-h-screen bg-brand-bg">
       <div className="max-w-7xl mx-auto px-5 lg:px-10">
@@ -137,7 +143,7 @@ export default async function MediaPage() {
                 <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
                 {tr.featuredVideos}
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className={`grid grid-cols-1 gap-5 ${featured.length >= 2 ? 'lg:grid-cols-2' : ''}`}>
                 {featured.map((item) => (
                   <div key={item.id} className="relative aspect-video bg-brand-elevated border border-brand-border overflow-hidden group">
                     {item.type === 'video' ? (
@@ -168,7 +174,7 @@ export default async function MediaPage() {
                 <span className="w-8 h-px bg-gradient-to-r from-transparent to-brand-red/70" />
                 {tr.liveVideos}
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className={`grid gap-4 ${galleryColsClass}`}>
                 {rest.map((item) => <MediaCard key={item.id} item={item} />)}
               </div>
             </section>
