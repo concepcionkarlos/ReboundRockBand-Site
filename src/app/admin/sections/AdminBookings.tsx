@@ -1289,6 +1289,7 @@ function BookingDrawer({
   editableSubject, onSubjectChange, editableBody, onBodyChange, showPreview, onTogglePreview,
   sending, sendResult, onSendEmail, emailLogs, inboundEmails, loadingLogs,
 }: DrawerProps) {
+  const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null)
   const meta = STAGE_META[booking.status]
   const nextStage = NEXT_STAGE[booking.status]
   const thread = [
@@ -1731,9 +1732,86 @@ function BookingDrawer({
         {tab === 'email' && (
           <div className="flex flex-col gap-6">
 
-            {/* Compose */}
-            <div className="flex flex-col gap-4">
-              <p className="font-heading text-[10px] uppercase tracking-widest text-white/25">Send Email</p>
+            {/* ── Conversation thread (top) ── */}
+            <div className="flex flex-col gap-3">
+              <p className="font-heading text-[10px] uppercase tracking-widest text-white/25">
+                Conversation {thread.length > 0 ? `· ${thread.length} messages` : ''}
+              </p>
+
+              {loadingLogs && <p className="font-body text-xs text-white/30">Loading…</p>}
+              {!loadingLogs && thread.length === 0 && (
+                <p className="font-body text-xs text-white/25 italic">No emails yet for this booking.</p>
+              )}
+
+              {thread.map((item) => {
+                if (item.kind === 'sent') {
+                  const log = item.data as BookingEmailLog
+                  return (
+                    /* Sent — right-aligned */
+                    <div key={log.id} className="flex justify-end">
+                      <div className="w-[88%] border border-white/8 bg-[#0d150d] px-4 py-3">
+                        <div className="flex items-center justify-end gap-1.5 mb-1.5">
+                          <span className={`font-heading text-[9px] uppercase tracking-widest border px-1.5 py-0.5 ${log.status === 'sent' ? 'text-green-400/60 border-green-400/20' : 'text-red-400/60 border-red-400/20'}`}>
+                            {log.status}
+                          </span>
+                          <svg className="w-3 h-3 text-green-400/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                          </svg>
+                        </div>
+                        <p className="font-body text-sm text-white/80 text-right">{log.subject}</p>
+                        <p className="font-body text-xs text-white/25 mt-1 text-right">{fmt(log.sentAt)}</p>
+                      </div>
+                    </div>
+                  )
+                } else {
+                  const email = item.data as InboundEmail
+                  const isExpanded = expandedEmailId === email.id
+                  return (
+                    /* Received — left-aligned, expandable */
+                    <div key={email.id} className="flex justify-start">
+                      <div className={`w-[88%] border px-4 py-3 ${email.read ? 'border-white/8 bg-[#111121]' : 'border-blue-400/25 bg-blue-400/5'}`}>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          {!email.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />}
+                          <span className="font-heading text-[9px] uppercase tracking-widest text-blue-400/60">Reply received</span>
+                        </div>
+                        <p className="font-body text-sm text-white font-medium">{email.fromName || email.fromEmail}</p>
+                        <p className="font-body text-sm text-white/50 mt-0.5">{email.subject}</p>
+                        {email.bodyText && (
+                          <p className={`font-body text-xs text-white/40 leading-relaxed mt-1.5 ${isExpanded ? '' : 'line-clamp-3'}`}>
+                            {isExpanded ? email.bodyText : email.bodyText.slice(0, 300)}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
+                          <p className="font-body text-xs text-white/25">{fmt(email.receivedAt)}</p>
+                          <div className="flex items-center gap-3">
+                            {email.bodyText && email.bodyText.length > 200 && (
+                              <button
+                                type="button"
+                                onClick={() => setExpandedEmailId(isExpanded ? null : email.id)}
+                                className="font-heading text-[9px] uppercase tracking-widest text-white/30 hover:text-white/70 transition-colors"
+                              >
+                                {isExpanded ? '▲ Less' : '▼ Read more'}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => onSubjectChange(`Re: ${email.subject.replace(/^Re:\s*/i, '')}`)}
+                              className="font-heading text-[9px] uppercase tracking-widest text-brand-red/60 hover:text-brand-red transition-colors flex items-center gap-1"
+                            >
+                              ↩ Reply
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                }
+              })}
+            </div>
+
+            {/* ── Compose (bottom) ── */}
+            <div className="border-t border-white/6 pt-5 flex flex-col gap-4">
+              <p className="font-heading text-[10px] uppercase tracking-widest text-white/25">New Message</p>
 
               <div className="flex flex-col gap-1.5">
                 <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Template</label>
@@ -1781,63 +1859,13 @@ function BookingDrawer({
               )}
 
               <button
+                type="button"
                 onClick={onSendEmail}
                 disabled={!selectedTemplateId || !toEmail || !editableSubject || sending}
                 className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-50 self-start"
               >
                 {sending ? 'Sending…' : 'Send Email'}
               </button>
-            </div>
-
-            {/* Thread */}
-            <div className="border-t border-white/6 pt-5 flex flex-col gap-3">
-              <p className="font-heading text-[10px] uppercase tracking-widest text-white/25">
-                Conversation {thread.length > 0 ? `· ${thread.length} messages` : ''}
-              </p>
-
-              {loadingLogs && <p className="font-body text-xs text-white/30">Loading…</p>}
-              {!loadingLogs && thread.length === 0 && (
-                <p className="font-body text-xs text-white/25 italic">No emails yet for this booking.</p>
-              )}
-
-              {thread.map((item) => {
-                if (item.kind === 'sent') {
-                  const log = item.data as BookingEmailLog
-                  return (
-                    <div key={log.id} className="border border-white/8 bg-[#111121] px-4 py-3">
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="font-heading text-[9px] uppercase tracking-widest text-white/30 flex items-center gap-1.5">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                          </svg>
-                          Sent to {log.toEmail}
-                        </span>
-                        <span className={`font-heading text-[9px] uppercase tracking-widest border px-1.5 py-0.5 ${log.status === 'sent' ? 'text-green-400/60 border-green-400/20' : 'text-red-400/60 border-red-400/20'}`}>
-                          {log.status}
-                        </span>
-                      </div>
-                      <p className="font-body text-sm text-white/70">{log.subject}</p>
-                      <p className="font-body text-xs text-white/25 mt-1">{fmt(log.sentAt)}</p>
-                    </div>
-                  )
-                } else {
-                  const email = item.data as InboundEmail
-                  return (
-                    <div key={email.id} className={`border px-4 py-3 ${email.read ? 'border-white/8 bg-[#111121]' : 'border-blue-400/25 bg-blue-400/5'}`}>
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        {!email.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />}
-                        <span className="font-heading text-[9px] uppercase tracking-widest text-blue-400/60">Reply received</span>
-                      </div>
-                      <p className="font-body text-sm text-white font-medium">{email.fromName || email.fromEmail}</p>
-                      <p className="font-body text-sm text-white/60 mt-0.5">{email.subject}</p>
-                      {email.bodyText && (
-                        <p className="font-body text-xs text-white/40 leading-relaxed mt-1.5 line-clamp-3">{email.bodyText.slice(0, 200)}</p>
-                      )}
-                      <p className="font-body text-xs text-white/25 mt-1.5">{fmt(email.receivedAt)}</p>
-                    </div>
-                  )
-                }
-              })}
             </div>
           </div>
         )}
