@@ -28,6 +28,8 @@ export interface Show {
   merchSoldAtShow?: number  // $ sold at the show
   // Pre-show advance checklist
   advanceChecklist?: string[] // completed check IDs
+  // CRM origin
+  sourceVenueId?: string     // set when created from Venue Finder "Booked" workflow
 }
 
 export interface MerchItem {

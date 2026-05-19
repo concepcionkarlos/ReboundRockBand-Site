@@ -3,7 +3,7 @@
 const SEARCH_DISABLED = false
 
 import { useState, useEffect, useCallback } from 'react'
-import type { Venue, VenueStatus, VenueActivity, OutreachLog, EmailTemplate, PlaceSearchResult } from '@/lib/data'
+import type { Venue, VenueStatus, VenueActivity, OutreachLog, EmailTemplate, PlaceSearchResult, Show } from '@/lib/data'
 import { renderTemplate } from '@/lib/templateUtils'
 
 const inputClass =
@@ -29,7 +29,11 @@ const STATUS_COLORS: Record<VenueStatus, string> = {
 
 type FilterStatus = 'All' | VenueStatus
 
-export default function AdminVenueFinder() {
+interface Props {
+  onNavigate?: (section: string) => void
+}
+
+export default function AdminVenueFinder({ onNavigate }: Props) {
   const [venues, setVenues] = useState<Venue[]>([])
   const [templates, setTemplates] = useState<EmailTemplate[]>([])
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('All')
@@ -78,6 +82,13 @@ export default function AdminVenueFinder() {
   const [bulkStatus, setBulkStatus] = useState<VenueStatus | ''>('')
   const [bulkStatusUpdating, setBulkStatusUpdating] = useState(false)
 
+  // Create Gig
+  const [showGigForm, setShowGigForm] = useState(false)
+  const [gigDraft, setGigDraft] = useState({ date: '', city: '', time: '', guarantee: '' })
+  const [creatingGig, setCreatingGig] = useState(false)
+  const [gigCreated, setGigCreated] = useState(false)
+  const [gigCreateError, setGigCreateError] = useState<string | null>(null)
+
   useEffect(() => {
     Promise.all([
       fetch('/api/venues').then((r) => r.json()),
@@ -107,6 +118,10 @@ export default function AdminVenueFinder() {
     setActiveTab('crm')
     setSaved(false)
     setSendResult(null)
+    setShowGigForm(false)
+    setGigCreated(false)
+    setGigCreateError(null)
+    setGigDraft({ date: '', city: '', time: '', guarantee: '' })
     setSelectedTemplateId('')
     setRenderedSubject('')
     setRenderedBody('')
@@ -218,6 +233,42 @@ export default function AdminVenueFinder() {
       }
     } finally {
       setSavingActivity(false)
+    }
+  }
+
+  const handleCreateGig = async () => {
+    if (!selected || !gigDraft.date) return
+    setCreatingGig(true)
+    setGigCreateError(null)
+    try {
+      const contentRes = await fetch('/api/content')
+      if (!contentRes.ok) { setGigCreateError('Could not load shows — try again.'); return }
+      const contentData = await contentRes.json()
+      const existingShows: Show[] = contentData.shows ?? []
+      const newShow: Show = {
+        id: `show-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        venue: selected.name,
+        city: gigDraft.city.trim(),
+        date: gigDraft.date,
+        time: gigDraft.time.trim(),
+        visible: true,
+        showStatus: 'Confirmed',
+        guarantee: gigDraft.guarantee ? parseFloat(gigDraft.guarantee) || undefined : undefined,
+        sourceVenueId: selected.id,
+      }
+      const saveRes = await fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'shows', data: [...existingShows, newShow] }),
+      })
+      if (!saveRes.ok) { setGigCreateError('Save failed — try again.'); return }
+      setGigCreated(true)
+      setShowGigForm(false)
+      setGigDraft({ date: '', city: '', time: '', guarantee: '' })
+    } catch {
+      setGigCreateError('Network error — try again.')
+    } finally {
+      setCreatingGig(false)
     }
   }
 
@@ -968,6 +1019,136 @@ export default function AdminVenueFinder() {
                     Delete
                   </button>
                 </div>
+
+                {/* Create Gig — shown when venue is Booked */}
+                {(crmForm.status ?? selected.status) === 'Booked' && (
+                  <div className="border-t border-white/8 pt-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <p className="font-heading text-[10px] uppercase tracking-widest text-green-300">
+                        Create Gig from this Venue
+                      </p>
+                      {gigCreated && (
+                        <span className="font-heading text-[9px] uppercase tracking-widest text-green-400 border border-green-400/30 px-2 py-0.5">
+                          ✓ Show Created
+                        </span>
+                      )}
+                    </div>
+
+                    {gigCreated ? (
+                      <div className="flex items-center gap-3">
+                        <p className="font-body text-xs text-white/40">Gig added to your shows calendar.</p>
+                        {onNavigate && (
+                          <button
+                            type="button"
+                            onClick={() => onNavigate('shows')}
+                            className="font-heading text-[9px] uppercase tracking-widest border border-green-400/30 text-green-400/70 px-3 py-1 hover:bg-green-400/10 transition-all flex-shrink-0"
+                          >
+                            View Shows →
+                          </button>
+                        )}
+                      </div>
+                    ) : showGigForm ? (
+                      <div className="flex flex-col gap-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col gap-1">
+                            <label className="font-heading text-[9px] uppercase tracking-widest text-white/30">
+                              Show Date *
+                            </label>
+                            <input
+                              type="date"
+                              value={gigDraft.date}
+                              onChange={(e) => setGigDraft({ ...gigDraft, date: e.target.value })}
+                              className={inputClass}
+                              aria-label="Gig date"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="font-heading text-[9px] uppercase tracking-widest text-white/30">
+                              City
+                            </label>
+                            <input
+                              type="text"
+                              value={gigDraft.city}
+                              onChange={(e) => setGigDraft({ ...gigDraft, city: e.target.value })}
+                              className={inputClass}
+                              placeholder="Miami"
+                              aria-label="Gig city"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="font-heading text-[9px] uppercase tracking-widest text-white/30">
+                              Show Time
+                            </label>
+                            <input
+                              type="text"
+                              value={gigDraft.time}
+                              onChange={(e) => setGigDraft({ ...gigDraft, time: e.target.value })}
+                              className={inputClass}
+                              placeholder="9:00 PM"
+                              aria-label="Gig time"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="font-heading text-[9px] uppercase tracking-widest text-white/30">
+                              Guarantee ($)
+                            </label>
+                            <input
+                              type="number"
+                              min={0}
+                              value={gigDraft.guarantee}
+                              onChange={(e) => setGigDraft({ ...gigDraft, guarantee: e.target.value })}
+                              className={inputClass}
+                              placeholder="500"
+                              aria-label="Gig guarantee"
+                            />
+                          </div>
+                        </div>
+                        <p className="font-body text-[10px] text-white/20 -mt-1">
+                          Venue: <span className="text-white/40">{selected.name}</span>
+                          {selected.address ? ` · ${selected.address}` : ''}
+                        </p>
+                        {gigCreateError && (
+                          <p className="font-heading text-[9px] text-red-400 uppercase tracking-widest">{gigCreateError}</p>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleCreateGig}
+                            disabled={creatingGig || !gigDraft.date}
+                            className="font-heading text-[9px] uppercase tracking-widest bg-green-600 text-white px-4 py-2 hover:bg-green-500 transition-all disabled:opacity-50"
+                          >
+                            {creatingGig ? 'Creating…' : 'Create Gig'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setShowGigForm(false); setGigCreateError(null) }}
+                            className="font-heading text-[9px] uppercase tracking-widest border border-white/10 text-white/30 px-4 py-2 hover:text-white/60 transition-all"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowGigForm(true)
+                          setGigCreated(false)
+                          setGigCreateError(null)
+                          const parts = selected.address?.split(',')
+                          const inferredCity = parts && parts.length >= 2 ? parts[1].trim() : ''
+                          setGigDraft({ date: '', city: inferredCity, time: '', guarantee: '' })
+                        }}
+                        className="self-start font-heading text-[9px] uppercase tracking-widest border border-green-400/30 text-green-400/60 px-4 py-2 hover:bg-green-400/10 hover:text-green-300 transition-all flex items-center gap-2"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Create Gig
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {/* Activity Log */}
                 <div className="border-t border-white/8 pt-5 flex flex-col gap-3">

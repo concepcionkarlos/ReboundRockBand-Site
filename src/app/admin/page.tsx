@@ -291,7 +291,7 @@ export default function AdminPage() {
     media: <AdminMedia />,
     epk: <AdminEPK />,
     content: <AdminContent />,
-    venues: <AdminVenueFinder />,
+    venues: <AdminVenueFinder onNavigate={(s) => navigate(s as Section)} />,
     email: <AdminEmailManagement onNavigate={(s) => navigate(s as Section)} inboxUnread={badges.inbox} />,
     analytics: <AdminAnalytics />,
     notes: <AdminNotes />,
