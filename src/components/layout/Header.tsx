@@ -27,19 +27,15 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-5 lg:px-10 h-16 flex items-center justify-between gap-4">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 flex-shrink-0 min-w-0 group">
-          <div className="relative h-10 w-10 flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
-            <Image
-              src="/logo-improved.png"
-              alt="Rebound Rock Band"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
-          <span className="font-display uppercase text-base leading-none text-white tracking-wide hidden sm:block whitespace-nowrap">
-            Rebound <span className="text-brand-red">Rock Band</span>
-          </span>
+        <Link href="/" className="flex-shrink-0 transition-transform duration-200 hover:scale-105">
+          <Image
+            src="/logo nuevo.jpeg"
+            alt="Rebound Rock Band"
+            width={120}
+            height={56}
+            className="h-11 w-auto object-contain"
+            priority
+          />
         </Link>
 
         {/* Nav — center (desktop) */}

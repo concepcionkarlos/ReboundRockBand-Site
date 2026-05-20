@@ -138,10 +138,10 @@ export default async function Hero() {
               <div className="absolute inset-[-16px] rounded-full bg-brand-red/[0.07] blur-[30px]" aria-hidden="true" />
               <div className="absolute inset-0 rounded-full bg-brand-red/[0.04] blur-xl" aria-hidden="true" />
               <Image
-                src="/logo-improved.png"
+                src="/images/logo.jpeg"
                 alt="Rebound Rock Band Mascot"
                 fill
-                className="object-contain drop-shadow-2xl"
+                className="object-contain drop-shadow-2xl rounded-xl"
                 priority
               />
             </div>
