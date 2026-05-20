@@ -29,11 +29,11 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex-shrink-0 transition-transform duration-200 hover:scale-105">
           <Image
-            src="/logo nuevo.jpeg"
+            src="/logo iquierda arriba.jpeg"
             alt="Rebound Rock Band"
             width={120}
             height={56}
-            className="h-11 w-auto object-contain mix-blend-screen"
+            className="h-11 w-auto object-contain mix-blend-multiply"
             priority
           />
         </Link>
