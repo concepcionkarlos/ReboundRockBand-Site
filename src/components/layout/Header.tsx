@@ -33,7 +33,7 @@ export default function Header() {
             alt="Rebound Rock Band"
             width={120}
             height={56}
-            className="h-11 w-auto object-contain mix-blend-multiply"
+            className="h-11 w-auto object-contain"
             priority
           />
         </Link>
