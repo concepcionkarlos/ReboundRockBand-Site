@@ -29,7 +29,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex-shrink-0 transition-transform duration-200 hover:scale-105">
           <Image
-            src="/logo iquierda arriba.jpeg"
+            src="/foto izq.png"
             alt="Rebound Rock Band"
             width={120}
             height={56}
