@@ -10,25 +10,23 @@ import AdminBandMembers from './sections/AdminBandMembers'
 import AdminEPK from './sections/AdminEPK'
 import AdminBookings from './sections/AdminBookings'
 import AdminSongRequests from './sections/AdminSongRequests'
-import AdminVenueFinder from './sections/AdminVenueFinder'
-import AdminEmailManagement from './sections/AdminEmailManagement'
 import AdminAnalytics from './sections/AdminAnalytics'
 import AdminNotes from './sections/AdminNotes'
 import AdminLogin from './AdminLogin'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'venues' | 'email' | 'analytics' | 'notes'
+type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'analytics' | 'notes'
 
 interface SearchItem {
   id: string
-  type: 'booking' | 'show' | 'song-request' | 'venue'
+  type: 'booking' | 'show' | 'song-request'
   title: string
   sub: string
   section: Section
 }
 
-interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number; songRequests: number; venues: number; inbox: number }
+interface Badges { members: number; shows: number; merch: number; media: number; epk: number; bookings: number; songRequests: number }
 
 const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: React.ReactNode }[] = [
   {
@@ -120,27 +118,6 @@ const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: Rea
     ),
   },
   {
-    id: 'venues' as Section,
-    label: 'Venue Finder',
-    badgeKey: 'venues' as keyof Badges,
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'email' as Section,
-    label: 'Email Management',
-    badgeKey: 'inbox' as keyof Badges,
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-      </svg>
-    ),
-  },
-  {
     id: 'analytics' as Section,
     label: 'Analytics',
     icon: (
@@ -165,17 +142,12 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [active, setActive] = useState<Section>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0, songRequests: 0, venues: 0, inbox: 0 })
+  const [badges, setBadges] = useState<Badges>({ members: 0, shows: 0, merch: 0, media: 0, epk: 0, bookings: 0, songRequests: 0 })
   const [searchQuery, setSearchQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchItems, setSearchItems] = useState<SearchItem[]>([])
   const [searchIdx, setSearchIdx] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
-  const [venueGate, setVenueGate] = useState(false)
-  const [venueUnlocked, setVenueUnlocked] = useState(false)
-  const [venuePass, setVenuePass] = useState('')
-  const [venuePassError, setVenuePassError] = useState(false)
-  const [venuePassChecking, setVenuePassChecking] = useState(false)
 
   useEffect(() => {
     fetch('/api/admin/login')
@@ -186,35 +158,10 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    if (sessionStorage.getItem('vf_unlocked') === '1') setVenueUnlocked(true)
-  }, [])
-
-  const submitVenuePass = async () => {
-    setVenuePassChecking(true)
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(venuePass))
-    const hex = Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('')
-    if (hex === '044df317a76e492af6886884313d6ab723946d225b966fad73fc731c23eedcab') {
-      sessionStorage.setItem('vf_unlocked', '1')
-      setVenueUnlocked(true)
-      setVenueGate(false)
-      setActive('venues')
-      setSidebarOpen(false)
-    } else {
-      setVenuePassError(true)
-    }
-    setVenuePassChecking(false)
-  }
-
-  useEffect(() => {
     if (!authed) return
-    Promise.all([
-      fetch('/api/content').then((r) => r.json()),
-      fetch('/api/venues').then((r) => r.json()),
-      fetch('/api/inbound-emails').then((r) => r.json()),
-    ])
-      .then(([d, v, inbox]) => {
-        const venues: { id: string; name: string; address: string; status: string }[] = v.venues ?? []
-        const inboundEmails: { read: boolean }[] = inbox.emails ?? []
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((d) => {
         setBadges({
           members: d.bandMembers?.length ?? 0,
           shows: d.shows?.length ?? 0,
@@ -223,8 +170,6 @@ export default function AdminPage() {
           epk: d.epkContent?.repertoire?.length ?? 0,
           bookings: (d.bookingRequests ?? []).filter((r: { status: string }) => r.status === 'New').length,
           songRequests: (d.songRequests ?? []).filter((r: { status: string }) => r.status === 'New').length,
-          venues: venues.filter((vn) => vn.status === 'New' || vn.status === 'Reviewed').length,
-          inbox: inboundEmails.filter((e) => !e.read).length,
         })
         const items: SearchItem[] = [
           ...(d.bookingRequests ?? []).map((r: { id: string; fullName: string; eventType?: string; city?: string; status: string }) => ({
@@ -245,17 +190,11 @@ export default function AdminPage() {
             sub: [r.song1, r.song2].filter(Boolean).join(', '),
             section: 'song-requests' as Section,
           })),
-          ...venues.map((vn) => ({
-            id: vn.id, type: 'venue' as const,
-            title: vn.name,
-            sub: `${vn.address} · ${vn.status}`,
-            section: 'venues' as Section,
-          })),
         ]
         setSearchItems(items)
       })
       .catch(() => {})
-  }, [active])
+  }, [active, authed])
 
   const handleLogin = async (password: string): Promise<boolean> => {
     const res = await fetch('/api/admin/login', {
@@ -272,15 +211,9 @@ export default function AdminPage() {
   }
 
   const navigate = useCallback((section: Section) => {
-    if (section === 'venues' && !venueUnlocked) {
-      setVenuePass('')
-      setVenuePassError(false)
-      setVenueGate(true)
-      return
-    }
     setActive(section)
     setSidebarOpen(false)
-  }, [venueUnlocked])
+  }, [])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -306,7 +239,6 @@ export default function AdminPage() {
     'booking':      { label: 'Booking',      color: 'text-blue-400 border-blue-400/25' },
     'show':         { label: 'Show',         color: 'text-brand-red border-brand-red/25' },
     'song-request': { label: 'Song Req',     color: 'text-purple-400 border-purple-400/25' },
-    'venue':        { label: 'Venue',        color: 'text-yellow-400 border-yellow-400/25' },
   }
 
   if (!authChecked) return null
@@ -322,8 +254,6 @@ export default function AdminPage() {
     media: <AdminMedia />,
     epk: <AdminEPK />,
     content: <AdminContent />,
-    venues: <AdminVenueFinder onNavigate={(s) => navigate(s as Section)} />,
-    email: <AdminEmailManagement onNavigate={(s) => navigate(s as Section)} inboxUnread={badges.inbox} />,
     analytics: <AdminAnalytics />,
     notes: <AdminNotes />,
   }
@@ -338,51 +268,6 @@ export default function AdminPage() {
           className="fixed inset-0 bg-black/70 z-20 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
-      )}
-
-      {/* Venue Finder password gate */}
-      {venueGate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0d0d1e] border border-white/12 w-full max-w-sm mx-4 shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
-              <div className="flex items-center gap-2.5">
-                <svg className="w-4 h-4 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                </svg>
-                <h2 className="font-heading text-xs uppercase tracking-widest text-white">Venue Finder</h2>
-              </div>
-              <button type="button" onClick={() => setVenueGate(false)} aria-label="Cancel" className="text-white/30 hover:text-white transition-colors">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="px-6 py-5 flex flex-col gap-3">
-              <p className="font-body text-sm text-white/40">Enter the password to access Venue Finder.</p>
-              <input
-                type="password"
-                value={venuePass}
-                onChange={(e) => { setVenuePass(e.target.value); setVenuePassError(false) }}
-                onKeyDown={(e) => { if (e.key === 'Enter' && venuePass) void submitVenuePass() }}
-                autoFocus
-                placeholder="Password"
-                aria-label="Venue Finder password"
-                className="w-full bg-[#111121] border border-white/8 text-white font-body text-sm px-3.5 py-2.5 focus:outline-none focus:border-brand-red/50 focus:shadow-[0_0_0_3px_rgba(224,16,30,0.07)] transition-all placeholder:text-white/20 rounded-none"
-              />
-              {venuePassError && (
-                <p className="font-heading text-[10px] text-red-400 uppercase tracking-widest">Incorrect password</p>
-              )}
-              <button
-                type="button"
-                onClick={() => void submitVenuePass()}
-                disabled={venuePassChecking || !venuePass}
-                className="w-full font-heading text-xs uppercase tracking-widest bg-brand-red text-white py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-60"
-              >
-                {venuePassChecking ? 'Checking…' : 'Unlock'}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* ── Sidebar ── */}
@@ -407,9 +292,8 @@ export default function AdminPage() {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-2.5">
           <div className="mb-1">
-            {navItems.map((item, idx) => {
-              const prevItem = navItems[idx - 1]
-              const showDivider = (item.id === 'email' && prevItem?.id !== 'email') || item.id === 'analytics' || item.id === 'notes'
+            {navItems.map((item) => {
+              const showDivider = item.id === 'analytics' || item.id === 'notes'
               const isActive = active === item.id
               const badgeCount = item.badgeKey !== undefined ? badges[item.badgeKey] : undefined
               return (
@@ -417,7 +301,7 @@ export default function AdminPage() {
                   {showDivider && (
                     <div className="px-2.5 pt-4 pb-1.5">
                       <span className="font-heading text-[9px] uppercase tracking-[0.18em] text-white/20 block">
-                        {item.id === 'email' ? 'Email' : item.id === 'notes' ? 'Team' : 'Reports'}
+                        {item.id === 'notes' ? 'Team' : 'Reports'}
                       </span>
                     </div>
                   )}
@@ -438,9 +322,7 @@ export default function AdminPage() {
                     </div>
                     {badgeCount !== undefined && badgeCount > 0 && (
                       <span className={`font-body text-[10px] px-1.5 py-0.5 rounded-sm tabular-nums ${
-                        item.id === 'email'
-                          ? 'bg-blue-400/20 text-blue-400'
-                          : isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/[0.08] text-white/30'
+                        isActive ? 'bg-brand-red/20 text-brand-red' : 'bg-white/[0.08] text-white/30'
                       }`}>
                         {badgeCount}
                       </span>

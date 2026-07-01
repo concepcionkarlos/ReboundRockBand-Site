@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server'
 const PUBLIC_API = new Set([
   '/api/booking',
   '/api/song-request',
-  '/api/inbound-email',
   '/api/admin/login',
 ])
 

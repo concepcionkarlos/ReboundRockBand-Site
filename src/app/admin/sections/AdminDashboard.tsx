@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { Show, BookingRequest, MerchItem, SongRequest, InboundEmail } from '@/lib/data'
+import type { Show, BookingRequest, MerchItem, SongRequest } from '@/lib/data'
 import Link from 'next/link'
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 
 interface ActivityItem {
   id: string
-  kind: 'booking' | 'song-request' | 'inbox'
+  kind: 'booking' | 'song-request'
   label: string
   sub: string
   date: string
@@ -20,8 +20,6 @@ interface ActivityItem {
 interface LiveData {
   bookingRequests: BookingRequest[]
   shows: Show[]
-  inboxUnread: number
-  venueCount: number
   lowStockItems: MerchItem[]
   activity: ActivityItem[]
   newSongRequests: number
@@ -67,7 +65,7 @@ interface MonthlyGoal { month: string; bookingTarget: number; revenueTarget: num
 
 export default function AdminDashboard({ onNavigate }: Props) {
   const [live, setLive] = useState<LiveData>({
-    bookingRequests: [], shows: [], inboxUnread: 0, venueCount: 0, lowStockItems: [], activity: [], newSongRequests: 0,
+    bookingRequests: [], shows: [], lowStockItems: [], activity: [], newSongRequests: 0,
   })
   const [goal, setGoal] = useState<MonthlyGoal | null>(null)
   const [editingGoal, setEditingGoal] = useState(false)
@@ -76,15 +74,11 @@ export default function AdminDashboard({ onNavigate }: Props) {
   const [goalSaveError, setGoalSaveError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/content').then((r) => r.json()),
-      fetch('/api/inbound-emails').then((r) => r.json()),
-      fetch('/api/venues').then((r) => r.json()),
-    ])
-      .then(([d, inbox, v]) => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((d) => {
         const bookings: BookingRequest[] = d.bookingRequests ?? []
         const songReqs: SongRequest[] = d.songRequests ?? []
-        const inboundEmails: InboundEmail[] = inbox.emails ?? []
 
         const activity: ActivityItem[] = [
           ...bookings.map((b) => ({
@@ -103,14 +97,6 @@ export default function AdminDashboard({ onNavigate }: Props) {
             date: r.createdAt,
             section: 'song-requests',
           })),
-          ...inboundEmails.map((e) => ({
-            id: e.id,
-            kind: 'inbox' as const,
-            label: e.fromName || e.fromEmail,
-            sub: e.subject,
-            date: e.receivedAt,
-            section: 'email',
-          })),
         ]
           .sort((a, b) => b.date.localeCompare(a.date))
           .slice(0, 10)
@@ -118,8 +104,6 @@ export default function AdminDashboard({ onNavigate }: Props) {
         setLive({
           bookingRequests: bookings,
           shows: (d.shows ?? []).filter((s: Show) => s.visible !== false),
-          inboxUnread: inboundEmails.filter((e) => !e.read).length,
-          venueCount: (v.venues ?? []).length,
           lowStockItems: (d.merch ?? []).filter((m: MerchItem) => m.stockQuantity !== undefined && m.stockQuantity <= 2),
           activity,
           newSongRequests: songReqs.filter((r) => r.status === 'New').length,
@@ -133,7 +117,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
       .catch(() => {})
   }, [])
 
-  const { bookingRequests, shows, inboxUnread, venueCount, lowStockItems, activity, newSongRequests } = live
+  const { bookingRequests, shows, lowStockItems, activity, newSongRequests } = live
 
   const today = new Date()
   const thisMonth = today.toISOString().slice(0, 7)
@@ -256,19 +240,6 @@ export default function AdminDashboard({ onNavigate }: Props) {
         </svg>
       ),
     },
-    {
-      label: 'Unread Messages',
-      value: inboxUnread,
-      sub: inboxUnread > 0 ? 'Needs your attention' : 'All caught up',
-      color: inboxUnread > 0 ? 'blue' : 'neutral',
-      urgent: inboxUnread > 0,
-      action: () => onNavigate('email'),
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.022.55m0 0l-4.661 2.51m16.5 1.615a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V8.844a2.25 2.25 0 011.183-1.981l7.5-4.039a2.25 2.25 0 012.134 0l7.5 4.039a2.25 2.25 0 011.183 1.98V19.5z" />
-        </svg>
-      ),
-    },
   ] as const
 
   const colorMap = {
@@ -300,7 +271,7 @@ export default function AdminDashboard({ onNavigate }: Props) {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
         {kpis.map((kpi) => {
           const c = colorMap[kpi.color as keyof typeof colorMap]
           return (
@@ -486,8 +457,8 @@ export default function AdminDashboard({ onNavigate }: Props) {
           {[
             { label: 'New Booking Lead', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />, action: () => onNavigate('bookings') },
             { label: 'Add Show', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />, action: () => onNavigate('shows') },
-            { label: 'View Inbox', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.022.55m0 0l-4.661 2.51" />, action: () => onNavigate('email') },
-            { label: 'Venue Finder', icon: <><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></>, action: () => onNavigate('venues') },
+            { label: 'Song Requests', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303" />, action: () => onNavigate('song-requests') },
+            { label: 'View Merch', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />, action: () => onNavigate('merch') },
           ].map((qa) => (
             <button
               key={qa.label}
@@ -506,12 +477,8 @@ export default function AdminDashboard({ onNavigate }: Props) {
         </div>
       </div>
 
-      {/* Bottom row: Venues + Shows + Song Requests + Emails */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="border border-white/8 bg-[#0d0d1e] p-5 text-center">
-          <div className="font-display text-3xl text-white mb-1">{venueCount}</div>
-          <div className="font-heading text-[10px] uppercase tracking-widest text-white/40">Venues Tracked</div>
-        </div>
+      {/* Bottom row: Shows + Song Requests */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="border border-white/8 bg-[#0d0d1e] p-5 text-center">
           <div className="font-display text-3xl text-white mb-1">{shows.length}</div>
           <div className="font-heading text-[10px] uppercase tracking-widest text-white/40">Upcoming Shows</div>
@@ -524,10 +491,6 @@ export default function AdminDashboard({ onNavigate }: Props) {
           <div className={`font-display text-3xl mb-1 ${newSongRequests > 0 ? 'text-purple-400' : 'text-white'}`}>{newSongRequests}</div>
           <div className="font-heading text-[10px] uppercase tracking-widest text-white/40 group-hover:text-white/60 transition-colors">New Song Requests</div>
         </button>
-        <div className="border border-white/8 bg-[#0d0d1e] p-5 text-center">
-          <div className={`font-display text-3xl mb-1 ${inboxUnread > 0 ? 'text-blue-400' : 'text-white'}`}>{inboxUnread}</div>
-          <div className="font-heading text-[10px] uppercase tracking-widest text-white/40">Unread Emails</div>
-        </div>
       </div>
 
       {/* Monthly Goals */}
@@ -696,7 +659,6 @@ export default function AdminDashboard({ onNavigate }: Props) {
               const kindMeta = {
                 'booking':      { dot: 'bg-blue-400',   label: 'Booking',      icon: <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /> },
                 'song-request': { dot: 'bg-purple-400', label: 'Song Request', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" /> },
-                'inbox':        { dot: 'bg-green-400',  label: 'Inbox',        icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /> },
               }[item.kind]
               return (
                 <button

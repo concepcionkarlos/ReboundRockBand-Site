@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { BookingRequest, BookingStatus, EmailTemplate, BookingEmailLog, InboundEmail } from '@/lib/data'
-import { renderTemplate } from '@/lib/templateUtils'
+import type { BookingRequest, BookingStatus } from '@/lib/data'
 
 // ── Pipeline config ──────────────────────────────────────────────────────────
 
@@ -74,7 +73,7 @@ export default function AdminBookings({ onNavigate }: Props) {
   const [view, setView] = useState<'pipeline' | 'list'>('pipeline')
   const [listFilter, setListFilter] = useState<BookingStatus | 'All' | 'Open'>('Open')
   const [selected, setSelected] = useState<BookingRequest | null>(null)
-  const [drawerTab, setDrawerTab] = useState<'details' | 'email' | 'quote' | 'contract' | 'invoice'>('details')
+  const [drawerTab, setDrawerTab] = useState<'details' | 'quote' | 'contract' | 'invoice'>('details')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [queueExpanded, setQueueExpanded] = useState(false)
@@ -84,48 +83,15 @@ export default function AdminBookings({ onNavigate }: Props) {
   const [manualForm, setManualForm] = useState(emptyManual)
   const [manualSaving, setManualSaving] = useState(false)
 
-  // Email compose state
-  const [templates, setTemplates] = useState<EmailTemplate[]>([])
-  const [selectedTemplateId, setSelectedTemplateId] = useState('')
-  const [toEmail, setToEmail] = useState('')
-  const [editableSubject, setEditableSubject] = useState('')
-  const [editableBody, setEditableBody] = useState('')
-  const [showPreview, setShowPreview] = useState(false)
-  const [sending, setSending] = useState(false)
-  const [sendResult, setSendResult] = useState<{ ok: boolean; msg: string } | null>(null)
-  const [emailLogs, setEmailLogs] = useState<BookingEmailLog[]>([])
-  const [loadingLogs, setLoadingLogs] = useState(false)
-  const [inboundEmails, setInboundEmails] = useState<InboundEmail[]>([])
-
   useEffect(() => {
-    Promise.all([
-      fetch('/api/content').then((r) => r.json()),
-      fetch('/api/email-templates').then((r) => r.json()),
-    ])
-      .then(([d, td]) => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((d) => {
         const reqs: BookingRequest[] = d.bookingRequests ?? []
         if (reqs.length) setRequests(reqs)
-        if (td.templates) {
-          setTemplates(
-            (td.templates as EmailTemplate[]).filter((t) => !t.slug.startsWith('venue-'))
-          )
-        }
-        // Deep-link from Inbox "Go to detail →"
-        const raw = sessionStorage.getItem('openEntityId')
-        if (raw) {
-          try {
-            const { type, id } = JSON.parse(raw) as { type: string; id: string }
-            if (type === 'booking') {
-              const target = reqs.find((r) => r.id === id)
-              if (target) openDrawer(target, 'email')
-            }
-          } catch { /* ignore */ }
-          sessionStorage.removeItem('openEntityId')
-        }
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const flash = () => { setSaved(true); setTimeout(() => setSaved(false), 2500) }
@@ -240,102 +206,10 @@ export default function AdminBookings({ onNavigate }: Props) {
     openDrawer(booking)
   }
 
-  const openDrawer = (r: BookingRequest, tab: 'details' | 'email' | 'quote' | 'invoice' = 'details') => {
+  const openDrawer = (r: BookingRequest, tab: 'details' | 'quote' | 'invoice' = 'details') => {
     setSelected(r)
     setDrawerTab(tab)
     setSaved(false)
-    setSendResult(null)
-    setSelectedTemplateId('')
-    setToEmail(r.email)
-    setEditableSubject('')
-    setEditableBody('')
-    setShowPreview(false)
-    setEmailLogs([])
-    setInboundEmails([])
-    if (tab === 'email') loadEmailLogs(r.id)
-  }
-
-  const loadEmailLogs = async (bookingId: string) => {
-    setLoadingLogs(true)
-    try {
-      const [logsRes, inboundRes] = await Promise.all([
-        fetch(`/api/bookings/${bookingId}/email-logs`),
-        fetch(`/api/inbound-emails?entityType=booking&entityId=${bookingId}`),
-      ])
-      const logsData = await logsRes.json()
-      const inboundData = await inboundRes.json()
-      setEmailLogs(logsData.logs ?? [])
-      setInboundEmails(inboundData.emails ?? [])
-    } catch {
-      setEmailLogs([])
-      setInboundEmails([])
-    } finally {
-      setLoadingLogs(false)
-    }
-  }
-
-  useEffect(() => {
-    if (!selectedTemplateId || !selected) {
-      setEditableSubject('')
-      setEditableBody('')
-      return
-    }
-    const tmpl = templates.find((t) => t.id === selectedTemplateId)
-    if (!tmpl) return
-    const { subject, bodyHtml } = renderTemplate(tmpl, {
-      clientName: selected.fullName.split(' ')[0] || selected.fullName,
-      eventDate: selected.eventDate || '(not specified)',
-      eventType: selected.eventType || 'your event',
-      bandName: 'Rebound Rock Band',
-      replyEmail: 'booking@reboundrockband.com',
-    })
-    setEditableSubject(subject)
-    setEditableBody(bodyHtml)
-  }, [selectedTemplateId, selected, templates])
-
-  const handleSendEmail = async () => {
-    if (!selected || !selectedTemplateId || !toEmail) return
-    setSending(true)
-    setSendResult(null)
-    try {
-      const res = await fetch(`/api/bookings/${selected.id}/send-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          templateId: selectedTemplateId,
-          toEmail,
-          subject: editableSubject,
-          bodyHtml: editableBody,
-          vars: {
-            clientName: selected.fullName.split(' ')[0] || selected.fullName,
-            eventDate: selected.eventDate || '(not specified)',
-            eventType: selected.eventType || 'your event',
-          },
-        }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setSendResult({ ok: true, msg: 'Email sent.' })
-        if (data.emailLog) setEmailLogs((prev) => [data.emailLog, ...prev])
-        if (selected.status === 'New') {
-          const patched = { ...selected, status: 'Contacted' as BookingStatus, updatedAt: new Date().toISOString() }
-          const updated = requests.map((r) => r.id === selected.id ? patched : r)
-          setRequests(updated)
-          setSelected(patched)
-          await fetch('/api/content', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ section: 'bookingRequests', data: updated }),
-          })
-        }
-      } else {
-        setSendResult({ ok: false, msg: data.error ?? 'Send failed.' })
-      }
-    } catch {
-      setSendResult({ ok: false, msg: 'Network error.' })
-    } finally {
-      setSending(false)
-    }
   }
 
   const exportCSV = () => {
@@ -601,11 +475,7 @@ export default function AdminBookings({ onNavigate }: Props) {
           <BookingDrawer
             booking={selected}
             tab={drawerTab}
-            onTabChange={(t) => {
-              setDrawerTab(t as 'details' | 'email' | 'quote' | 'contract' | 'invoice')
-              if (t === 'email') loadEmailLogs(selected.id)
-            }}
-
+            onTabChange={(t) => setDrawerTab(t as 'details' | 'quote' | 'contract' | 'invoice')}
             repeatBookings={requests.filter((r) => r.id !== selected.id && r.email === selected.email)}
             onClose={() => setSelected(null)}
             onUpdate={updateSelected}
@@ -621,24 +491,6 @@ export default function AdminBookings({ onNavigate }: Props) {
             }}
             saving={saving}
             saved={saved}
-            // Email props
-            templates={templates}
-            selectedTemplateId={selectedTemplateId}
-            onTemplateChange={setSelectedTemplateId}
-            toEmail={toEmail}
-            onToEmailChange={setToEmail}
-            editableSubject={editableSubject}
-            onSubjectChange={setEditableSubject}
-            editableBody={editableBody}
-            onBodyChange={setEditableBody}
-            showPreview={showPreview}
-            onTogglePreview={() => setShowPreview((p) => !p)}
-            sending={sending}
-            sendResult={sendResult}
-            onSendEmail={handleSendEmail}
-            emailLogs={emailLogs}
-            inboundEmails={inboundEmails}
-            loadingLogs={loadingLogs}
           />
         </div>
       )}
@@ -653,7 +505,7 @@ function PipelineView({
 }: {
   requests: BookingRequest[]
   selected: BookingRequest | null
-  onSelect: (r: BookingRequest, tab?: 'details' | 'email') => void
+  onSelect: (r: BookingRequest) => void
   today: string
   repeatEmails: Set<string>
 }) {
@@ -854,8 +706,8 @@ function ListView({
 
 interface DrawerProps {
   booking: BookingRequest
-  tab: 'details' | 'email' | 'quote' | 'contract' | 'invoice'
-  onTabChange: (t: 'details' | 'email' | 'quote' | 'contract' | 'invoice') => void
+  tab: 'details' | 'quote' | 'contract' | 'invoice'
+  onTabChange: (t: 'details' | 'quote' | 'contract' | 'invoice') => void
   onClose: () => void
   onUpdate: (patch: Partial<BookingRequest>) => void
   onSave: () => void
@@ -866,23 +718,6 @@ interface DrawerProps {
   repeatBookings: BookingRequest[]
   saving: boolean
   saved: boolean
-  templates: EmailTemplate[]
-  selectedTemplateId: string
-  onTemplateChange: (id: string) => void
-  toEmail: string
-  onToEmailChange: (v: string) => void
-  editableSubject: string
-  onSubjectChange: (v: string) => void
-  editableBody: string
-  onBodyChange: (v: string) => void
-  showPreview: boolean
-  onTogglePreview: () => void
-  sending: boolean
-  sendResult: { ok: boolean; msg: string } | null
-  onSendEmail: () => void
-  emailLogs: BookingEmailLog[]
-  inboundEmails: InboundEmail[]
-  loadingLogs: boolean
 }
 
 function buildInvoiceHtml(b: BookingRequest): string {
@@ -1293,18 +1128,11 @@ function buildQuoteHtml(b: BookingRequest): string {
 
 function BookingDrawer({
   booking, tab, onTabChange, onClose, onUpdate, onSave, onAdvance, onConvertToShow, onDuplicate, onDelete,
-  repeatBookings, saving, saved, templates, selectedTemplateId, onTemplateChange, toEmail, onToEmailChange,
-  editableSubject, onSubjectChange, editableBody, onBodyChange, showPreview, onTogglePreview,
-  sending, sendResult, onSendEmail, emailLogs, inboundEmails, loadingLogs,
+  repeatBookings, saving, saved,
 }: DrawerProps) {
-  const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const meta = STAGE_META[booking.status]
   const nextStage = NEXT_STAGE[booking.status]
-  const thread = [
-    ...emailLogs.map((l) => ({ kind: 'sent' as const, date: l.sentAt, data: l })),
-    ...inboundEmails.map((e) => ({ kind: 'received' as const, date: e.receivedAt, data: e })),
-  ].sort((a, b) => a.date.localeCompare(b.date))
 
   return (
     <>
@@ -1390,7 +1218,7 @@ function BookingDrawer({
 
       {/* Drawer tabs */}
       <div className="flex border-b border-white/8 flex-shrink-0 overflow-x-auto">
-        {(['details', 'email', 'quote', 'contract', 'invoice'] as const).map((t) => (
+        {(['details', 'quote', 'contract', 'invoice'] as const).map((t) => (
           <button
             key={t}
             type="button"
@@ -1400,7 +1228,6 @@ function BookingDrawer({
             }`}
           >
             {t === 'details' ? 'Details'
-              : t === 'email' ? `Conversation${thread.length > 0 ? ` (${thread.length})` : ''}`
               : t === 'quote' ? 'Quote'
               : t === 'contract' ? 'Contract'
               : 'Invoice'}
@@ -1765,147 +1592,6 @@ function BookingDrawer({
             >
               Print / Save as PDF
             </button>
-          </div>
-        )}
-
-        {tab === 'email' && (
-          <div className="flex flex-col gap-6">
-
-            {/* ── Conversation thread (top) ── */}
-            <div className="flex flex-col gap-3">
-              <p className="font-heading text-[10px] uppercase tracking-widest text-white/25">
-                Conversation {thread.length > 0 ? `· ${thread.length} messages` : ''}
-              </p>
-
-              {loadingLogs && <p className="font-body text-xs text-white/30">Loading…</p>}
-              {!loadingLogs && thread.length === 0 && (
-                <p className="font-body text-xs text-white/25 italic">No emails yet for this booking.</p>
-              )}
-
-              {thread.map((item) => {
-                if (item.kind === 'sent') {
-                  const log = item.data as BookingEmailLog
-                  return (
-                    /* Sent — right-aligned */
-                    <div key={log.id} className="flex justify-end">
-                      <div className="w-[88%] border border-white/8 bg-[#0d150d] px-4 py-3">
-                        <div className="flex items-center justify-end gap-1.5 mb-1.5">
-                          <span className={`font-heading text-[9px] uppercase tracking-widest border px-1.5 py-0.5 ${log.status === 'sent' ? 'text-green-400/60 border-green-400/20' : 'text-red-400/60 border-red-400/20'}`}>
-                            {log.status}
-                          </span>
-                          <svg className="w-3 h-3 text-green-400/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                          </svg>
-                        </div>
-                        <p className="font-body text-sm text-white/80 text-right">{log.subject}</p>
-                        <p className="font-body text-xs text-white/25 mt-1 text-right">{fmt(log.sentAt)}</p>
-                      </div>
-                    </div>
-                  )
-                } else {
-                  const email = item.data as InboundEmail
-                  const isExpanded = expandedEmailId === email.id
-                  return (
-                    /* Received — left-aligned, expandable */
-                    <div key={email.id} className="flex justify-start">
-                      <div className={`w-[88%] border px-4 py-3 ${email.read ? 'border-white/8 bg-[#111121]' : 'border-blue-400/25 bg-blue-400/5'}`}>
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          {!email.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />}
-                          <span className="font-heading text-[9px] uppercase tracking-widest text-blue-400/60">Reply received</span>
-                        </div>
-                        <p className="font-body text-sm text-white font-medium">{email.fromName || email.fromEmail}</p>
-                        <p className="font-body text-sm text-white/50 mt-0.5">{email.subject}</p>
-                        {email.bodyText && (
-                          <p className={`font-body text-xs text-white/40 leading-relaxed mt-1.5 ${isExpanded ? '' : 'line-clamp-3'}`}>
-                            {isExpanded ? email.bodyText : email.bodyText.slice(0, 300)}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
-                          <p className="font-body text-xs text-white/25">{fmt(email.receivedAt)}</p>
-                          <div className="flex items-center gap-3">
-                            {email.bodyText && email.bodyText.length > 200 && (
-                              <button
-                                type="button"
-                                onClick={() => setExpandedEmailId(isExpanded ? null : email.id)}
-                                className="font-heading text-[9px] uppercase tracking-widest text-white/30 hover:text-white/70 transition-colors"
-                              >
-                                {isExpanded ? '▲ Less' : '▼ Read more'}
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => onSubjectChange(`Re: ${email.subject.replace(/^Re:\s*/i, '')}`)}
-                              className="font-heading text-[9px] uppercase tracking-widest text-brand-red/60 hover:text-brand-red transition-colors flex items-center gap-1"
-                            >
-                              ↩ Reply
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
-              })}
-            </div>
-
-            {/* ── Compose (bottom) ── */}
-            <div className="border-t border-white/6 pt-5 flex flex-col gap-4">
-              <p className="font-heading text-[10px] uppercase tracking-widest text-white/25">New Message</p>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Template</label>
-                <select
-                  value={selectedTemplateId}
-                  onChange={(e) => { onTemplateChange(e.target.value); }}
-                  className={inputClass}
-                  aria-label="Email template"
-                >
-                  <option value="">— Select template —</option>
-                  {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">To</label>
-                <input type="email" value={toEmail} onChange={(e) => onToEmailChange(e.target.value)} className={inputClass} aria-label="Recipient email" placeholder="recipient@example.com" />
-              </div>
-
-              {editableSubject && (
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Subject</label>
-                  <input type="text" value={editableSubject} onChange={(e) => onSubjectChange(e.target.value)} className={inputClass} aria-label="Email subject" placeholder="Subject line" />
-                </div>
-              )}
-
-              {editableBody && (
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="font-heading text-[10px] uppercase tracking-widest text-white/35">Body</label>
-                    <button type="button" onClick={onTogglePreview} className="font-heading text-[10px] uppercase tracking-widest text-white/30 hover:text-white border border-white/8 px-2 py-1 transition-colors">
-                      {showPreview ? 'Edit' : 'Preview'}
-                    </button>
-                  </div>
-                  {showPreview ? (
-                    <iframe srcDoc={editableBody} className="w-full h-52 border border-white/8" sandbox="allow-same-origin" title="Preview" />
-                  ) : (
-                    <textarea value={editableBody} onChange={(e) => onBodyChange(e.target.value)} className={`${inputClass} h-36 resize-y font-mono text-xs`} spellCheck={false} />
-                  )}
-                </div>
-              )}
-
-              {sendResult && (
-                <p className={`font-body text-sm ${sendResult.ok ? 'text-green-400' : 'text-red-400'}`}>{sendResult.msg}</p>
-              )}
-
-              <button
-                type="button"
-                onClick={onSendEmail}
-                disabled={!selectedTemplateId || !toEmail || !editableSubject || sending}
-                className="font-heading text-xs uppercase tracking-widest bg-brand-red text-white px-5 py-2.5 hover:bg-brand-red-bright transition-all disabled:opacity-50 self-start"
-              >
-                {sending ? 'Sending…' : 'Send Email'}
-              </button>
-            </div>
           </div>
         )}
       </div>

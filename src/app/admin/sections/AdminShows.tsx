@@ -1035,11 +1035,6 @@ export default function AdminShows() {
                       {fmtMoney(show.guarantee) && (
                         <span className="font-body text-xs text-green-400/60 flex-shrink-0">{fmtMoney(show.guarantee)}</span>
                       )}
-                      {show.sourceVenueId && (
-                        <span className="font-heading text-[8px] uppercase tracking-widest border border-green-400/25 text-green-400/50 px-1.5 py-0.5 flex-shrink-0">
-                          Via Venue Outreach
-                        </span>
-                      )}
                     </div>
                     <div className="font-body text-xs text-white/35 truncate mt-0.5">{show.city} · {show.time}</div>
                   </div>
