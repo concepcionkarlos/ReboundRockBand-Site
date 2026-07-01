@@ -1,18 +1,23 @@
-# Nota — Funciones de email (pendiente)
+# Nota — Recibir el correo del sitio (booking@reboundrockband.com)
 
-El envío y recepción de correos **está pendiente de implementar en el dominio**.
-Por eso, por ahora, el sitio **no envía ni recibe emails automáticos**.
+Por ahora el sitio **no envía ni recibe correos automáticos**. Todo lo que se registra
+en los formularios se **guarda en el panel de administración** (secciones Bookings y
+Song Requests), así que no se pierde ninguna solicitud.
 
-## Qué sigue funcionando con normalidad
-- El formulario de **booking** guarda cada solicitud en el panel de administración.
-- El formulario de **song requests** guarda cada pedido en el panel.
-- Todo se ve y se gestiona desde el Admin (Bookings, Song Requests, etc.).
+## Para que las solicitudes lleguen a tu correo
+Hay que activar el **Email Forwarding en Squarespace** (donde está el dominio), para que
+todo lo que llegue a `booking@reboundrockband.com` se reenvíe a tu correo personal (Yahoo):
 
-## Qué queda pendiente de activar
-- Confirmaciones automáticas al cliente.
-- Notificaciones internas por correo cuando llega una solicitud.
-- Bandeja de entrada / respuestas por email dentro del Admin.
+1. Entra a `account.squarespace.com` e inicia sesión.
+2. Abre **Domains** y selecciona `reboundrockband.com`.
+3. Ve a **Email → Email Forwarding**.
+4. Crea el reenvío: `booking@reboundrockband.com` → tu correo personal.
+5. Guarda. Squarespace ajusta los registros automáticamente.
 
-Estas funciones se podrán activar cuando el **email del dominio esté implementado**.
-Mientras tanto, el equipo puede contactar a cada cliente manualmente usando el correo
-que queda registrado en cada solicitud dentro del panel.
+En el panel de administración hay una sección **Email** con estas mismas instrucciones.
+
+## Qué queda pendiente (para más adelante)
+- Que la web envíe **confirmaciones automáticas** al cliente.
+- Poder **enviar** correos desde `booking@` (no solo recibir).
+
+Eso necesita un servicio de correo aparte y se puede activar cuando se quiera.

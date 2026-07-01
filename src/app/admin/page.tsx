@@ -10,13 +10,14 @@ import AdminBandMembers from './sections/AdminBandMembers'
 import AdminEPK from './sections/AdminEPK'
 import AdminBookings from './sections/AdminBookings'
 import AdminSongRequests from './sections/AdminSongRequests'
+import AdminEmail from './sections/AdminEmail'
 import AdminAnalytics from './sections/AdminAnalytics'
 import AdminNotes from './sections/AdminNotes'
 import AdminLogin from './AdminLogin'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'analytics' | 'notes'
+type Section = 'dashboard' | 'members' | 'shows' | 'bookings' | 'song-requests' | 'merch' | 'media' | 'epk' | 'content' | 'email' | 'analytics' | 'notes'
 
 interface SearchItem {
   id: string
@@ -114,6 +115,15 @@ const navItems: { id: Section; label: string; badgeKey?: keyof Badges; icon: Rea
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'email' as Section,
+    label: 'Email',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
       </svg>
     ),
   },
@@ -254,6 +264,7 @@ export default function AdminPage() {
     media: <AdminMedia />,
     epk: <AdminEPK />,
     content: <AdminContent />,
+    email: <AdminEmail />,
     analytics: <AdminAnalytics />,
     notes: <AdminNotes />,
   }
@@ -293,7 +304,7 @@ export default function AdminPage() {
         <nav className="flex-1 overflow-y-auto py-4 px-2.5">
           <div className="mb-1">
             {navItems.map((item) => {
-              const showDivider = item.id === 'analytics' || item.id === 'notes'
+              const showDivider = item.id === 'email' || item.id === 'analytics' || item.id === 'notes'
               const isActive = active === item.id
               const badgeCount = item.badgeKey !== undefined ? badges[item.badgeKey] : undefined
               return (
@@ -301,7 +312,7 @@ export default function AdminPage() {
                   {showDivider && (
                     <div className="px-2.5 pt-4 pb-1.5">
                       <span className="font-heading text-[9px] uppercase tracking-[0.18em] text-white/20 block">
-                        {item.id === 'notes' ? 'Team' : 'Reports'}
+                        {item.id === 'email' ? 'Email' : item.id === 'notes' ? 'Team' : 'Reports'}
                       </span>
                     </div>
                   )}
