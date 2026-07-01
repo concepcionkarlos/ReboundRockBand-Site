@@ -26,7 +26,10 @@ export interface ContentStore {
 }
 
 const DATA_PATH = path.join(process.cwd(), 'data', 'content.json')
-const KV_KEY = 'content'
+// Rebound-specific KV key so this project never shares a namespace with any
+// other site that might live in the same KV / Upstash database.
+const KV_KEY = 'rebound:content'
+const LEGACY_KV_KEY = 'content'
 
 function getDefaults(): ContentStore {
   return {
@@ -80,13 +83,15 @@ function writeLocal(updates: Partial<ContentStore>): ContentStore {
 async function readKV(): Promise<ContentStore> {
   const { kv } = await import('@vercel/kv')
   const stored = await kv.get<ContentStore>(KV_KEY)
-  if (!stored) {
-    // Seed from the shipped content.json on first run
-    const initial = readLocal()
-    await kv.set(KV_KEY, initial)
-    return initial
-  }
-  return mergeWithDefaults(stored as Partial<ContentStore>)
+  if (stored) return mergeWithDefaults(stored as Partial<ContentStore>)
+
+  // First run under the Rebound-specific key: migrate existing data from the
+  // old shared 'content' key if present (no data loss), otherwise seed from
+  // the shipped content.json. The legacy key is left untouched.
+  const legacy = await kv.get<ContentStore>(LEGACY_KV_KEY)
+  const initial = legacy ?? readLocal()
+  await kv.set(KV_KEY, initial)
+  return mergeWithDefaults(initial as Partial<ContentStore>)
 }
 
 async function writeKV(updates: Partial<ContentStore>): Promise<ContentStore> {
