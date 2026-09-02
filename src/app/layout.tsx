@@ -7,6 +7,7 @@ import { LanguageProvider } from '@/context/LanguageContext'
 import type { Lang } from '@/lib/i18n'
 import { getLang } from '@/lib/getLang'
 import { readContent } from '@/lib/store'
+import { Analytics } from '@vercel/analytics/next'
 
 const bebasNeue = Bebas_Neue({
   weight: '400',
@@ -82,6 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main>{children}</main>
           <Footer />
         </LanguageProvider>
+        <Analytics />
       </body>
     </html>
   )
